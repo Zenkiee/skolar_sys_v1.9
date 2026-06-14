@@ -1,7 +1,22 @@
 document.addEventListener("DOMContentLoaded", async () => {
     await loadPaymentLearner();
     await loadPaymentHistory();
+    checkPaymentStatus();
 });
+
+function checkPaymentStatus() {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get("status");
+    const bookingGroupId = params.get("bookingGroupId");
+
+    if (status === "confirmed") {
+        showPaymentToast("Payment completed successfully! Your session booking is confirmed.", "success");
+        window.history.replaceState({}, document.title, "/Payment/History");
+    } else if (status === "declined") {
+        showPaymentToast("Payment was declined or cancelled. Please try again.", "error");
+        window.history.replaceState({}, document.title, "/Payment/History");
+    }
+}
 
 // Learner
 async function loadPaymentLearner() {

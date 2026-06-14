@@ -27,8 +27,8 @@ public class PaymentService
         var host = request?.Host.Value ?? "localhost";
         var scheme = request?.Scheme ?? "https";
 
-        var successUrl = $"{scheme}://{host}/Learner/Booking?bookingGroupId={bookingGroupId}&status=confirmed";
-        var cancelUrl = $"{scheme}://{host}/Learner/Booking?bookingGroupId={bookingGroupId}&status=declined";
+        var successUrl = $"{scheme}://{host}/Payment/History?bookingGroupId={bookingGroupId}&status=confirmed";
+        var cancelUrl = $"{scheme}://{host}/Payment/History?bookingGroupId={bookingGroupId}&status=declined";
 
         var gatewayResult = await _gateway.CreateCheckoutAsync(amount, "PHP", description, successUrl, cancelUrl);
 

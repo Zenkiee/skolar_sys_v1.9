@@ -1394,22 +1394,24 @@ a {
 
 /* Payment Action Button */
 .payment-action-btn {
-    padding: 6px 16px;
-    font-size: 13px;
-    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
     border: none;
-    border-radius: 6px;
-    background: var(--navy-soft);
+    border-radius: 999px;
+    background: var(--red);
     color: #fff;
+    font-size: 0.88rem;
+    font-weight: 800;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: transform 0.18s ease, background 0.18s ease;
     white-space: nowrap;
 }
 
 .payment-action-btn:hover {
-    background: var(--navy);
+    background: var(--red-dark);
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .payment-action-btn:active {
@@ -1419,5 +1421,6 @@ a {
 .payment-action-btn:disabled {
     background: var(--muted);
     cursor: not-allowed;
-    opacity: 0.6;
+    opacity: 0.7;
+    transform: none;
 }
