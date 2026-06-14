@@ -783,8 +783,12 @@ section {
         text-align: center;
     }
 
-    .footer-column > div {
-        align-items: center !important;
+    .footer-columns > div {
+        justify-self: center !important;
+    }
+
+    .footer-column {
+        align-items: center;
     }
 }
 
