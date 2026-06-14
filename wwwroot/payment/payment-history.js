@@ -64,6 +64,27 @@ async function logoutLearnerFromPayment() {
     window.location.href = "/";
 }
 
+async function retryPayment(button, checkoutReference, amount) {
+    button.disabled = true;
+    button.textContent = "Loading...";
+
+    try {
+        const response = await fetch(`/Payment/RetryCheckout?checkoutReference=${encodeURIComponent(checkoutReference)}`);
+        if (!response.ok) throw new Error("Could not retry payment.");
+
+        const data = await response.json();
+        if (data.checkoutUrl) {
+            window.location.href = data.checkoutUrl;
+        } else {
+            throw new Error("No checkout URL received.");
+        }
+    } catch (error) {
+        button.disabled = false;
+        button.textContent = "Pay Now";
+        showPaymentToast(error.message, "error");
+    }
+}
+
 async function loadPaymentHistory() {
     const list = document.getElementById("transactionList");
     try {
@@ -104,7 +125,10 @@ function renderTransactions(transactions) {
                         <div><strong>${escapePaymentText(session.subject)}</strong><br><small>${escapePaymentText(session.tutorName)}</small></div>
                         <span>${formatPaymentDate(session.date)}<br><small>${escapePaymentText(session.time)}</small></span>
                         <strong>₱${Number(session.sessionAmount).toLocaleString("en-PH", { minimumFractionDigits: 2 })}</strong>
-                        <span class="status-chip ${String(session.paymentStatus).toLowerCase()}">${escapePaymentText(session.paymentStatus)}</span>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <span class="status-chip ${String(session.paymentStatus).toLowerCase()}">${escapePaymentText(session.paymentStatus)}</span>
+                            ${["Unpaid", "Failed"].includes(session.paymentStatus) ? `<button class="payment-retry-btn" onclick="retryPayment(this, '${transaction.checkoutReference}', ${transaction.amount})" style="padding: 4px 12px; font-size: 12px; border: none; border-radius: 4px; background: #007bff; color: white; cursor: pointer;">Pay Now</button>` : ""}
+                        </div>
                     </div>`).join("")}
             </div>
             ${transaction.refunds.map(refund => renderRefund(refund)).join("")}

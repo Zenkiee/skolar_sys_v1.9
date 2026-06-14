@@ -44,6 +44,23 @@ public class PaymentController : Controller
     }
 
     [HttpGet]
+    public async Task<IActionResult> RetryCheckout(string checkoutReference)
+    {
+        var userId = HttpContext.Session.GetUserId();
+        if (userId == null || !HttpContext.Session.HasRole("learner")) return Unauthorized();
+
+        var transaction = await _context.PaymentTransactions
+            .FirstOrDefaultAsync(t => t.CheckoutReference == checkoutReference && t.LearnerId == userId.Value);
+
+        if (transaction == null) return NotFound(new { message = "Payment transaction not found." });
+
+        if (transaction.Status == "Paid")
+            return BadRequest(new { message = "This payment has already been processed." });
+
+        return Ok(new { checkoutUrl = transaction.CheckoutReference });
+    }
+
+    [HttpGet]
     public IActionResult History()
     {
         if (!HttpContext.Session.HasRole("learner")) return Unauthorized();

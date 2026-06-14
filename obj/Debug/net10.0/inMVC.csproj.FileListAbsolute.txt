@@ -1064,7 +1064,6 @@ C:\Users\Jedi\Desktop\VSCode Stuff\skolar_sys_v1.9\obj\Debug\net10.0\compressed\
 C:\Users\Jedi\Desktop\VSCode Stuff\skolar_sys_v1.9\obj\Debug\net10.0\compressed\vha1pj6wtl-{0}-vbstxz5ev1-vbstxz5ev1.gz
 C:\Users\Jedi\Desktop\VSCode Stuff\skolar_sys_v1.9\obj\Debug\net10.0\compressed\4fiev1xog3-{0}-1jvllaa1da-1jvllaa1da.gz
 C:\Users\Jedi\Desktop\VSCode Stuff\skolar_sys_v1.9\obj\Debug\net10.0\compressed\2jc7vhp866-{0}-ung03qtyg4-ung03qtyg4.gz
-C:\Users\Jedi\Desktop\VSCode Stuff\skolar_sys_v1.9\obj\Debug\net10.0\compressed\5qqhsx2hyu-{0}-iujgrqcgtt-iujgrqcgtt.gz
 C:\Users\Jedi\Desktop\VSCode Stuff\skolar_sys_v1.9\obj\Debug\net10.0\compressed\u0yyis195e-{0}-m94f9uuwt3-m94f9uuwt3.gz
 C:\Users\Jedi\Desktop\VSCode Stuff\skolar_sys_v1.9\obj\Debug\net10.0\compressed\xrahe9uib9-{0}-duuu9y9pso-duuu9y9pso.gz
 C:\Users\Jedi\Desktop\VSCode Stuff\skolar_sys_v1.9\obj\Debug\net10.0\compressed\rn34m0ozna-{0}-u7x3lvo72h-u7x3lvo72h.gz
@@ -1117,3 +1116,4 @@ C:\Users\Jedi\Desktop\VSCode Stuff\skolar_sys_v1.9\obj\Debug\net10.0\inMVC.pdb
 C:\Users\Jedi\Desktop\VSCode Stuff\skolar_sys_v1.9\obj\Debug\net10.0\inMVC.genruntimeconfig.cache
 C:\Users\Jedi\Desktop\VSCode Stuff\skolar_sys_v1.9\obj\Debug\net10.0\ref\inMVC.dll
 C:\Users\Jedi\Desktop\VSCode Stuff\skolar_sys_v1.9\obj\Debug\net10.0\compressed\3v875aj15b-{0}-1f2if9v6pf-1f2if9v6pf.gz
+C:\Users\Jedi\Desktop\VSCode Stuff\skolar_sys_v1.9\obj\Debug\net10.0\compressed\5qqhsx2hyu-{0}-obo295h35u-obo295h35u.gz
