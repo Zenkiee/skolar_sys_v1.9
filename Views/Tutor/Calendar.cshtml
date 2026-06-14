@@ -1,0 +1,429 @@
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/skolar-dialog.css">
+  <meta name="description" content="Skolar Calendar — View and manage your weekly tutoring schedule.">
+  <title>Calendar — Skolar</title>
+  <link rel="icon" type="image/png" href="~/assets/img/skolarlogo.png">
+  <link rel="stylesheet" href="~/tutor/tutor-css/tutor-shared.css">
+  <link rel="stylesheet" href="~/tutor/tutor-css/calendar.css">
+</head>
+<body>
+    <script src="~/js/skolar-dialog.js"></script>
+
+  <!-- ========== SIDEBAR ========== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-top">
+      <div class="logo">
+        <img src="~/assets/img/skolarlogo.png" alt="Skolar Logo" class="logo-icon">
+        <div class="logo-text-group">
+          <span class="logo-title">Skolar</span>
+          <span class="logo-subtitle">Tutor Portal</span>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <a href="/Tutor/TutorDashboard" class="nav-item" data-page="dashboard">
+          <span class="svg-icon icon-01 nav-icon icon-size-20" aria-hidden="true"></span>
+          <span>Dashboard</span>
+        </a>
+        <a href="/Tutor/Bookings" class="nav-item" data-page="bookings">
+          <span class="svg-icon icon-02 nav-icon icon-size-20" aria-hidden="true"></span>
+          <span>Bookings</span>
+        </a>
+        <a href="/Tutor/Reviews" class="nav-item" data-page="reviews">
+          <span class="svg-icon icon-03 nav-icon icon-size-20" aria-hidden="true"></span>
+          <span>Reviews</span>
+        </a>
+        <a href="/Tutor/Calendar" class="nav-item active" data-page="calendar">
+          <span class="svg-icon icon-04 nav-icon icon-size-20" aria-hidden="true"></span>
+          <span>Calendar</span>
+        </a>
+        <a href="/Payment/TutorFinance" class="nav-item" data-page="finance">
+          <span class="svg-icon icon-21 nav-icon icon-size-20" aria-hidden="true"></span>
+          <span>Earnings &amp; Penalties</span>
+        </a>
+      </nav>
+    </div>
+
+    <div class="sidebar-bottom">
+      <a href="/Tutor/EditProfile" class="nav-item" data-page="edit-profile">
+        <span class="svg-icon icon-05 nav-icon icon-size-20" aria-hidden="true"></span>
+        <span>Edit Profile</span>
+      </a>
+      <a href="/Tutor/Settings" class="nav-item" data-page="settings">
+        <span class="svg-icon icon-06 nav-icon icon-size-20" aria-hidden="true"></span>
+        <span>Settings</span>
+      </a>
+      <div class="profile-card">
+        <div class="profile-avatar-small" id="sidebarInitials">VL</div>
+        <div class="profile-info">
+          <span class="profile-name" id="sidebarName">Vannesa L. Cainong</span>
+          <span class="profile-role">Professional Teacher</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Sidebar overlay for mobile -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- ========== MAIN WRAPPER ========== -->
+  <div class="main-wrapper">
+
+    <!-- ========== TOPBAR ========== -->
+    <header class="topbar">
+      <button class="hamburger" id="hamburger" aria-label="Toggle sidebar">
+        <span class="svg-icon icon-07 icon-size-24" aria-hidden="true"></span>
+      </button>
+      <h1 class="page-title">Calendar</h1>
+      <div class="topbar-right">
+        <div class="notif-wrapper">
+          <button class="notif-btn" id="notifBtn" type="button" aria-label="Notifications" aria-expanded="false">
+            <span class="svg-icon icon-08 icon-size-22" aria-hidden="true"></span>
+            <span class="notif-dot" id="notifDot" hidden></span>
+          </button>
+          <div class="notif-dropdown" id="notifDropdown">
+            <div class="notif-dropdown-header">
+              <span>Notifications</span>
+              <span class="notif-unread-count" id="notifUnreadCount"></span>
+            </div>
+            <div class="notif-list" id="notifList">
+              <div class="notif-empty">Loading notifications...</div>
+            </div>
+          </div>
+        </div>
+        <a href="/Tutor/EditProfile" class="topbar-avatar" id="topbarAvatar">T</a>
+      </div>
+    </header>
+
+    <!-- ========== MAIN CONTENT ========== -->
+    <main class="main-content">
+
+      <!-- Availability Manager -->
+      <section class="availability-manager">
+        <div class="availability-manager-header">
+          <div>
+            <h2>Manage Your Availability</h2>
+            <p>Select a date, then add booking slots of at least one hour.</p>
+          </div>
+          <button id="saveAvailBtn" class="availability-save-btn">Save Changes</button>
+        </div>
+
+        <div class="availability-layout">
+          <div class="availability-calendar-panel">
+            <div class="availability-month-nav">
+              <button id="availPrev" aria-label="Previous month">‹</button>
+              <strong id="availMonthLabel"></strong>
+              <button id="availNext" aria-label="Next month">›</button>
+            </div>
+
+            <div class="availability-weekdays">
+              <span>Mo</span><span>Tu</span><span>We</span><span>Th</span>
+              <span>Fr</span><span>Sa</span><span>Su</span>
+            </div>
+            <div id="availCalDays" class="availability-days"></div>
+
+            <div class="availability-legend">
+              <span><i class="legend-swatch available"></i>Has time slots</span>
+              <span><i class="legend-swatch selected"></i>Selected</span>
+              <span><i class="legend-swatch today"></i>Today</span>
+            </div>
+          </div>
+
+          <div class="availability-time-panel">
+            <span class="availability-panel-label">Selected date</span>
+            <h3 id="selectedAvailDate">Choose a date</h3>
+            <p id="availabilityPrompt">Select a future date from the calendar to manage its time slots.</p>
+
+            <div id="timeSlotEditor" class="time-slot-editor" hidden>
+              <div class="time-slot-inputs">
+                <label>
+                  Start time
+                  <input type="time" id="slotStart">
+                </label>
+                <span>to</span>
+                <label>
+                  End time
+                  <input type="time" id="slotEnd">
+                </label>
+                <button type="button" id="addTimeSlotBtn">Add Time</button>
+              </div>
+
+              <div id="timeSlotList" class="time-slot-list"></div>
+              <p id="emptyTimeSlots" class="empty-time-slots">No time slots added for this date.</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="availSaveMsg" class="availability-save-message" hidden>Availability saved.</div>
+      </section>
+
+      <!-- Existing Booking Calendar -->
+      <div class="cal-nav">
+        <button class="cal-nav-btn" id="calPrev">
+          <span class="svg-icon icon-10 icon-size-auto" aria-hidden="true"></span>
+        </button>
+        <button class="cal-nav-btn" id="calNext">
+          <span class="svg-icon icon-11 icon-size-auto" aria-hidden="true"></span>
+        </button>
+        <button class="cal-today-btn" id="calToday">Today</button>
+        <span class="cal-date-range" id="calDateRange"></span>
+      </div>
+      <div class="cal-grid-wrapper">
+        <div class="cal-grid-scroll">
+          <div class="cal-grid" id="calGrid"></div>
+        </div>
+      </div>
+
+      <script>
+      // Availability
+      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      const availability = new Map();
+      let availYear = new Date().getFullYear();
+      let availMonth = new Date().getMonth();
+      let activeDate = null;
+
+      async function initAvailability() {
+          const response = await fetch('/Tutor/GetMyAvailability');
+          if (response.ok) {
+              const days = await response.json();
+              days.forEach(day => availability.set(day.date, new Set(day.timeSlots || [])));
+          }
+
+          renderAvailCalendar();
+          renderTimeSlots();
+      }
+
+      function renderAvailCalendar() {
+          document.getElementById('availMonthLabel').textContent = `${monthNames[availMonth]} ${availYear}`;
+          const container = document.getElementById('availCalDays');
+          container.innerHTML = '';
+
+          const today = new Date();
+          const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+          const firstDay = new Date(availYear, availMonth, 1).getDay();
+          const daysInMonth = new Date(availYear, availMonth + 1, 0).getDate();
+          const startOffset = firstDay === 0 ? 6 : firstDay - 1;
+
+          for (let index = 0; index < startOffset; index++) {
+              container.insertAdjacentHTML('beforeend', '<span class="availability-day-placeholder"></span>');
+          }
+
+          for (let day = 1; day <= daysInMonth; day++) {
+              const date = new Date(availYear, availMonth, day);
+              const dateKey = `${availYear}-${String(availMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+              const slotCount = availability.get(dateKey)?.size || 0;
+              const isPast = date < todayStart;
+              const isToday = date.getTime() === todayStart.getTime();
+              const classes = ['availability-day'];
+
+              if (slotCount > 0) classes.push('is-available');
+              if (activeDate === dateKey) classes.push('is-selected');
+              if (isToday) classes.push('is-today');
+              if (isPast) classes.push('is-past');
+
+              const button = document.createElement('button');
+              button.type = 'button';
+              button.className = classes.join(' ');
+              button.disabled = isPast;
+              button.innerHTML = `<span>${day}</span>${slotCount > 0 ? `<small>${slotCount}</small>` : ''}`;
+              button.addEventListener('click', () => selectAvailabilityDate(dateKey));
+              container.appendChild(button);
+          }
+      }
+
+      function selectAvailabilityDate(dateKey) {
+          activeDate = dateKey;
+          renderAvailCalendar();
+          renderTimeSlots();
+      }
+
+      function renderTimeSlots() {
+          const editor = document.getElementById('timeSlotEditor');
+          const heading = document.getElementById('selectedAvailDate');
+          const prompt = document.getElementById('availabilityPrompt');
+          const list = document.getElementById('timeSlotList');
+          const empty = document.getElementById('emptyTimeSlots');
+
+          if (!activeDate) {
+              editor.hidden = true;
+              heading.textContent = 'Choose a date';
+              prompt.hidden = false;
+              return;
+          }
+
+          editor.hidden = false;
+          prompt.hidden = true;
+          heading.textContent = formatAvailabilityDate(activeDate);
+          list.innerHTML = '';
+
+          const slots = [...(availability.get(activeDate) || [])].sort((first, second) => getStartMinutes(first) - getStartMinutes(second));
+          empty.hidden = slots.length > 0;
+
+          slots.forEach(slot => {
+              const item = document.createElement('div');
+              item.className = 'time-slot-item';
+              item.innerHTML = `<span>${slot}</span><button type="button" aria-label="Remove ${slot}">Remove</button>`;
+              item.querySelector('button').addEventListener('click', () => removeTimeSlot(slot));
+              list.appendChild(item);
+          });
+      }
+
+      function addTimeSlot() {
+          if (!activeDate) return;
+
+          const startInput = document.getElementById('slotStart');
+          const endInput = document.getElementById('slotEnd');
+          const start = startInput.value;
+          const end = endInput.value;
+
+          if (!start || !end) {
+              SkolarDialog.alert('Select both a start time and an end time.');
+              return;
+          }
+
+          const startMinutes = toMinutes(start);
+          const endMinutes = toMinutes(end);
+          if (endMinutes <= startMinutes) {
+              SkolarDialog.alert('End time must be later than start time.');
+              return;
+          }
+
+          if (endMinutes - startMinutes < 60) {
+              SkolarDialog.alert('Each tutoring session must be at least one hour.');
+              return;
+          }
+
+          const existingSlots = [...(availability.get(activeDate) || [])];
+          const overlaps = existingSlots.some(slot => {
+              const [existingStart, existingEnd] = getSlotMinutes(slot);
+              return startMinutes < existingEnd && endMinutes > existingStart;
+          });
+
+          if (overlaps) {
+              SkolarDialog.alert('This time overlaps with another slot on the selected date.');
+              return;
+          }
+
+          const slot = `${formatTime(start)} - ${formatTime(end)}`;
+          if (!availability.has(activeDate)) availability.set(activeDate, new Set());
+          availability.get(activeDate).add(slot);
+          startInput.value = '';
+          endInput.value = '';
+          renderAvailCalendar();
+          renderTimeSlots();
+      }
+
+      function removeTimeSlot(slot) {
+          const slots = availability.get(activeDate);
+          if (!slots) return;
+
+          slots.delete(slot);
+          if (slots.size === 0) availability.delete(activeDate);
+          renderAvailCalendar();
+          renderTimeSlots();
+      }
+
+      function formatTime(value) {
+          const [hourText, minute] = value.split(':');
+          const hour = Number(hourText);
+          const period = hour >= 12 ? 'PM' : 'AM';
+          const displayHour = hour % 12 || 12;
+          return `${displayHour}:${minute} ${period}`;
+      }
+
+      function toMinutes(value) {
+          const [hour, minute] = value.split(':').map(Number);
+          return hour * 60 + minute;
+      }
+
+      function getSlotMinutes(slot) {
+          return slot.split(' - ').map(value => {
+              const [time, period] = value.split(' ');
+              let [hour, minute] = time.split(':').map(Number);
+              if (period === 'PM' && hour !== 12) hour += 12;
+              if (period === 'AM' && hour === 12) hour = 0;
+              return hour * 60 + minute;
+          });
+      }
+
+      function getStartMinutes(slot) {
+          return getSlotMinutes(slot)[0];
+      }
+
+      function formatAvailabilityDate(dateKey) {
+          return new Date(`${dateKey}T00:00:00`).toLocaleDateString('en-US', {
+              weekday: 'long',
+              month: 'long',
+              day: 'numeric',
+              year: 'numeric'
+          });
+      }
+
+      document.getElementById('availPrev').addEventListener('click', () => {
+          availMonth--;
+          if (availMonth < 0) {
+              availMonth = 11;
+              availYear--;
+          }
+          renderAvailCalendar();
+      });
+
+      document.getElementById('availNext').addEventListener('click', () => {
+          availMonth++;
+          if (availMonth > 11) {
+              availMonth = 0;
+              availYear++;
+          }
+          renderAvailCalendar();
+      });
+
+      document.getElementById('addTimeSlotBtn').addEventListener('click', addTimeSlot);
+
+      document.getElementById('saveAvailBtn').addEventListener('click', async () => {
+          const payload = [...availability.entries()]
+              .filter(([, slots]) => slots.size > 0)
+              .sort(([firstDate], [secondDate]) => firstDate.localeCompare(secondDate))
+              .map(([date, slots]) => ({
+                  date,
+                  timeSlots: [...slots].sort((first, second) => getStartMinutes(first) - getStartMinutes(second))
+              }));
+
+          const response = await fetch('/Tutor/SaveAvailability', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ availability: payload })
+          });
+
+          if (!response.ok) {
+              const error = await response.json().catch(() => null);
+              SkolarDialog.alert(error?.message || 'Failed to save availability.');
+              return;
+          }
+
+          const message = document.getElementById('availSaveMsg');
+          message.hidden = false;
+          setTimeout(() => message.hidden = true, 3000);
+      });
+
+      initAvailability();
+      </script>
+
+    </main>
+  </div>
+  <script src="~/main-js/auth-guard.js"></script>
+  <script>
+    requireRole("tutor");
+  </script>
+
+
+
+  <script src="~/tutor/tutor-js/tutor-shared.js"></script>
+  <script src="~/tutor/tutor-js/calendar.js"></script>
+</body>
+</html>

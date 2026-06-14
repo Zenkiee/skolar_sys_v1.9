@@ -1,0 +1,460 @@
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/skolar-dialog.css">
+    <title>Learner Portal | Skolar</title>
+    <link rel="icon" type="image/png" href="~/assets/img/skolarlogo.png">
+    <link rel="stylesheet" href="~/learner/learner-css/learner-portal.css">
+    <link rel="stylesheet" href="~/learner/learner-css/profile.css">
+</head>
+<body>
+    <script src="~/js/skolar-dialog.js"></script>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="portalSidebar">
+        <div class="brand">
+            <img src="~/assets/img/skolarlogo.png" alt="Skolar Logo">
+            <div>
+                <h2>Skolar</h2>
+                <p>Learner Portal</p>
+            </div>
+        </div>
+
+        <div class="learner-card">
+            <div class="learner-avatar" id="learnerAvatar">
+                <img id="learnerSidebarPhoto" alt="" hidden>
+                <span id="learnerInitial">L</span>
+            </div>
+            <div>
+                <h3 id="learnerName">Learner</h3>
+                <p>Learner Account</p>
+            </div>
+        </div>
+
+        <nav class="sidebar-menu">
+            <button class="menu-link active" data-page="dashboard" onclick="showPage('dashboard', this); closePortalMenu()">Dashboard</button>
+            <button class="menu-link" data-page="sessions" onclick="showPage('sessions', this); closePortalMenu()">My Sessions</button>
+            <a class="menu-link menu-link-anchor" href="/Payment/History">Payments & Refunds</a>
+            <button class="menu-link" data-page="tutors" onclick="showPage('tutors', this); closePortalMenu()">Find Tutors</button>
+            <button class="menu-link" data-page="reviews" onclick="showPage('reviews', this); closePortalMenu()">Reviews</button>
+            <button class="menu-link" data-page="profile" onclick="showPage('profile', this); closePortalMenu()">Profile</button>
+        </nav>
+
+        <button class="logout-btn" onclick="logoutLearner()">Log out</button>
+    </aside>
+
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closePortalMenu()"></div>
+
+    <!-- MAIN -->
+    <main class="main-content">
+
+        <header class="mobile-portal-nav">
+            <div class="mobile-brand">
+                <img src="~/assets/img/skolarlogo.png" alt="Skolar Logo">
+                <span>Skolar</span>
+            </div>
+
+            <button class="portal-menu-btn" onclick="togglePortalMenu()">☰</button>
+        </header>
+
+        <!-- TOPBAR -->
+        <header class="topbar">
+            <div>
+                <h1 id="pageTitle">Dashboard</h1>
+                <p id="learnerGreeting">Welcome back, Learner!</p>
+            </div>
+
+            
+        </header>
+
+        <!-- CONTENT -->
+        <section class="content">
+
+            <!-- DASHBOARD -->
+            <div class="page active" id="dashboard">
+                <div class="welcome-section">
+                    <div>
+                        <div class="welcome-date">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+                            </svg>
+                        <span id="currentDate"></span>
+                        </div>
+                        <h2>Ready for your next lesson?</h2>
+                        <p>Track your sessions, find tutors, and continue your learning journey.</p>
+                    </div>
+
+                    <a href="/Learner/Booking" class="welcome-btn">Start Booking</a>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3 id="statTotal">0</h3>
+                        <p>Total Sessions</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="statPending">0</h3>
+                        <p>Pending</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="statConfirmed">0</h3>
+                        <p>Confirmed</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="statCompleted">0</h3>
+                        <p>Completed</p>
+                    </div>
+                </div>
+
+                <div class="section-grid">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>Upcoming Session</h2>
+                            <span class="status confirmed" id="upcomingStatusBadge" style="display:none">Confirmed</span>
+                        </div>
+                        <div class="session-preview" id="upcomingSession">
+                            <p style="color:#888">No upcoming sessions.</p>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>Learning Summary</h2>
+                        </div>
+                        <div class="learning-summary" aria-label="Learning summary">
+                            <div class="learning-summary-item">
+                                <strong id="summaryCompleted">0</strong>
+                                <span>Completed sessions</span>
+                            </div>
+                            <div class="learning-summary-item">
+                                <strong id="summaryUpcoming">0</strong>
+                                <span>Upcoming sessions</span>
+                            </div>
+                            <div class="learning-summary-item">
+                                <strong id="summaryReviews">0</strong>
+                                <span>Reviews submitted</span>
+                            </div>
+                            <div class="learning-summary-item learning-summary-subjects">
+                                <strong id="summarySubjects">No subjects yet</strong>
+                                <span>Subjects studied</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MY SESSIONS -->
+            <div class="page" id="sessions">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>My Sessions</h2>
+                        <a href="/Payment/History" class="payment-history-link">Payments & Refunds</a>
+                    </div>
+
+                    <div class="session-completion-notice" id="sessionCompletionNotice" hidden></div>
+                    <div class="session-list" id="sessionList"></div>
+                </div>
+            </div>
+
+            <!-- FIND TUTORS -->
+            <div class="page" id="tutors">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Find Tutors</h2>
+                        <input type="text" id="tutorSearch" class="search-input" placeholder="Search tutor or subject...">
+                    </div>
+
+                    <div class="tutor-grid" id="tutorGrid">
+                        <!-- Populated from database -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- REVIEWS -->
+            <div class="page" id="reviews">
+                <div class="panel review-panel">
+                    <h2>Submit a Review</h2>
+                    <p class="panel-subtitle">
+                        You can submit one review for each completed tutoring session.
+                    </p>
+
+                    <div class="review-guidelines">
+                        <strong>Keep your review appropriate</strong>
+                        <p>Focus on the tutoring session. Avoid offensive language, personal attacks, spam, and private information. Reviews are published immediately and may be reported for moderation.</p>
+                    </div>
+
+                    <div class="review-form">
+                        <label for="reviewSessionSelect">Choose completed session</label>
+                        <select id="reviewSessionSelect">
+                            <option value="">Loading completed sessions...</option>
+                        </select>
+
+                        <label for="reviewRating">Rating</label>
+                        <select id="reviewRating">
+                            <option value="">Select rating</option>
+                            <option value="5">★★★★★ — Excellent</option>
+                            <option value="4">★★★★☆ — Very Good</option>
+                            <option value="3">★★★☆☆ — Good</option>
+                            <option value="2">★★☆☆☆ — Fair</option>
+                            <option value="1">★☆☆☆☆ — Poor</option>
+                        </select>
+
+                        <label for="reviewComment">Your Review</label>
+                        <textarea id="reviewComment" maxlength="1000" placeholder="Write respectful feedback about this session..."></textarea>
+
+                        <button type="button" onclick="submitReview()">Submit Review</button>
+                        <p id="reviewMsg" class="review-message" role="status"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PROFILE -->
+            <div class="page" id="profile">
+                <div class="panel profile-panel">
+                    <div class="profile-heading">
+                        <div>
+                            <h2>My Profile</h2>
+                            <p class="panel-subtitle">Manage the learner's personal information and learning preferences.</p>
+                        </div>
+                        <span class="profile-status" id="profileStatus">Profile</span>
+                    </div>
+
+                    <div class="profile-photo-section">
+                        <div class="profile-photo-preview" id="profilePhotoPreview">
+                            <img id="profilePhotoImage" alt="Learner profile photo" hidden>
+                            <span id="profilePhotoInitial">L</span>
+                        </div>
+
+                        <div class="profile-photo-info">
+                            <h3>Profile Photo</h3>
+                            <p>Upload a JPG, PNG, or WebP image up to 5 MB.</p>
+                            <div class="profile-photo-actions">
+                                <label class="profile-photo-button" for="profilePhotoInput">Choose Photo</label>
+                                <input type="file" id="profilePhotoInput" accept="image/jpeg,image/png,image/webp" hidden>
+                                <button type="button" class="profile-photo-save" id="uploadProfilePhotoButton">Upload Photo</button>
+                                <button type="button" class="profile-photo-remove" id="removeProfilePhotoButton">Remove Photo</button>
+                            </div>
+                            <p class="profile-field-error" id="profilePhotoError"></p>
+                        </div>
+                    </div>
+
+                    <form class="profile-form" id="learnerProfileForm" novalidate>
+                        <section class="profile-section">
+                            <div class="profile-section-title">
+                                <h3>Personal Information</h3>
+                                <p>Basic learner details used for bookings and account records.</p>
+                            </div>
+
+                            <div class="profile-grid">
+                                <div class="profile-field">
+                                    <label for="profileName">Full Name</label>
+                                    <input type="text" id="profileName" maxlength="60" autocomplete="name">
+                                    <p class="profile-field-error" data-error-for="profileName"></p>
+                                </div>
+
+                                <div class="profile-field">
+                                    <label for="profileEmail">Email</label>
+                                    <input type="email" id="profileEmail" readonly>
+                                    <small>Email verification and email changes will be added later.</small>
+                                </div>
+
+                                <div class="profile-field">
+                                    <label for="profileBirthday">Birthdate</label>
+                                    <input type="date" id="profileBirthday">
+                                    <p class="profile-field-error" data-error-for="profileBirthday"></p>
+                                </div>
+
+                                <div class="profile-field">
+                                    <label for="profileGradeLevel">Year Level</label>
+                                    <select id="profileGradeLevel">
+                                        <option value="">Select year level</option>
+                                        <option value="Preschool">Preschool</option>
+                                        <option value="Kindergarten">Kindergarten</option>
+                                        <option value="Grade 1">Grade 1</option>
+                                        <option value="Grade 2">Grade 2</option>
+                                        <option value="Grade 3">Grade 3</option>
+                                        <option value="Grade 4">Grade 4</option>
+                                        <option value="Grade 5">Grade 5</option>
+                                        <option value="Grade 6">Grade 6</option>
+                                    </select>
+                                    <p class="profile-field-error" data-error-for="profileGradeLevel"></p>
+                                </div>
+
+                                <div class="profile-field">
+                                    <label for="profileSchool">School</label>
+                                    <input type="text" id="profileSchool" maxlength="100" placeholder="School name">
+                                    <p class="profile-field-error" data-error-for="profileSchool"></p>
+                                </div>
+
+                                <div class="profile-field">
+                                    <label for="profileContact">Contact Number</label>
+                                    <input type="tel" id="profileContact" maxlength="13" placeholder="09XXXXXXXXX">
+                                    <p class="profile-field-error" data-error-for="profileContact"></p>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="profile-section">
+                            <div class="profile-section-title">
+                                <h3>Account Management</h3>
+                                <p>Choose whether the learner or a parent or guardian manages this account.</p>
+                            </div>
+
+                            <div class="profile-field profile-manager-field">
+                                <label for="profileAccountManager">Account managed by</label>
+                                <select id="profileAccountManager">
+                                    <option value="Learner">Learner</option>
+                                    <option value="Guardian">Parent or Guardian</option>
+                                </select>
+                                <p class="profile-field-error" data-error-for="profileAccountManager"></p>
+                            </div>
+
+                            <div class="guardian-fields" id="guardianFields" hidden>
+                                <div class="profile-grid">
+                                    <div class="profile-field">
+                                        <label for="guardianName">Parent or Guardian Name</label>
+                                        <input type="text" id="guardianName" maxlength="60">
+                                        <p class="profile-field-error" data-error-for="guardianName"></p>
+                                    </div>
+
+                                    <div class="profile-field">
+                                        <label for="guardianRelationship">Relationship to Learner</label>
+                                        <input type="text" id="guardianRelationship" maxlength="40" placeholder="Parent, guardian, sibling">
+                                        <p class="profile-field-error" data-error-for="guardianRelationship"></p>
+                                    </div>
+
+                                    <div class="profile-field">
+                                        <label for="guardianEmail">Parent or Guardian Email</label>
+                                        <input type="email" id="guardianEmail" maxlength="254">
+                                        <p class="profile-field-error" data-error-for="guardianEmail"></p>
+                                    </div>
+
+                                    <div class="profile-field">
+                                        <label for="guardianContact">Parent or Guardian Contact</label>
+                                        <input type="tel" id="guardianContact" maxlength="13" placeholder="09XXXXXXXXX">
+                                        <p class="profile-field-error" data-error-for="guardianContact"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="profile-section">
+                            <div class="profile-section-title">
+                                <h3>Learning Preferences</h3>
+                                <p>Add subjects, goals, and the learner's preferred study schedule.</p>
+                            </div>
+
+                            <div class="profile-field">
+                                <label>Subjects of Interest</label>
+                                <div class="profile-subjects" id="profileSubjects">
+                                    <label><input type="checkbox" value="English"> English</label>
+                                    <label><input type="checkbox" value="Math"> Math</label>
+                                    <label><input type="checkbox" value="Reading"> Reading</label>
+                                    <label><input type="checkbox" value="Writing"> Writing</label>
+                                    <label><input type="checkbox" value="Filipino"> Filipino</label>
+                                    <label><input type="checkbox" value="Early Learning Skills"> Early Learning Skills</label>
+                                    <label><input type="checkbox" value="Science"> Science</label>
+                                    <label><input type="checkbox" value="Social Studies"> Social Studies</label>
+                                </div>
+                                <small>Choose up to five subjects.</small>
+                                <p class="profile-field-error" data-error-for="profileSubjects"></p>
+                            </div>
+
+                            <div class="profile-grid profile-learning-grid">
+                                <div class="profile-field">
+                                    <label for="profilePreferredSchedule">Preferred Schedule</label>
+                                    <select id="profilePreferredSchedule">
+                                        <option value="">Select preferred schedule</option>
+                                        <option value="Weekday Mornings">Weekday Mornings</option>
+                                        <option value="Weekday Afternoons">Weekday Afternoons</option>
+                                        <option value="Weekday Evenings">Weekday Evenings</option>
+                                        <option value="Weekends">Weekends</option>
+                                        <option value="Flexible">Flexible</option>
+                                    </select>
+                                    <p class="profile-field-error" data-error-for="profilePreferredSchedule"></p>
+                                </div>
+
+                                <div class="profile-field profile-goals-field">
+                                    <label for="profileLearningGoals">Learning Goals</label>
+                                    <textarea id="profileLearningGoals" maxlength="500" placeholder="Describe what the learner wants to improve."></textarea>
+                                    <div class="profile-character-count"><span id="learningGoalsCount">0</span>/500</div>
+                                    <p class="profile-field-error" data-error-for="profileLearningGoals"></p>
+                                </div>
+                            </div>
+                        </section>
+
+                        <div class="profile-form-actions">
+                            <button type="submit" id="saveProfileButton">Save Changes</button>
+                        </div>
+
+                        <p class="profile-message" id="profileMessage" role="status"></p>
+                    </form>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+
+
+    <div class="learner-session-modal" id="learnerCompleteSessionModal" hidden>
+        <div class="learner-session-backdrop" data-close-learner-completion></div>
+        <div class="learner-session-card learner-completion-card" role="dialog" aria-modal="true" aria-labelledby="learnerCompleteSessionTitle" aria-describedby="learnerCompleteSessionDescription">
+            <button type="button" class="learner-session-close" data-close-learner-completion aria-label="Close">×</button>
+            <div class="learner-completion-icon" aria-hidden="true">✓</div>
+            <h2 id="learnerCompleteSessionTitle">Confirm session completion?</h2>
+            <p id="learnerCompleteSessionDescription">Confirm only if this tutoring session took place and was completed.</p>
+            <div class="learner-completion-details" id="learnerCompleteSessionDetails"></div>
+            <div class="learner-session-actions">
+                <button type="button" class="learner-session-cancel" data-close-learner-completion>Cancel</button>
+                <button type="button" class="learner-session-confirm" id="confirmLearnerSessionBtn">Confirm Session Done</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="session-issue-modal learner-session-modal" id="sessionIssueModal" hidden>
+        <div class="session-issue-backdrop learner-session-backdrop" data-close-session-issue></div>
+        <div class="session-issue-card" role="dialog" aria-modal="true" aria-labelledby="sessionIssueTitle">
+            <button type="button" class="session-issue-close" data-close-session-issue aria-label="Close">×</button>
+            <h2 id="sessionIssueTitle">Report a Session Issue</h2>
+            <p>Explain what happened. Session completion will be paused for review.</p>
+            <label for="sessionIssueReason">Issue details</label>
+            <textarea id="sessionIssueReason" maxlength="500" placeholder="Describe the issue clearly..."></textarea>
+            <p class="session-issue-error" id="sessionIssueError" role="alert"></p>
+            <div class="session-issue-actions">
+                <button type="button" class="session-issue-cancel" data-close-session-issue>Cancel</button>
+                <button type="button" class="session-issue-submit" id="submitSessionIssueBtn" onclick="submitSessionIssue()">Submit Report</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="learner-session-modal" id="learnerCancellationModal" hidden>
+        <div class="learner-session-backdrop" data-close-learner-cancellation></div>
+        <div class="learner-session-card learner-cancellation-card" role="dialog" aria-modal="true" aria-labelledby="learnerCancellationTitle">
+            <button type="button" class="learner-session-close" data-close-learner-cancellation aria-label="Close">×</button>
+            <div class="learner-cancellation-icon" aria-hidden="true">↩</div>
+            <h2 id="learnerCancellationTitle">Cancel this session?</h2>
+            <p>The refund is calculated automatically from the Version 1.1 cancellation policy.</p>
+            <div class="learner-cancellation-details" id="learnerCancellationDetails"></div>
+            <p class="learner-cancellation-error" id="learnerCancellationError" role="alert"></p>
+            <div class="learner-session-actions">
+                <button type="button" class="learner-session-cancel" data-close-learner-cancellation>Keep Session</button>
+                <button type="button" class="learner-session-confirm cancellation-confirm" id="confirmLearnerCancellationBtn">Confirm Cancellation</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="learner-session-toast" id="learnerSessionToast" role="status" aria-live="polite" hidden></div>
+
+    <script src="~/main-js/auth-guard.js"></script>
+    <script>
+        requireRole("learner");
+    </script>
+    <script src="~/learner/learner-js/learner-portal.js"></script>
+    <script src="~/learner/learner-js/profile.js"></script>
+</body>
+</html>

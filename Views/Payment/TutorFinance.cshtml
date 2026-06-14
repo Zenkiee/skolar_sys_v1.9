@@ -1,0 +1,162 @@
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="~/css/skolar-dialog.css">
+  <meta name="description" content="Skolar Tutor Earnings and Penalties — Review payouts, compensation, warnings, and deductions.">
+  <title>Earnings &amp; Penalties — Skolar</title>
+  <link rel="icon" type="image/png" href="~/assets/img/skolarlogo.png">
+  <link rel="stylesheet" href="~/tutor/tutor-css/tutor-shared.css">
+  <link rel="stylesheet" href="~/tutor/tutor-css/tutor-finance.css">
+</head>
+<body>
+  <script src="~/js/skolar-dialog.js"></script>
+
+  <!-- ========== SIDEBAR ========== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-top">
+      <div class="logo">
+        <img src="~/assets/img/skolarlogo.png" alt="Skolar Logo" class="logo-icon">
+        <div class="logo-text-group">
+          <span class="logo-title">Skolar</span>
+          <span class="logo-subtitle">Tutor Portal</span>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <a href="/Tutor/TutorDashboard" class="nav-item" data-page="dashboard">
+          <span class="svg-icon icon-01 nav-icon icon-size-20" aria-hidden="true"></span>
+          <span>Dashboard</span>
+        </a>
+        <a href="/Tutor/Bookings" class="nav-item" data-page="bookings">
+          <span class="svg-icon icon-02 nav-icon icon-size-20" aria-hidden="true"></span>
+          <span>Bookings</span>
+        </a>
+        <a href="/Tutor/Reviews" class="nav-item" data-page="reviews">
+          <span class="svg-icon icon-03 nav-icon icon-size-20" aria-hidden="true"></span>
+          <span>Reviews</span>
+        </a>
+        <a href="/Tutor/Calendar" class="nav-item" data-page="calendar">
+          <span class="svg-icon icon-04 nav-icon icon-size-20" aria-hidden="true"></span>
+          <span>Calendar</span>
+        </a>
+        <a href="/Payment/TutorFinance" class="nav-item active" data-page="finance">
+          <span class="svg-icon icon-21 nav-icon icon-size-20" aria-hidden="true"></span>
+          <span>Earnings &amp; Penalties</span>
+        </a>
+      </nav>
+    </div>
+
+    <div class="sidebar-bottom">
+      <a href="/Tutor/EditProfile" class="nav-item" data-page="edit-profile">
+        <span class="svg-icon icon-05 nav-icon icon-size-20" aria-hidden="true"></span>
+        <span>Edit Profile</span>
+      </a>
+      <a href="/Tutor/Settings" class="nav-item" data-page="settings">
+        <span class="svg-icon icon-06 nav-icon icon-size-20" aria-hidden="true"></span>
+        <span>Settings</span>
+      </a>
+      <div class="profile-card">
+        <div class="profile-avatar-small" id="sidebarInitials">T</div>
+        <div class="profile-info">
+          <span class="profile-name" id="sidebarName">Tutor</span>
+          <span class="profile-role">Tutor Account</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- ========== MAIN WRAPPER ========== -->
+  <div class="main-wrapper">
+    <header class="topbar">
+      <button class="hamburger" id="hamburger" aria-label="Toggle sidebar">
+        <span class="svg-icon icon-07 icon-size-24" aria-hidden="true"></span>
+      </button>
+      <h1 class="page-title">Earnings &amp; Penalties</h1>
+      <div class="topbar-right">
+        <div class="notif-wrapper">
+          <button class="notif-btn" id="notifBtn" type="button" aria-label="Notifications" aria-expanded="false">
+            <span class="svg-icon icon-08 icon-size-22" aria-hidden="true"></span>
+            <span class="notif-dot" id="notifDot" hidden></span>
+          </button>
+          <div class="notif-dropdown" id="notifDropdown">
+            <div class="notif-dropdown-header">
+              <span>Notifications</span>
+              <span class="notif-unread-count" id="notifUnreadCount"></span>
+            </div>
+            <div class="notif-list" id="notifList">
+              <div class="notif-empty">Loading notifications...</div>
+            </div>
+          </div>
+        </div>
+        <a href="/Tutor/EditProfile" class="topbar-avatar" id="topbarAvatar">T</a>
+      </div>
+    </header>
+
+    <main class="main-content finance-content">
+      <div class="finance-intro">
+        <p>Review payouts, retained cancellation compensation, and future deductions.</p>
+      </div>
+
+      <section class="finance-summary" id="financeSummary">
+        <div>
+          <span>Gross session earnings</span>
+          <strong id="financeGross">₱0.00</strong>
+        </div>
+        <div>
+          <span>Cancellation compensation</span>
+          <strong id="financeCompensation">₱0.00</strong>
+        </div>
+        <div>
+          <span>Applied fines</span>
+          <strong id="financeFines">₱0.00</strong>
+        </div>
+        <div class="finance-total-card">
+          <span>Net payout</span>
+          <strong id="financeNet">₱0.00</strong>
+        </div>
+      </section>
+
+      <section class="finance-notes">
+        <div>
+          <span>Pending next-session fines</span>
+          <strong id="financePendingPenalties">0</strong>
+        </div>
+        <div>
+          <span>Official cancellation warnings</span>
+          <strong id="financeWarnings">0</strong>
+        </div>
+      </section>
+
+      <div class="section-heading">
+        <div>
+          <p class="section-kicker">Payout activity</p>
+          <h2>Earnings records</h2>
+        </div>
+      </div>
+      <section class="transaction-list" id="payoutList">
+        <div class="history-empty">Loading payout records...</div>
+      </section>
+
+      <div class="section-heading penalty-heading">
+        <div>
+          <p class="section-kicker">Account consequences</p>
+          <h2>Penalty ledger</h2>
+        </div>
+      </div>
+      <section class="transaction-list" id="penaltyList"></section>
+      <div class="payment-toast" id="paymentToast" role="status" aria-live="polite" hidden></div>
+    </main>
+  </div>
+
+  <script src="~/main-js/auth-guard.js"></script>
+  <script>requireRole("tutor");</script>
+  <script src="~/tutor/tutor-js/tutor-shared.js"></script>
+  <script src="~/tutor/tutor-js/tutor-finance.js"></script>
+</body>
+</html>

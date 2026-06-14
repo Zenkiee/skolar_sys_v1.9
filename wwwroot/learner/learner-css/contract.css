@@ -1,0 +1,135 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', Arial, sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    background: #003f5c;
+}
+
+.contract-page {
+    min-height: 100vh;
+    background: #003f5c;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 45px 25px;
+    position: relative;
+}
+
+.back-btn {
+    position: absolute;
+    top: 25px;
+    left: 35px;
+    color: white;
+    font-size: 48px;
+    text-decoration: none;
+    line-height: 1;
+}
+
+.contract-card {
+    width: 100%;
+    max-width: 850px;
+    background: #fff2d3;
+    border-radius: 22px;
+    padding: 42px;
+    text-align: center;
+    color: #003f5c;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+}
+
+.contract-logo {
+    width: 85px;
+    height: 85px;
+    background: rgb(0, 0, 0);
+    border-radius: 30%;
+    object-fit: contain;
+    margin-bottom: 15px;
+}
+
+.contract-card h1 {
+    font-size: 34px;
+    margin-bottom: 10px;
+    font-weight: 900;
+}
+
+.subtitle {
+    color: #333;
+    font-size: 15px;
+    margin-bottom: 28px;
+}
+
+.contract-box {
+    background: white;
+    border-radius: 18px;
+    padding: 30px;
+    text-align: left;
+    margin-bottom: 25px;
+}
+
+.contract-box h2 {
+    color: #8b0000;
+    font-size: 24px;
+    margin-bottom: 15px;
+}
+
+.contract-box p {
+    color: #333;
+    line-height: 1.6;
+    margin-bottom: 14px;
+    font-weight: 600;
+}
+
+.agree-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    color: #003f5c;
+    font-weight: 800;
+    margin-bottom: 25px;
+    cursor: pointer;
+}
+
+.agree-box input {
+    width: 18px;
+    height: 18px;
+}
+
+.continue-btn {
+    background: #8b0000;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    padding: 14px 28px;
+    font-size: 16px;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.continue-btn:disabled {
+    background: #aaa292;
+    cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+    .contract-card {
+        padding: 32px 24px;
+    }
+
+    .contract-card h1 {
+        font-size: 26px;
+    }
+
+    .contract-box {
+        padding: 22px;
+    }
+
+    .agree-box {
+        align-items: flex-start;
+        text-align: left;
+    }
+}

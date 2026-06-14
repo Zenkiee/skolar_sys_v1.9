@@ -1,0 +1,243 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', Arial, sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    background: #003f5c;
+}
+
+.account-page {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    background: #003f5c;
+    overflow: hidden;
+}
+
+/* LEFT SIDE */
+.account-left {
+    background: #003f5c;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 45px;
+    color: white;
+}
+
+.account-box {
+    width: 100%;
+    max-width: 360px;
+    text-align: center;
+}
+
+.account-box h2 {
+    font-size: 40px;
+    margin-bottom: 18px;
+    color: white;
+}
+
+/* LOGIN FORM */
+.account-form {
+    display: none;
+}
+
+.account-form.active {
+    display: block;
+}
+
+.account-form input {
+    width: 100%;
+    height: 52px;
+    border: none;
+    border-radius: 12px;
+    padding: 0 22px;
+    font-size: 18px;
+    font-weight: 900;
+    color: #8b0000;
+    outline: none;
+    margin-bottom: 22px;
+}
+
+.account-form input::placeholder {
+    color: #bd7d7d;
+}
+
+.password-wrapper {
+    position: relative;
+}
+
+.password-wrapper input {
+    padding-right: 58px;
+}
+
+.password-wrapper button {
+    position: absolute;
+    top: 50%;
+    right: 18px;
+    transform: translateY(-80%);
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: -8px 5px 45px;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.form-options label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.form-options input {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+}
+
+.form-options a {
+    color: white;
+    text-decoration: none;
+}
+
+.form-options a:hover {
+    text-decoration: underline;
+}
+
+.main-login-btn {
+    width: 100%;
+    height: 58px;
+    background: #8b0000;
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-size: 22px;
+    font-weight: 900;
+    cursor: pointer;
+    margin-top: 5px;
+}
+
+.main-login-btn:hover {
+    background: #a00000;
+}
+
+.switch-text {
+    text-align: center;
+    margin-top: 18px;
+    font-size: 13px;
+    color: white;
+}
+
+.switch-text a {
+    color: #fff2d3;
+    font-weight: 900;
+    text-decoration: none;
+}
+
+.switch-text a:hover {
+    text-decoration: underline;
+}
+
+#accountMessage {
+    text-align: center;
+    margin-top: 18px;
+    font-weight: 900;
+    font-size: 14px;
+}
+
+/* RIGHT SIDE */
+.account-right {
+    position: relative;
+    background: #fff2d3;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.account-right::after {
+    content: "";
+    position: absolute;
+    width: 125%;
+    height: 48%;
+    background: #003f5c;
+    bottom: -18%;
+    left: -15%;
+    border-radius: 55% 45% 0 0;
+    z-index: 1;
+}
+
+.skolar-logo-signup {
+    width: 70%;
+    max-width: 520px;
+    min-width: 280px;
+    height: auto;
+    top: -80px;
+    object-fit: contain;
+    position: relative;
+    z-index: 2;
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+    .account-page {
+        grid-template-columns: 1fr;
+    }
+
+    .account-right {
+        display: none;
+    }
+
+    .account-left {
+        min-height: 100vh;
+        padding: 45px 25px;
+    }
+
+    .account-logo {
+        width: 210px;
+    }
+}
+
+@media (max-width: 480px) {
+    .account-box {
+        max-width: 100%;
+    }
+
+    .account-logo {
+        width: 185px;
+    }
+
+    .account-box h2 {
+        font-size: 22px;
+    }
+
+    .account-form input {
+        height: 48px;
+        font-size: 16px;
+    }
+
+    .main-login-btn {
+        height: 54px;
+        font-size: 20px;
+    }
+
+    .form-options {
+        font-size: 11px;
+    }
+}

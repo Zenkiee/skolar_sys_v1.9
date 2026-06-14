@@ -1,0 +1,103 @@
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/skolar-dialog.css">
+    <link rel="stylesheet" href="~/learner/learner-css/learner-portal.css">
+    <link rel="stylesheet" href="~/payment/payment.css">
+    <link rel="icon" type="image/png" href="~/assets/img/skolarlogo.png">
+    <title>Payments and Refunds | Skolar</title>
+</head>
+<body class="learner-payment-body">
+    <script src="~/js/skolar-dialog.js"></script>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="portalSidebar">
+        <div class="brand">
+            <img src="~/assets/img/Skolar logo white .png" alt="Skolar Logo">
+            <div>
+                <h2>Skolar</h2>
+                <p>Learner Portal</p>
+            </div>
+        </div>
+
+        <div class="learner-card">
+            <div class="learner-avatar" id="learnerAvatar">
+                <img id="learnerSidebarPhoto" alt="" hidden>
+                <span id="learnerInitial">L</span>
+            </div>
+            <div>
+                <h3 id="learnerName">Learner</h3>
+                <p>Learner Account</p>
+            </div>
+        </div>
+
+        <nav class="sidebar-menu">
+            <a class="menu-link menu-link-anchor" href="/Learner/LearnerPortal#dashboard">Dashboard</a>
+            <a class="menu-link menu-link-anchor" href="/Learner/LearnerPortal#sessions">My Sessions</a>
+            <a class="menu-link menu-link-anchor active" href="/Payment/History">Payments &amp; Refunds</a>
+            <a class="menu-link menu-link-anchor" href="/Learner/LearnerPortal#tutors">Find Tutors</a>
+            <a class="menu-link menu-link-anchor" href="/Learner/LearnerPortal#reviews">Reviews</a>
+            <a class="menu-link menu-link-anchor" href="/Learner/LearnerPortal#profile">Profile</a>
+        </nav>
+
+        <button class="logout-btn" type="button" onclick="logoutLearnerFromPayment()">Log out</button>
+    </aside>
+
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closePaymentMenu()"></div>
+
+    <!-- MAIN -->
+    <main class="main-content payment-portal-main">
+        <header class="mobile-portal-nav">
+            <div class="mobile-brand">
+                <img src="~/assets/img/Skolar logo white .png" alt="Skolar Logo">
+                <span>Skolar</span>
+            </div>
+
+            <button class="portal-menu-btn" type="button" onclick="togglePaymentMenu()">☰</button>
+        </header>
+
+        <header class="payment-portal-topbar">
+            <div>
+                <p class="payment-eyebrow">Learner Portal</p>
+                <h1>Payments &amp; Refunds</h1>
+                <p>Track payment transactions, refund requests, and available vouchers.</p>
+            </div>
+            <a class="payment-primary-link" href="/Learner/Booking">Book a Session</a>
+        </header>
+
+        <section class="payment-portal-content">
+            <section class="voucher-section" id="voucherSection" hidden>
+                <div class="section-heading">
+                    <div>
+                        <p class="section-kicker">Rewards</p>
+                        <h2>Available vouchers</h2>
+                    </div>
+                </div>
+                <div class="voucher-grid" id="voucherGrid"></div>
+            </section>
+
+            <section>
+                <div class="section-heading">
+                    <div>
+                        <p class="section-kicker">Activity</p>
+                        <h2>Payment history</h2>
+                    </div>
+                </div>
+                <div class="transaction-list" id="transactionList">
+                    <div class="history-empty">Loading payment records...</div>
+                </div>
+            </section>
+        </section>
+
+        <div class="payment-toast" id="paymentToast" role="status" aria-live="polite" hidden></div>
+    </main>
+
+    <script src="~/main-js/auth-guard.js"></script>
+    <script>requireRole("learner");</script>
+    <script src="~/payment/payment-history.js"></script>
+</body>
+</html>

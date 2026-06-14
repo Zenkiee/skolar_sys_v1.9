@@ -1,0 +1,191 @@
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/skolar-dialog.css">
+    <title>Skolar Sign Up</title>
+    <link rel="icon" type="image/png" href="~/assets/img/skolarlogo.png">
+    <link rel="stylesheet" href="~/main-css/account-signup.css">
+</head>
+<body>
+    <script src="~/js/skolar-dialog.js"></script>
+    <main class="account-page">
+        <section class="account-left">
+            <div class="account-box" id="signupBox">
+                <h2 id="roleTitle">Learner Sign Up</h2>
+
+                <div class="signup-stepper" aria-label="Signup progress">
+                    <div class="signup-step active" id="stepOneCircle">1</div>
+                    <div class="signup-line"></div>
+                    <div class="signup-step" id="stepTwoCircle">2</div>
+                </div>
+
+                <p class="signup-step-label" id="stepLabel">Basic Account</p>
+
+                <form id="basicSignupForm" class="account-form active" novalidate>
+                    @Html.AntiForgeryToken()
+
+                    <div class="form-field">
+                        <label class="sr-only" for="signupEmail">Email Address</label>
+                        <input type="email" id="signupEmail" placeholder="Email Address" autocomplete="email" maxlength="254" required>
+                        <p class="field-error" data-error-for="signupEmail"></p>
+                    </div>
+
+                    <div class="form-field">
+                        <div class="password-wrapper">
+                            <label class="sr-only" for="signupPassword">Password</label>
+                            <input type="password" id="signupPassword" placeholder="Password" autocomplete="new-password" minlength="8" maxlength="64" required>
+                            <button type="button" class="eye-btn" data-password-target="signupPassword" aria-label="Show password">👁</button>
+                        </div>
+                        <div class="password-rules" id="passwordRules" aria-live="polite">
+                            <span data-rule="length">8–64 characters</span>
+                            <span data-rule="letter">At least one letter</span>
+                            <span data-rule="number">At least one number</span>
+                        </div>
+                        <p class="field-error" data-error-for="signupPassword"></p>
+                    </div>
+
+                    <div class="form-field">
+                        <div class="password-wrapper">
+                            <label class="sr-only" for="confirmPassword">Confirm Password</label>
+                            <input type="password" id="confirmPassword" placeholder="Confirm Password" autocomplete="new-password" maxlength="64" required>
+                            <button type="button" class="eye-btn" data-password-target="confirmPassword" aria-label="Show password confirmation">👁</button>
+                        </div>
+                        <p class="field-error" data-error-for="confirmPassword"></p>
+                    </div>
+
+                    <div class="form-field terms-field">
+                        <label class="terms-check">
+                            <input type="checkbox" id="agreeTerms" required>
+                            <span>
+                                I agree to the
+                                <a href="#" id="termsLink">Terms and Conditions.</a>
+                            </span>
+                        </label>
+                        <p class="field-error" data-error-for="agreeTerms"></p>
+                    </div>
+
+                    <button type="submit" class="main-login-btn">Continue</button>
+
+                    <p class="switch-text">
+                        Already have an account?
+                        <a id="goToLogin" href="#">Log in</a>
+                    </p>
+                </form>
+
+                <form id="learnerProfileForm" class="account-form profile-form-signup" novalidate>
+                    <div class="form-field">
+                        <label class="sr-only" for="learnerName">Learner Name</label>
+                        <input type="text" id="learnerName" placeholder="Learner Name" autocomplete="name" minlength="2" maxlength="60" required>
+                        <p class="field-error" data-error-for="learnerName"></p>
+                    </div>
+
+                    <div class="form-field">
+                        <label class="sr-only" for="yearLevel">Year Level</label>
+                        <select id="yearLevel" required>
+                            <option value="">Select Year Level</option>
+                            <option>Preschool</option>
+                            <option>Kindergarten</option>
+                            <option>Grade 1</option>
+                            <option>Grade 2</option>
+                            <option>Grade 3</option>
+                            <option>Grade 4</option>
+                            <option>Grade 5</option>
+                            <option>Grade 6</option>
+                        </select>
+                        <p class="field-error" data-error-for="yearLevel"></p>
+                    </div>
+
+                    <div class="form-field">
+                        <label class="sr-only" for="school">School</label>
+                        <input type="text" id="school" placeholder="School (optional)" maxlength="100">
+                        <p class="field-error" data-error-for="school"></p>
+                    </div>
+
+                    <div class="form-field">
+                        <label for="birthday">Learner's Birthdate</label>
+                        <input type="date" id="birthday" required>
+                        <p class="field-hint">A parent or guardian may create and manage this account for the learner.</p>
+                        <p class="field-error" data-error-for="birthday"></p>
+                    </div>
+
+                    <div class="profile-buttons">
+                        <button type="button" class="back-profile-btn" data-back-to-account>Back</button>
+                        <button type="submit" class="main-login-btn">Create Profile</button>
+                    </div>
+                </form>
+
+                <form id="tutorProfileForm" class="account-form profile-form-signup" novalidate>
+                    <div class="form-field">
+                        <label class="sr-only" for="tutorName">Tutor Name</label>
+                        <input type="text" id="tutorName" placeholder="Tutor Name" autocomplete="name" minlength="2" maxlength="60" required>
+                        <p class="field-error" data-error-for="tutorName"></p>
+                    </div>
+
+                    <div class="form-field">
+                        <label class="sr-only" for="rate">Rate per hour</label>
+                        <input type="number" id="rate" placeholder="Rate per hour" min="1" max="10000" step="0.01" inputmode="decimal" required>
+                        <p class="field-error" data-error-for="rate"></p>
+                    </div>
+
+                    <div class="form-field">
+                        <label class="sr-only" for="education">Education or Course</label>
+                        <input type="text" id="education" placeholder="Education / Course" minlength="3" maxlength="120" required>
+                        <p class="field-error" data-error-for="education"></p>
+                    </div>
+
+                    <div class="form-field">
+                        <label class="sr-only" for="contactNumber">Contact Number</label>
+                        <input type="tel" id="contactNumber" placeholder="09XXXXXXXXX or +639XXXXXXXXX" inputmode="tel" autocomplete="tel" maxlength="13" required>
+                        <p class="field-error" data-error-for="contactNumber"></p>
+                    </div>
+
+                    <div class="form-field">
+                        <label class="sr-only" for="bio">Short Bio</label>
+                        <textarea id="bio" placeholder="Short Bio" minlength="20" maxlength="500" required></textarea>
+                        <div class="field-meta"><span>20–500 characters</span><span id="bioCounter">0/500</span></div>
+                        <p class="field-error" data-error-for="bio"></p>
+                    </div>
+
+                    <div class="form-field">
+                        <div class="subject-dropdown-wrapper" id="subjectDropdownWrapper">
+                            <button type="button" class="subject-dropdown-trigger" id="subjectDropdownTrigger" aria-haspopup="true" aria-expanded="false">
+                                <span id="subjectDropdownLabel">Select subjects you teach</span>
+                                <svg viewBox="0 0 24 24" width="16" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="subject-dropdown-menu" id="subjectDropdownMenu">
+                                <label><input type="checkbox" value="English"> English</label>
+                                <label><input type="checkbox" value="Math"> Math</label>
+                                <label><input type="checkbox" value="Reading"> Reading</label>
+                                <label><input type="checkbox" value="Writing"> Writing</label>
+                                <label><input type="checkbox" value="Filipino"> Filipino</label>
+                                <label><input type="checkbox" value="Early Learning Skills"> Early Learning Skills</label>
+                                <label><input type="checkbox" value="Science"> Science</label>
+                                <label><input type="checkbox" value="Social Studies"> Social Studies</label>
+                            </div>
+                        </div>
+                        <p class="field-hint">Choose 1 to 5 subjects.</p>
+                        <p class="field-error" data-error-for="subjectDropdownTrigger"></p>
+                    </div>
+
+                    <div class="profile-buttons">
+                        <button type="button" class="back-profile-btn" data-back-to-account>Back</button>
+                        <button type="submit" class="main-login-btn">Create Profile</button>
+                    </div>
+                </form>
+
+                <p id="accountMessage" role="status" aria-live="polite"></p>
+            </div>
+        </section>
+
+        <section class="account-right">
+            <img src="~/assets/img/skolar-logo-colored.png" alt="Skolar Logo" class="skolar-logo-signup">
+        </section>
+    </main>
+
+    <script src="~/main-js/signup.js"></script>
+</body>
+</html>

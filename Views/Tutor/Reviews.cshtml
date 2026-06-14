@@ -1,0 +1,166 @@
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/skolar-dialog.css">
+  <meta name="description" content="Skolar Reviews — Manage and moderate student reviews.">
+  <title>Reviews — Skolar</title>
+  <link rel="icon" type="image/png" href="~/assets/img/skolarlogo.png">
+  <link rel="stylesheet" href="~/tutor/tutor-css/tutor-shared.css">
+  <link rel="stylesheet" href="~/tutor/tutor-css/reviews.css">
+</head>
+<body>
+    <script src="~/js/skolar-dialog.js"></script>
+
+  <!-- ========== SIDEBAR ========== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-top">
+      <div class="logo">
+        <img src="~/assets/img/skolarlogo.png" alt="Skolar Logo" class="logo-icon">
+        <div class="logo-text-group">
+          <span class="logo-title">Skolar</span>
+          <span class="logo-subtitle">Tutor Portal</span>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <a href="/Tutor/TutorDashboard" class="nav-item" data-page="dashboard">
+          <span class="svg-icon icon-01 nav-icon icon-size-20" aria-hidden="true"></span>
+          <span>Dashboard</span>
+        </a>
+        <a href="/Tutor/Bookings" class="nav-item" data-page="bookings">
+          <span class="svg-icon icon-02 nav-icon icon-size-20" aria-hidden="true"></span>
+          <span>Bookings</span>
+        </a>
+        <a href="/Tutor/Reviews" class="nav-item active" data-page="reviews">
+          <span class="svg-icon icon-03 nav-icon icon-size-20" aria-hidden="true"></span>
+          <span>Reviews</span>
+        </a>
+        <a href="/Tutor/Calendar" class="nav-item" data-page="calendar">
+          <span class="svg-icon icon-04 nav-icon icon-size-20" aria-hidden="true"></span>
+          <span>Calendar</span>
+        </a>
+        <a href="/Payment/TutorFinance" class="nav-item" data-page="finance">
+          <span class="svg-icon icon-21 nav-icon icon-size-20" aria-hidden="true"></span>
+          <span>Earnings &amp; Penalties</span>
+        </a>
+      </nav>
+    </div>
+
+    <div class="sidebar-bottom">
+      <a href="/Tutor/EditProfile" class="nav-item" data-page="edit-profile">
+        <span class="svg-icon icon-05 nav-icon icon-size-20" aria-hidden="true"></span>
+        <span>Edit Profile</span>
+      </a>
+      <a href="/Tutor/Settings" class="nav-item" data-page="settings">
+        <span class="svg-icon icon-06 nav-icon icon-size-20" aria-hidden="true"></span>
+        <span>Settings</span>
+      </a>
+      <div class="profile-card">
+        <div class="profile-avatar-small" id="sidebarInitials">VL</div>
+        <div class="profile-info">
+          <span class="profile-name" id="sidebarName">Vannesa L. Cainong</span>
+          <span class="profile-role">Professional Teacher</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Sidebar overlay for mobile -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- ========== MAIN WRAPPER ========== -->
+  <div class="main-wrapper">
+
+    <!-- ========== TOPBAR ========== -->
+    <header class="topbar">
+      <button class="hamburger" id="hamburger" aria-label="Toggle sidebar">
+        <span class="svg-icon icon-07 icon-size-24" aria-hidden="true"></span>
+      </button>
+      <h1 class="page-title">Reviews</h1>
+      <div class="topbar-right">
+        <div class="notif-wrapper">
+          <button class="notif-btn" id="notifBtn" type="button" aria-label="Notifications" aria-expanded="false">
+            <span class="svg-icon icon-08 icon-size-22" aria-hidden="true"></span>
+            <span class="notif-dot" id="notifDot" hidden></span>
+          </button>
+          <div class="notif-dropdown" id="notifDropdown">
+            <div class="notif-dropdown-header">
+              <span>Notifications</span>
+              <span class="notif-unread-count" id="notifUnreadCount"></span>
+            </div>
+            <div class="notif-list" id="notifList">
+              <div class="notif-empty">Loading notifications...</div>
+            </div>
+          </div>
+        </div>
+        <a href="/Tutor/EditProfile" class="topbar-avatar" id="topbarAvatar">T</a>
+      </div>
+    </header>
+
+    <!-- Reviews -->
+    <main class="main-content">
+      <div class="rv-summary">
+        <div>
+          <h2>Learner Reviews</h2>
+          <p>Reviews are published automatically after a learner reviews a completed session.</p>
+        </div>
+        <span class="rv-auto-badge">Auto-published</span>
+      </div>
+
+      <div class="rv-list" id="reviewsList"></div>
+    </main>
+  </div>
+
+  <div class="rv-modal-backdrop" id="reportModal" aria-hidden="true">
+    <div class="rv-modal" role="dialog" aria-modal="true" aria-labelledby="reportModalTitle">
+      <div class="rv-modal-header">
+        <div>
+          <h2 id="reportModalTitle">Report review</h2>
+          <p>Flag inappropriate content for moderation.</p>
+        </div>
+        <button type="button" class="rv-modal-close" id="closeReportModal" aria-label="Close">&times;</button>
+      </div>
+
+      <form id="reportForm">
+        <input type="hidden" id="reportReviewId">
+
+        <label for="reportReason">Reason</label>
+        <select id="reportReason" required>
+          <option value="">Select a reason</option>
+          <option>Offensive or abusive language</option>
+          <option>Harassment or personal attack</option>
+          <option>False or unrelated content</option>
+          <option>Spam</option>
+          <option>Private information</option>
+          <option>Other</option>
+        </select>
+
+        <label for="reportDetails">Additional details <span>(optional unless Other is selected)</span></label>
+        <textarea id="reportDetails" maxlength="500" placeholder="Explain what should be reviewed..."></textarea>
+
+        <div class="rv-report-note">The review will remain published while the report is being checked.</div>
+        <p class="rv-form-error" id="reportError" role="alert"></p>
+
+        <div class="rv-modal-actions">
+          <button type="button" class="rv-btn-secondary" id="cancelReport">Cancel</button>
+          <button type="submit" class="rv-btn-report" id="submitReport">Submit report</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="~/main-js/auth-guard.js"></script>
+  <script>
+    requireRole("tutor");
+  </script>
+
+
+
+  <script src="~/tutor/tutor-js/tutor-shared.js"></script>
+  <script src="~/tutor/tutor-js/reviews.js"></script>
+</body>
+</html>

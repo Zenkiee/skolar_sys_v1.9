@@ -1,0 +1,45 @@
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/skolar-dialog.css">
+    <title>Tutor Profile | Skolar</title>
+    <link rel="icon" type="image/png" href="~/assets/img/skolarlogo.png">
+    <link rel="stylesheet" href="~/learner/learner-css/tutor-profile.css">
+</head>
+<body>
+    <script src="~/js/skolar-dialog.js"></script>
+    <main class="tutor-info-page">
+        <a href="/Learner/LearnerPortal" class="back-btn">‹</a>
+        <h1>Tutor's Info</h1>
+        <div class="tutor-info-layout">
+            <!-- LEFT PROFILE CARD -->
+            <section class="profile-panel" id="profilePanel"></section>
+
+            <!-- RIGHT AVAILABILITY CARD -->
+            <section class="availability-panel">
+                <h2>Availability</h2>
+                <div class="calendar-card">
+                    <div class="calendar-header">
+                        <button type="button" id="prevMonth">‹</button>
+                        <h3 id="calendarMonth">Loading...</h3>
+                        <button type="button" id="nextMonth">›</button>
+                    </div>
+                    <div class="calendar-weekdays">
+                        <span>Mo</span><span>Tu</span><span>We</span>
+                        <span>Th</span><span>Fr</span><span>Sa</span><span>Su</span>
+                    </div>
+                    <div class="calendar-days" id="calendarDays"></div>
+                </div>
+                <a href="#" class="book-session-btn" id="bookSessionBtn">Book Session</a>
+            </section>
+        </div>
+    </main>
+    <script src="~/main-js/auth-guard.js"></script>
+    <script>requireRole("learner");</script>
+    <script src="~/learner/learner-js/tutor-profile.js"></script>
+</body>
+</html>

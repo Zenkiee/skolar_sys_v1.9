@@ -1,0 +1,57 @@
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/skolar-dialog.css">
+    <title>Legal Documentation | Skolar</title>
+    <link rel="icon" type="image/png" href="~/assets/img/skolarlogo.png">
+    <link rel="stylesheet" href="~/learner/learner-css/contract.css">
+</head>
+<body>
+    <script src="~/js/skolar-dialog.js"></script>
+
+    <main class="contract-page">
+        <a href="~/account.html?role=learner" class="back-btn">‹</a>
+
+        <section class="contract-card">
+            <img src="~/assets/img/Skolar logo white .png" alt="Skolar Logo" class="contract-logo">
+
+            <h1>Legal Documentation / Contract</h1>
+            <p class="subtitle">
+                Please review the tutoring agreement before continuing to your learner portal.
+            </p>
+
+            <div class="contract-box">
+                <h2>Placeholder</h2>
+
+                <p>
+                    Nakasisiguro, gamot ay laging bago
+                </p>
+
+                <p>
+                    Dito mo na lang lagay Jedi kapag meron na.
+                </p>
+
+            </div>
+
+            <label class="agree-box">
+                <input type="checkbox" id="agreeCheckbox">
+                <span>I have read and agree to the legal documentation and contract.</span>
+            </label>
+
+            <button class="continue-btn" id="continueBtn" disabled>
+                Continue to Learner Portal
+            </button>
+        </section>
+    </main>
+
+    <script src="~/main-js/auth-guard.js"></script>
+    <script>
+        requireRole("learner");
+    </script>
+    <script src="~/learner/learner-js/contract.js"></script>
+</body>
+</html>

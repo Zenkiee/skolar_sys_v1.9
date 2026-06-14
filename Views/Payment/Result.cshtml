@@ -1,0 +1,85 @@
+@using inMVC.Models
+@{
+    Layout = null;
+    var transaction = (PaymentTransaction)ViewBag.Transaction;
+    var bookings = (List<Booking>)ViewBag.Bookings;
+    var isPaid = transaction.Status == "Paid";
+    var title = isPaid ? "Payment confirmed" : transaction.Status == "Pending" ? "Payment pending" : transaction.Status == "Failed" ? "Payment failed" : "Checkout cancelled";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/skolar-dialog.css">
+    <title>@title | Skolar</title>
+    <link rel="icon" type="image/png" href="~/assets/img/skolarlogo.png">
+    <link rel="stylesheet" href="~/payment/payment.css">
+</head>
+<body class="learner-payment-body">
+    <script src="~/js/skolar-dialog.js"></script>
+    <aside class="payment-sidebar learner-payment-sidebar">
+        <div>
+            <a class="payment-brand" href="/Learner/LearnerPortal">
+                <img src="~/assets/img/Skolar logo white .png" alt="Skolar Logo">
+                <span><strong>Skolar</strong><small>Learner Portal</small></span>
+            </a>
+            <div class="payment-account-card">
+                <span class="payment-account-avatar">L</span>
+                <span><strong>Learner</strong><small>Payment Result</small></span>
+            </div>
+            <nav class="payment-nav">
+                <a href="/Learner/LearnerPortal">Dashboard</a>
+                <a href="/Learner/LearnerPortal#sessions">My Sessions</a>
+                <a class="active" href="/Payment/History">Payments &amp; Refunds</a>
+                <a href="/Learner/LearnerPortal#tutors">Find Tutors</a>
+            </nav>
+        </div>
+        <a class="payment-sidebar-action" href="/Learner/LearnerPortal">Back to Portal</a>
+    </aside>
+
+    <main class="payment-portal-main">
+        <header class="payment-portal-topbar">
+            <div>
+                <p class="payment-eyebrow">Learner Portal</p>
+                <h1>Payment Status</h1>
+                <p>Review the payment provider response for your booking.</p>
+            </div>
+        </header>
+
+        <section class="payment-portal-content result-content">
+            <section class="result-card status-@transaction.Status.ToLowerInvariant()">
+                <div class="result-icon">@(isPaid ? "✓" : transaction.Status == "Pending" ? "…" : "!")</div>
+                <p class="result-label">@transaction.Status</p>
+                <h2>@title</h2>
+                <p>
+                    @if (isPaid)
+                    {
+                        <text>Your @bookings.Count session request@(bookings.Count == 1 ? "" : "s") has been forwarded to the tutor for confirmation.</text>
+                    }
+                    else if (transaction.Status == "Pending")
+                    {
+                        <text>The booking is reserved while Skolar waits for payment-provider confirmation.</text>
+                    }
+                    else
+                    {
+                        <text>No paid booking request was sent to the tutor. The reserved schedule is released.</text>
+                    }
+                </p>
+
+                <div class="result-summary">
+                    <div><span>Reference</span><strong>@transaction.CheckoutReference</strong></div>
+                    <div><span>Amount</span><strong>₱@transaction.Amount.ToString("N2")</strong></div>
+                    <div><span>Sessions</span><strong>@bookings.Count</strong></div>
+                </div>
+
+                <div class="result-actions">
+                    <a href="/Payment/History" class="secondary-link">View Payments</a>
+                    <a href="/Learner/LearnerPortal" class="primary-link">Back to Learner Portal</a>
+                </div>
+            </section>
+        </section>
+    </main>
+</body>
+</html>

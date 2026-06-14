@@ -1,0 +1,852 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', Arial, sans-serif;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    background: #003f5c;
+    color: #ffffff;
+}
+
+/* NAVBAR */
+.landing-nav {
+    width: 100%;
+    height: 82px;
+    background: #003f5c;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 55px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.nav-logo img {
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+}
+
+.nav-menu {
+    display: flex;
+    align-items: center;
+    gap: 26px;
+}
+
+.nav-menu a {
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.nav-menu a:hover {
+    color: #fff2d3;
+}
+
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.nav-btn {
+    text-decoration: none;
+    padding: 10px 18px;
+    border-radius: 24px;
+    font-weight: 800;
+    font-size: 14px;
+}
+
+.learner-btn {
+    background: #fff2d3;
+    color: #003f5c;
+}
+
+.tutor-btn {
+    background: #8b0000;
+    color: #ffffff;
+}
+
+.menu-btn {
+    display: none;
+    background: none;
+    border: none;
+    color: #ffffff;
+    font-size: 32px;
+    cursor: pointer;
+}
+
+/* HERO */
+.hero {
+    min-height: 100vh;
+    padding: 150px 70px 80px;
+    background: linear-gradient(135deg, #003f5c 0%, #00516d 100%);
+    display: grid;
+    grid-template-columns: 1.05fr 0.95fr;
+    align-items: center;
+    gap: 60px;
+}
+
+.eyebrow {
+    color: #fff2d3;
+    font-size: 17px;
+    font-weight: 800;
+    margin-bottom: 15px;
+}
+
+.hero h1 {
+    font-size: 68px;
+    line-height: 1.05;
+    margin-bottom: 25px;
+    font-weight: 900;
+}
+
+.hero-description {
+    max-width: 620px;
+    color: rgba(255, 255, 255, 0.86);
+    font-size: 18px;
+    line-height: 1.6;
+    margin-bottom: 35px;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.primary-btn,
+.secondary-btn {
+    display: inline-block;
+    padding: 14px 26px;
+    border-radius: 28px;
+    text-decoration: none;
+    font-weight: 900;
+    font-size: 16px;
+}
+
+.primary-btn {
+    background: #8b0000;
+    color: white;
+}
+
+.secondary-btn {
+    background: #fff2d3;
+    color: #003f5c;
+}
+
+/* HERO CARD */
+.hero-card {
+    height: 470px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.main-hero-box {
+    width: 360px;
+    min-height: 360px;
+    background: #fff2d3;
+    color: #003f5c;
+    border-radius: 35px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+    text-align: center;
+}
+
+.main-hero-box img {
+    width: 250px;
+    height: 180px;
+    object-fit: contain;
+}
+
+.main-hero-box p {
+    color: #000000;
+    font-weight: 700;
+}
+
+.floating-card {
+    position: absolute;
+    background: white;
+    color: #003f5c;
+    border-radius: 18px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 800;
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.20);
+}
+
+.floating-card span {
+    font-size: 30px;
+}
+
+.card-one {
+    top: 35px;
+    left: 10px;
+}
+
+.card-two {
+    bottom: 35px;
+    right: 20px;
+}
+
+/* GENERAL SECTIONS */
+section {
+    padding: 90px 70px;
+}
+
+/* INDEPENDENT SECTION HEADINGS */
+.section-heading-roles,
+.section-heading-how,
+.section-heading-subjects,
+.section-heading-faq,
+.section-heading-shq {
+    text-align: center;
+    margin-bottom: 45px;
+}
+
+/* ROLES HEADING */
+.section-heading-roles p {
+    color: #8b0000;
+    font-size: 15px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+}
+
+.section-heading-roles h2 {
+    color: #003f5c;
+    font-size: 42px;
+    font-weight: 900;
+}
+
+/* HOW IT WORKS HEADING */
+.section-heading-how p {
+    color: #8b0000;
+    font-size: 15px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+}
+
+.section-heading-how h2 {
+    color: #003f5c;
+    font-size: 42px;
+    font-weight: 900;
+}
+
+/* SUBJECTS HEADING */
+.section-heading-subjects p {
+    color: #8b0000;
+    font-size: 15px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+}
+
+.section-heading-subjects h2 {
+    color: #003f5c;
+    font-size: 42px;
+    font-weight: 900;
+}
+
+/* FAQ HEADING */
+.section-heading-faq p {
+    color: #fff2d3;
+    font-size: 15px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+}
+
+.section-heading-faq h2 {
+    color: #ffffff;
+    font-size: 42px;
+    font-weight: 900;
+}
+
+/* STILL HAVE QUESTIONS HEADING */
+.section-heading-shq p {
+    color: #8b0000;
+    font-size: 15px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+}
+
+.section-heading-shq h2 {
+    color: #003f5c;
+    font-size: 42px;
+    font-weight: 900;
+}
+
+/* ROLES */
+.subjects-section,
+.faq-section {
+    background: #ffffff;
+}
+
+.roles-section {
+    background: #bab09a;
+}
+
+.role-grid {
+    display: flex;
+    justify-content: center;
+    gap: 35px;
+    flex-wrap: wrap;
+}
+
+.role-card {
+    width: 380px;
+    min-height: 330px;
+    background: #fff2d3;
+    color: #003f5c;
+    text-decoration: none;
+    border-radius: 20px;
+    padding: 38px 32px;
+    text-align: center;
+    transition: 0.25s ease;
+    box-shadow: 0 10px 25px rgba(0, 63, 92, 0.15);
+}
+
+.role-card:hover {
+    transform: translateY(-8px);
+}
+
+.tutor-role {
+    background: #fdf6e7;
+}
+
+.role-icon {
+    font-size: 65px;
+    margin-bottom: 18px;
+}
+
+.role-card h3 {
+    font-size: 28px;
+    margin-bottom: 15px;
+}
+
+.role-card p {
+    color: #222;
+    line-height: 1.5;
+    margin-bottom: 28px;
+}
+
+.role-card span {
+    background: #8b0000;
+    color: white;
+    padding: 12px 22px;
+    border-radius: 25px;
+    font-weight: 900;
+}
+
+/* HOW */
+.how-section {
+    background: #fff2d3;
+}
+
+.how-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 35px;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.how-column {
+    background: white;
+    color: #003f5c;
+    border-radius: 18px;
+    padding: 35px;
+}
+
+.tutor-column {
+    border: 3px solid #8b0000;
+}
+
+.how-column h3 {
+    font-size: 28px;
+    margin-bottom: 25px;
+}
+
+.how-step {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    margin-bottom: 22px;
+}
+
+.how-step div {
+    width: 36px;
+    height: 36px;
+    background: #8b0000;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 900;
+    flex-shrink: 0;
+}
+
+.how-step p {
+    color: #222;
+    line-height: 1.5;
+    font-weight: 700;
+}
+
+/* SUBJECTS */
+.subject-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 28px;
+}
+
+.subject-card {
+    background: #d9d9d9;
+    color: #003f5c;
+    text-align: center;
+    border-radius: 12px;
+    padding: 28px 18px;
+    min-height: 250px;
+}
+
+.subject-card img {
+    width: 105px;
+    height: 105px;
+    object-fit: contain;
+    margin-bottom: 18px;
+}
+
+.subject-card h3 {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.subject-card p {
+    color: #003f5c;
+}
+
+/* WHY CHOOSE */
+.why-section {
+    background: #fff2d3;
+    padding: 55px 70px 75px;
+    color: #003f5c;
+    position: relative;
+    overflow: hidden;
+}
+
+.why-title {
+    text-align: center;
+    font-size: 28px;
+    font-weight: 900;
+    margin-bottom: 45px;
+}
+
+.why-container {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.why-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 45px;
+    margin-bottom: 45px;
+}
+
+.why-row.reverse .why-text {
+    order: 2;
+}
+
+.why-row.reverse .why-image {
+    order: 1;
+}
+
+.why-text h3 {
+    font-size: 23px;
+    font-weight: 900;
+    margin-bottom: 15px;
+}
+
+.why-text p {
+    color: #2e2e2e;
+    font-size: 15px;
+    line-height: 1.25;
+    font-weight: 600;
+}
+
+.why-image img {
+    width: 100%;
+    max-width: 600px;
+    display: block;
+    margin: 0 auto;
+    object-fit: contain;
+}
+
+/* Decorative shapes */
+.why-section::before {
+    content: "";
+    position: absolute;
+    left: -90px;
+    top: 95px;
+    width: 190px;
+    height: 230px;
+    background: #b8beb6;
+    clip-path: polygon(0 0, 100% 45%, 0 100%);
+    opacity: 0.9;
+}
+
+.why-section::after {
+    content: "";
+    position: absolute;
+    right: -65px;
+    top: 390px;
+    width: 210px;
+    height: 210px;
+    background: #b8beb6;
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+    opacity: 0.9;
+
+}
+
+/* FAQ */
+.faq-section {
+    background: #003f5c;
+    padding: 55px 70px 75px;
+}
+
+.faq-list {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.faq-item {
+    background: #fff2d3;
+    margin-bottom: 16px;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.faq-item button {
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 22px 25px;
+    color: #003f5c;
+    font-size: 18px;
+    font-weight: 900;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.faq-item button span {
+    font-size: 28px;
+    color: #8b0000;
+}
+
+.faq-item p {
+    display: none;
+    color: #222;
+    padding: 0 25px 22px;
+    line-height: 1.6;
+    font-weight: 600;
+}
+
+.faq-item.active p {
+    display: block;
+}
+
+.faq-item.active button span {
+    transform: rotate(45deg);
+}
+
+/* STILL HAVE QUESTIONS */
+.shq-section {
+    background: #fff2d3;
+    color: #003f5c;
+    text-align: center;
+}
+
+.shq-section h2 {
+    font-size: 44px;
+    margin-bottom: 12px;
+}
+
+.shq-section p {
+    color: #222;
+    font-size: 18px;
+    margin-bottom: 30px;
+}
+
+.shq-section .hero-buttons {
+    justify-content: center;
+}
+
+.support-socials {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 22px;
+    margin-top: 30px;
+    flex-wrap: wrap;
+}
+
+.social-card {
+    width: 150px;
+    min-height: 135px;
+    background: white;
+    border-radius: 18px;
+    text-decoration: none;
+    color: #003f5c;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 18px 15px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    transition: 0.25s ease;
+}
+
+.social-card:hover {
+    transform: translateY(-6px);
+}
+
+.social-card img {
+    width: 52px;
+    height: 52px;
+    object-fit: contain;
+    margin-bottom: 12px;
+}
+
+.social-card span {
+    font-size: 16px;
+    font-weight: 800;
+    color: #003f5c;
+}
+
+/* FOOTER */
+.landing-footer {
+    min-height: auto;
+    height: auto;
+    background: #003f5c;
+    color: white;
+    padding: 25px 70px 15px;
+    border-radius: 45px 45px 0 0;
+}
+
+.footer-logo-top {
+    max-width: 1050px;
+    margin: 0 auto 15px;
+}
+
+.footer-logo {
+    width: 150px;
+    height: auto;
+    object-fit: contain;
+}
+
+.footer-columns {
+    max-width: 1050px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 35px;
+    align-items: flex-start;
+}
+
+.footer-columns > div:nth-child(1) {
+    justify-self: start;
+}
+
+.footer-columns > div:nth-child(2) {
+    justify-self: center;
+}
+
+.footer-columns > div:nth-child(3) {
+    justify-self: end;
+}
+
+.footer-column {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.footer-column a,
+.footer-column p {
+    color: white;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.footer-bottom {
+    text-align: center;
+    color: white;
+    font-size: 13px;
+    font-weight: 700;
+    margin-top: 18px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 950px) {
+    .landing-nav {
+        padding: 0 25px;
+    }
+
+    .nav-menu,
+    .nav-actions {
+        display: none;
+    }
+
+    .menu-btn {
+        display: block;
+    }
+
+    .nav-menu.active {
+        position: absolute;
+        top: 82px;
+        left: 0;
+        width: 100%;
+        background: #003f5c;
+        display: flex;
+        flex-direction: column;
+        padding: 25px;
+        border-bottom: 1px solid rgba(255,255,255,0.15);
+    }
+
+    .hero {
+        grid-template-columns: 1fr;
+        text-align: center;
+        padding: 135px 30px 70px;
+    }
+
+    .hero-description {
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .hero-buttons {
+        justify-content: center;
+    }
+
+    .how-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .subject-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .landing-footer {
+        text-align: center;
+        padding: 28px 25px;
+    }
+
+    .footer-logo-top {
+        text-align: center;
+    }
+
+    .footer-columns {
+        grid-template-columns: 1fr;
+        gap: 25px;
+        text-align: center;
+    }
+
+    .footer-column {
+        align-items: center;
+    }
+}
+
+@media (max-width: 850px) {
+    .why-section {
+        padding: 45px 25px 60px;
+    }
+
+    .why-row,
+    .why-row.reverse {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 22px;
+    }
+
+    .why-row.reverse .why-text,
+    .why-row.reverse .why-image {
+        order: unset;
+    }
+
+    .why-image img {
+        max-width: 300px;
+    }
+
+    .why-section::before,
+    .why-section::after {
+        display: none;
+    }
+}
+
+@media (max-width: 600px) {
+    section {
+        padding: 70px 25px;
+    }
+
+    .hero h1 {
+        font-size: 42px;
+    }
+
+    .hero-card {
+        height: auto;
+    }
+
+    .main-hero-box {
+        width: 100%;
+        min-height: 300px;
+    }
+
+    .floating-card {
+        display: none;
+    }
+
+    .section-heading-roles h2,
+    .section-heading-how h2,
+    .section-heading-subjects h2,
+    .section-heading-faq h2,
+    .section-heading-shq h2,
+    .shq-section h2 {
+        font-size: 32px;
+    }
+
+    .subject-grid {
+        grid-template-columns: 1fr;
+    }
+}

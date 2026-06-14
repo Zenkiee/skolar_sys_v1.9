@@ -1,0 +1,369 @@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/skolar-dialog.css">
+    <title>Skolar</title>
+    <link rel="icon" type="image/png" href="~/assets/img/skolarlogo.png">
+    <link rel="stylesheet" href="~/main-css/landing.css">
+    <script src="~/main-js/landing.js" defer></script>
+</head>
+<body>
+    <script src="~/js/skolar-dialog.js"></script>
+
+    <!-- NAVBAR -->
+    <nav class="landing-nav">
+        <a href="#home" class="nav-logo">
+            <img src="~/assets/img/Skolar logo white .png" alt="Skolar Logo">
+        </a>
+
+        <div class="nav-menu" id="navMenu">
+            <a href="#home">Home</a>
+            <a href="#how">About</a>
+            <a href="#subjects">Subjects</a>
+            <a href="#roles">Roles</a>
+            <a href="#faq">FAQ</a>
+            <a href="#contact">Contact</a>
+        </div>
+
+        <div class="nav-actions">
+            <a href="/Home/Account?role=learner" class="nav-btn learner-btn">Learner</a>
+            <a href="/Home/Account?role=tutor" class="nav-btn tutor-btn">Tutor</a>
+        </div>
+
+        <button class="menu-btn" onclick="toggleLandingMenu()">☰</button>
+    </nav>
+
+    <!-- HERO -->
+    <header class="hero" id="home">
+        <div class="hero-text">
+            <p class="eyebrow">Learn smarter. Teach better.</p>
+
+            <h1>
+                One platform for<br>
+                learners and tutors.
+            </h1>
+
+            <p class="hero-description">
+                Skolar helps learners book sessions easily while giving tutors a simple way
+                to manage availability, bookings, and student reviews.
+            </p>
+
+            <div class="hero-buttons">
+                <a href="/Home/Account?role=learner" class="primary-btn">Continue as Learner</a>
+                <a href="/Home/Account?role=tutor" class="secondary-btn">Continue as Tutor</a>
+            </div>
+        </div>
+
+        <div class="hero-card">
+            <div class="floating-card card-one">
+                <span>📅</span>
+                <p>Book available dates</p>
+            </div>
+
+            <div class="main-hero-box">
+                <img src="~/assets/img/skolar-logo-colored.png" alt="Skolar Logo">
+                <p>Flexible tutoring made simple.</p>
+            </div>
+
+            <div class="floating-card card-two">
+                <span>⭐</span>
+                <p>Approved tutor reviews</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- HOW IT WORKS -->
+    <section class="how-section" id="how">
+        <div class="section-heading-how">
+            <p>Simple process</p>
+            <h2>How Skolar works</h2>
+        </div>
+
+        <div class="how-layout">
+            <div class="how-column">
+                <h3>For Learners</h3>
+
+                <div class="how-step">
+                    <div>1</div>
+                    <p>Visit the learner page and view the tutor’s information.</p>
+                </div>
+
+                <div class="how-step">
+                    <div>2</div>
+                    <p>Select an available date from the tutor’s calendar.</p>
+                </div>
+
+                <div class="how-step">
+                    <div>3</div>
+                    <p>Complete the booking form and wait for confirmation.</p>
+                </div>
+            </div>
+
+            <div class="how-column tutor-column">
+                <h3>For Tutors</h3>
+
+                <div class="how-step">
+                    <div>1</div>
+                    <p>Log in to the tutor dashboard.</p>
+                </div>
+
+                <div class="how-step">
+                    <div>2</div>
+                    <p>Add availability and manage incoming bookings.</p>
+                </div>
+
+                <div class="how-step">
+                    <div>3</div>
+                    <p>Approve reviews before they appear publicly.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SUBJECTS -->
+    <section class="subjects-section" id="subjects">
+        <div class="section-heading-subjects">
+            <p>Featured subjects</p>
+            <h2>Subjects learners can book</h2>
+        </div>
+
+        <div class="subject-grid">
+            <div class="subject-card">
+                <img src="~/assets/img/english.png" alt="English">
+                <h3>English</h3>
+                <p>Fluency and grammar</p>
+            </div>
+
+            <div class="subject-card">
+                <img src="~/assets/img/math.png" alt="Math">
+                <h3>Math</h3>
+                <p>Mastering logic and numbers</p>
+            </div>
+
+            <div class="subject-card">
+                <img src="~/assets/img/early-learning.png" alt="Early Learning">
+                <h3>Early Learning</h3>
+                <p>Basic skills for young learners</p>
+            </div>
+
+            <div class="subject-card">
+                <img src="~/assets/img/writing.png" alt="Writing">
+                <h3>Writing</h3>
+                <p>Writing and idea development</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- WHY CHOOSE -->
+    <section class="why-section" id="why">
+        <h2 class="why-title">Why choose us?</h2>
+
+        <div class="why-container">
+            <div class="why-row">
+                <div class="why-text">
+                    <h3>Learning That Fits Your Child</h3>
+                    <p>
+                        Every child learns in their own way. Some students learn quickly,
+                        while others need more time and guidance. Our tutors adjust their
+                        teaching approach based on each student's needs, helping them
+                        understand lessons better and learn at a pace that is comfortable
+                        for them.
+                    </p>
+                </div>
+
+                <div class="why-image">
+                    <img src="~/assets/img/why-child-learning.png" alt="Children learning online">
+                </div>
+            </div>
+
+            <div class="why-row reverse">
+                <div class="why-text">
+                    <h3>Tutors Who Care</h3>
+                    <p>
+                        Our tutors are committed to helping students improve and gain
+                        confidence in their studies. They create a friendly and supportive
+                        learning environment where students can ask questions, participate
+                        actively, and enjoy learning without feeling pressured.
+                    </p>
+                </div>
+
+                <div class="why-image">
+                    <img src="~/assets/img/why-tutor-care.png" alt="Tutor teaching online">
+                </div>
+            </div>
+
+            <div class="why-row">
+                <div class="why-text">
+                    <h3>Easy and Convenient Access</h3>
+                    <p>
+                        With online tutoring, students can learn from the comfort of their
+                        own homes. Parents can easily find tutors, book sessions, and get
+                        the academic support their children need without the hassle of
+                        traveling or adjusting to strict schedules.
+                    </p>
+                </div>
+
+                <div class="why-image">
+                    <img src="~/assets/img/why-easy-access.png" alt="Online learning session">
+                </div>
+            </div>
+
+            <div class="why-row reverse">
+                <div class="why-text">
+                    <h3>Helping Young Learners Grow</h3>
+                    <p>
+                        Our main focus is on preschool and elementary students because
+                        these years are important in building strong learning habits and
+                        basic skills. We aim to help children develop confidence, improve
+                        their understanding of subjects, and create a positive attitude
+                        toward learning that can benefit them in the future.
+                    </p>
+                </div>
+
+                <div class="why-image">
+                    <img src="~/assets/img/why-young-learners.png" alt="Young learner smiling">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ROLE SELECTION -->
+    <section class="roles-section" id="roles">
+        <div class="section-heading-roles">
+            <p>Choose your role</p>
+            <h2>How would you like to continue?</h2>
+        </div>
+
+        <div class="role-grid">
+            <a href="/Home/Account?role=learner" class="role-card">
+                <div class="role-icon">🎓</div>
+                <h3>I’m a Learner</h3>
+                <p>
+                    View tutor information, check available schedules,
+                    book sessions, and submit your booking details.
+                </p>
+                <span>Go to learner page</span>
+            </a>
+
+            <a href="/Home/Account?role=tutor" class="role-card tutor-role">
+                <div class="role-icon">📚</div>
+                <h3>I’m a Tutor</h3>
+                <p>
+                    Log in to manage availability, approve bookings,
+                    update your profile, and control student reviews.
+                </p>
+                <span>Go to tutor login</span>
+            </a>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="faq-section" id="faq">
+        <div class="section-heading-faq">
+            <p>Frequently asked questions</p>
+            <h2>Need help?</h2>
+        </div>
+
+        <div class="faq-list">
+            <div class="faq-item">
+                <button onclick="toggleFaq(this)">
+                    How does a learner book a session?
+                    <span>+</span>
+                </button>
+                <p>
+                    The learner goes to the learner page, checks the tutor’s info,
+                    selects an available date, fills out the booking form, and submits payment details.
+                </p>
+            </div>
+
+            <div class="faq-item">
+                <button onclick="toggleFaq(this)">
+                    Are available dates random?
+                    <span>+</span>
+                </button>
+                <p>
+                    No. The tutor sets their own availability from the tutor dashboard.
+                    The learner page only displays the saved available dates.
+                </p>
+            </div>
+
+            <div class="faq-item">
+                <button onclick="toggleFaq(this)">
+                    Can tutors reject bookings?
+                    <span>+</span>
+                </button>
+                <p>
+                    Yes. Bookings are saved as pending first. The tutor can later accept or reject them.
+                </p>
+            </div>
+
+            <div class="faq-item">
+                <button onclick="toggleFaq(this)">
+                    Do reviews appear automatically?
+                    <span>+</span>
+                </button>
+                <p>
+                    No. Reviews must be approved by the tutor before they appear on the public tutor info page.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- STILL HAVE QUESTIONS -->
+    <section class="shq-section" id="contact">
+        <div class="section-heading-shq">
+            <p>Contact us</p>
+            <h2>Still have questions?</h2>
+        </div>
+
+        <p>Contact our support team for assistance.</p>
+
+        <div class="support-socials">
+            <a href="https://www.facebook.com/profile.php?id=61590333854546" target="_blank" class="social-card">
+                <img src="~/assets/img/facebook-logo.png" alt="Facebook">
+                <span>Facebook</span>
+            </a>
+
+            <a href="https://www.instagram.com/skolar.ph/" target="_blank" class="social-card">
+                <img src="~/assets/img/instagram-logo.png" alt="Instagram">
+                <span>Instagram</span>
+            </a>
+
+            <a href="mailto:skolartutors.ph@gmail.com" class="social-card">
+                <img src="~/assets/img/email-logo.png" alt="Email">
+                <span>Email</span>
+            </a>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="landing-footer">
+        <div class="footer-columns">
+            <div class="footer-logo-top">
+                <img src="~/assets/img/Skolar logo white .png" alt="Skolar Logo" class="footer-logo">
+            </div>
+
+            <div class="footer-column">
+                <a href="#how">About Skolar</a>
+                <a href="#subjects">Featured Subjects</a>
+                <a href="#roles">Become a tutor</a>
+                <a href="#faq">FAQ</a>
+            </div>
+
+            <div class="footer-column footer-contact">
+                <p>Manila, Philippines</p>
+                <a href="#contact">Contact Us</a>
+            </div>
+        </div>
+
+        <p class="footer-bottom">© 2026 Skolar. All rights reserved</p>
+    </footer>
+
+</body>
+</html>

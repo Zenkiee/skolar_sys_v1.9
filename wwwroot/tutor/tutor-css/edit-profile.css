@@ -1,0 +1,294 @@
+* {
+    font-family: 'Inter', Arial, sans-serif;
+}
+
+/* Profile */
+/* ============================================
+   EDIT PROFILE PAGE
+   ============================================ */
+
+/* Form Card */
+.ep-card {
+  background: var(--white);
+  border: 1.5px solid var(--navy);
+  border-radius: var(--radius-sm);
+  padding: 24px 32px;
+  margin-bottom: var(--gap-lg);
+}
+.ep-card-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--navy);
+  padding-bottom: 12px;
+  margin-bottom: 24px;
+  border-bottom: 1.5px solid var(--navy);
+}
+
+/* Avatar Row */
+.ep-avatar-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+.ep-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #F5A623;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--white);
+  flex-shrink: 0;
+  border: 2px solid var(--navy);
+}
+.ep-avatar .svg-icon {
+  width: 32px;
+  height: 32px;
+}
+.ep-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  border: 1.5px solid var(--navy);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--navy);
+  background: var(--white);
+  cursor: pointer;
+  transition: all var(--duration) var(--ease);
+}
+.ep-upload-btn:hover {
+  background: var(--cream-dark);
+}
+.ep-upload-btn .svg-icon {
+  width: 16px;
+  height: 16px;
+}
+
+
+.ep-remove-photo-btn {
+  padding: 6px 16px;
+  border: 1.5px solid #9f2f2f;
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  color: #9f2f2f;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ep-remove-photo-btn:hover {
+  background: #fbecec;
+}
+
+.ep-remove-photo-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Tan Button (View Profile, Save, Add) */
+.ep-btn-tan {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 20px;
+  border: 1.5px solid var(--navy);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--navy);
+  background: #f1dfc3; /* Tan accent */
+  cursor: pointer;
+  transition: all var(--duration) var(--ease);
+}
+.ep-btn-tan:hover {
+  background: #e3cca7;
+}
+
+.ep-view-btn {
+  margin-left: auto;
+}
+
+/* Form Grid */
+.ep-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+.ep-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ep-field.full-width {
+  grid-column: 1 / -1;
+}
+.ep-field label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--navy);
+}
+.ep-field input,
+.ep-field textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid var(--navy);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  color: var(--navy);
+  background: var(--white);
+  transition: box-shadow var(--duration) var(--ease);
+}
+.ep-field input:focus,
+.ep-field textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(27,42,74,0.1);
+}
+.ep-field textarea {
+  resize: vertical;
+  min-height: 100px;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+/* Action Buttons Container */
+.ep-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.ep-btn-discard {
+  padding: 6px 20px;
+  border: 1.5px solid var(--navy);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--navy);
+  background: var(--white);
+  cursor: pointer;
+  transition: all var(--duration) var(--ease);
+}
+.ep-btn-discard:hover {
+  background: rgba(27,42,74,0.05);
+}
+
+/* Subjects Add Row */
+.ep-add-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.ep-add-row .ep-field {
+  flex: 1;
+}
+.ep-add-row .ep-btn-tan {
+  height: 40px; /* match input height */
+}
+
+/* Hidden file input */
+.ep-file-input {
+  display: none;
+}
+
+/* Stats Row - 3 column grid for exp/taught/rate */
+.ep-stats-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+/* Subjects List */
+.ep-subjects-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+  min-height: 38px;
+}
+.ep-subject-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #f1dfc3;
+  border: 1.5px solid var(--navy);
+  border-radius: var(--radius-pill);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--navy);
+  transition: all var(--duration) var(--ease);
+}
+.ep-subject-pill:hover {
+  background: #e3cca7;
+}
+.ep-subject-delete {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--navy);
+  opacity: 0.6;
+  transition: opacity var(--duration) var(--ease);
+}
+.ep-subject-delete:hover {
+  opacity: 1;
+}
+
+@media (max-width: 768px) {
+  .ep-stats-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* Toast Notification */
+.ep-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  padding: 12px 24px;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--white);
+  z-index: 600;
+  opacity: 0;
+  transform: translateY(12px);
+  pointer-events: none;
+  transition: all 0.35s var(--ease);
+  box-shadow: var(--shadow-card);
+}
+.ep-toast.show {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: all;
+}
+.ep-toast-success {
+  background: var(--confirmed-bg);
+}
+.ep-toast-info {
+  background: var(--navy);
+}
+
+
+/* Page Width */
+.ep-card,
+.ep-form-grid,
+.ep-field {
+  min-width: 0;
+}

@@ -1,0 +1,244 @@
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/skolar-dialog.css">
+    <title>Book a Session | Skolar</title>
+    <link rel="icon" type="image/png" href="~/assets/img/skolarlogo.png">
+    <link rel="stylesheet" href="~/learner/learner-css/booking.css">
+</head>
+<body>
+    <script src="~/js/skolar-dialog.js"></script>
+    <main class="booking-page">
+        <a href="/Learner/LearnerPortal" class="back-btn">‹</a>
+        <h1 class="page-title">Book a Session</h1>
+
+        <div class="booking-layout">
+            <div class="booking-main">
+                <!-- Date -->
+                <section class="booking-step active" id="dateStep">
+                    <div class="booking-card">
+                        <div class="stepper">
+                            <div class="step active">1<span>Select Date</span></div>
+                            <div class="line"></div>
+                            <div class="step">2<span>Details</span></div>
+                            <div class="line"></div>
+                            <div class="step">3<span>Payment</span></div>
+                            <div class="line"></div>
+                            <div class="step">4<span>Done</span></div>
+                        </div>
+
+                        <h2>Select your schedule</h2>
+
+                        <div class="booking-type-picker" role="group" aria-label="Booking type">
+                            <button type="button" class="booking-type-btn active" data-booking-type="Single">
+                                <strong>Single Day</strong>
+                                <span>Book one tutoring session</span>
+                            </button>
+                            <button type="button" class="booking-type-btn" data-booking-type="Range">
+                                <strong>Date Range</strong>
+                                <span>Book multiple available dates</span>
+                            </button>
+                        </div>
+
+                        <p class="selection-guide" id="selectionGuide">Choose one available date.</p>
+
+                        <div class="calendar-card">
+                            <div class="calendar-header">
+                                <button type="button" onclick="changeMonth(-1)">‹</button>
+                                <h3 id="calendarMonth">May 2026</h3>
+                                <button type="button" onclick="changeMonth(1)">›</button>
+                            </div>
+
+                            <div class="calendar-weekdays">
+                                <span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span><span>Su</span>
+                            </div>
+
+                            <div class="calendar-days" id="calendarDays"></div>
+
+                            <div class="range-selection-card" id="rangeSelectionCard" hidden>
+                                <div>
+                                    <span>Selected schedule</span>
+                                    <strong id="rangeSelectionText">Choose a start date</strong>
+                                </div>
+                                <span class="session-count" id="selectedSessionCount">0 sessions</span>
+                            </div>
+
+                            <div class="selected-dates-list" id="selectedDatesList" hidden></div>
+
+                            <div class="calendar-legend">
+                                <div><span class="legend available-box"></span> Available</div>
+                                <div><span class="legend today-box"></span> Today</div>
+                                <div><span class="legend selected-box"></span> Selected</div>
+                                <div><span class="legend unavailable-box"></span> Unavailable</div>
+                            </div>
+
+                            <button type="button" class="main-btn" onclick="goToDetails()">Continue</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Details -->
+                <section class="booking-step" id="detailsStep">
+                    <div class="booking-card">
+                        <div class="stepper">
+                            <div class="step done">✓<span>Select Date</span></div>
+                            <div class="line"></div>
+                            <div class="step active">2<span>Details</span></div>
+                            <div class="line"></div>
+                            <div class="step">3<span>Payment</span></div>
+                            <div class="line"></div>
+                            <div class="step">4<span>Done</span></div>
+                        </div>
+
+                        <h2>Your Details</h2>
+
+                        <form id="detailsForm">
+                            <p class="form-title">Personal Information</p>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="firstName">First Name*</label>
+                                    <input type="text" id="firstName" placeholder="e.g. Maria" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="lastName">Last Name*</label>
+                                    <input type="text" id="lastName" placeholder="e.g. Santos" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="email">Gmail Address*</label>
+                                    <input type="email" id="email" placeholder="yourname@gmail.com" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="contact">Contact Number*</label>
+                                    <input type="text" id="contact" placeholder="09XXXXXXXXX" required>
+                                </div>
+                            </div>
+
+                            <div class="divider"></div>
+                            <p class="form-title">Session Details</p>
+
+                            <div class="form-group full">
+                                <label for="subject">Pick a subject*</label>
+                                <select id="subject" required>
+                                    <option value="">Loading subjects...</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group full">
+                                <label for="time">Preferred Time*</label>
+                                <select id="time" required disabled>
+                                    <option value="">Select a schedule first</option>
+                                </select>
+                                <small class="field-help" id="timeHelp">Times are set by the tutor for your selected schedule.</small>
+                            </div>
+
+                            <div class="button-row">
+                                <button type="button" class="back-step-btn" onclick="showStep('dateStep')">Back</button>
+                                <button type="submit" class="next-btn">Next</button>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- Review -->
+                <section class="booking-step" id="paymentStep">
+                    <div class="booking-card">
+                        <div class="stepper">
+                            <div class="step done">✓<span>Select Date</span></div>
+                            <div class="line"></div>
+                            <div class="step done">✓<span>Details</span></div>
+                            <div class="line"></div>
+                            <div class="step active">3<span>Review</span></div>
+                            <div class="line"></div>
+                            <div class="step">4<span>Done</span></div>
+                        </div>
+
+                        <h2>Review Booking</h2>
+
+                        <form id="paymentForm">
+                            <p class="payment-policy-note">Review the session cost before submitting your booking request.</p>
+
+                            <div class="payment-price-card">
+                                <div><span>Tutor rate</span><strong id="paymentRate">₱0.00 / hour</strong></div>
+                                <div><span>Session duration</span><strong id="paymentDuration">0 hours</strong></div>
+                                <div><span>Number of sessions</span><strong id="paymentSessionCount">0</strong></div>
+                                <div><span>Session subtotal</span><strong id="paymentSessionAmount">₱0.00</strong></div>
+                                <div class="payment-total-row"><span>Total payment</span><strong id="paymentTotal">₱0.00</strong></div>
+                            </div>
+
+                            <div class="button-row">
+                                <button type="button" class="back-step-btn" onclick="showStep('detailsStep')">Back</button>
+                                <button type="submit" class="confirm-btn" id="proceedPaymentBtn">Submit Booking Request</button>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- Done -->
+                <section class="booking-step" id="confirmStep">
+                    <div class="booking-card confirm-card">
+                        <div class="stepper">
+                            <div class="step done">✓<span>Select Date</span></div>
+                            <div class="line"></div>
+                            <div class="step done">✓<span>Details</span></div>
+                            <div class="line"></div>
+                            <div class="step done">✓<span>Review</span></div>
+                            <div class="line"></div>
+                            <div class="step active">4<span>Done</span></div>
+                        </div>
+
+                        <div class="success-box">
+                            <div class="success-icon">✓</div>
+                            <h2>Booking Request Submitted!</h2>
+                            <p>Your selected session<span id="successPlural">s</span> will be reviewed by the tutor.</p>
+
+                            <div class="final-summary">
+                                <p><strong>Name:</strong> <span id="finalName">—</span></p>
+                                <p><strong>Schedule:</strong> <span id="finalDate">—</span></p>
+                                <p><strong>Sessions:</strong> <span id="finalSessions">—</span></p>
+                                <p><strong>Subject:</strong> <span id="finalSubject">—</span></p>
+                                <p><strong>Time:</strong> <span id="finalTime">—</span></p>
+                                <p><strong>Status:</strong> Pending confirmation</p>
+                            </div>
+
+                            <a href="/Learner/LearnerPortal">Back to Portal</a>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Summary -->
+            <aside class="booking-summary">
+                <h2>Booking Summary</h2>
+                <div class="summary-tutor">
+                    <img id="summaryTutorPhoto" src="~/assets/img/tutor-avatar.png" alt="Tutor">
+                    <div>
+                        <h3 id="summaryTutorName">Loading...</h3>
+                        <p>Independent Tutor</p>
+                    </div>
+                </div>
+
+                <div class="summary-list">
+                    <div><span>Booking Type</span><strong id="summaryBookingType">Single Day</strong></div>
+                    <div><span>Schedule</span><strong id="summaryDate">Not selected</strong></div>
+                    <div><span>Sessions</span><strong id="summarySessions">Not selected</strong></div>
+                    <div><span>Subject</span><strong id="summarySubject">Not selected</strong></div>
+                    <div><span>Time</span><strong id="summaryTime">Not selected</strong></div>
+                    <div><span>Learner</span><strong id="summaryName">Not provided</strong></div>
+                    <div><span>Total</span><strong id="summaryTotal">₱0.00</strong></div>
+                    <div><span>Status</span><strong class="pending-text">Pending confirmation</strong></div>
+                </div>
+
+                <p class="summary-note">All booking requests are subject to tutor confirmation. Your selected date and time are not final until the tutor accepts the request.</p>
+            </aside>
+        </div>
+    </main>
+
+    <script src="~/main-js/auth-guard.js"></script>
+    <script>requireRole("learner");</script>
+    <script src="~/learner/learner-js/booking.js"></script>
+</body>
+</html>

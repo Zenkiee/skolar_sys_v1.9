@@ -1,0 +1,500 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', Arial, sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    background: #003f5c;
+}
+
+.account-page {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    background: #003f5c;
+    overflow: hidden;
+}
+
+/* Layout */
+.account-left {
+    background: #003f5c;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 45px;
+    color: white;
+    overflow-y: auto;
+}
+
+.account-box {
+    width: 100%;
+    max-width: 380px;
+    text-align: center;
+}
+
+.account-box.profile-mode {
+    max-width: 500px;
+}
+
+.account-box h2 {
+    font-size: 40px;
+    margin-bottom: 18px;
+    color: white;
+}
+
+.account-right {
+    position: relative;
+    background: #fff2d3;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.account-right::after {
+    content: "";
+    position: absolute;
+    width: 125%;
+    height: 48%;
+    background: #003f5c;
+    bottom: -18%;
+    left: -15%;
+    border-radius: 55% 45% 0 0;
+    z-index: 1;
+}
+
+.skolar-logo-signup {
+    width: 70%;
+    max-width: 520px;
+    min-width: 280px;
+    height: auto;
+    top: -80px;
+    object-fit: contain;
+    position: relative;
+    z-index: 2;
+}
+
+/* Stepper */
+.signup-stepper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.signup-step {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.25);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 900;
+}
+
+.signup-step.active,
+.signup-step.done {
+    background: #8b0000;
+}
+
+.signup-line {
+    width: 70px;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.signup-step-label {
+    text-align: center;
+    font-size: 13px;
+    font-weight: 900;
+    color: #fff2d3;
+    margin-bottom: 18px;
+}
+
+/* Forms */
+.account-form {
+    display: none;
+}
+
+.account-form.active {
+    display: block;
+}
+
+.form-field {
+    width: 100%;
+    margin-bottom: 16px;
+    text-align: left;
+}
+
+.form-field > label:not(.terms-check) {
+    color: white;
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.account-form input,
+.account-form select,
+.account-form textarea,
+.subject-dropdown-trigger {
+    width: 100%;
+    border: 2px solid transparent;
+    border-radius: 12px;
+    padding: 0 22px;
+    font-size: 16px;
+    font-weight: 800;
+    color: #8b0000;
+    outline: none;
+    background: white;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.account-form input,
+.account-form select,
+.subject-dropdown-trigger {
+    height: 52px;
+}
+
+.account-form textarea {
+    min-height: 105px;
+    padding-top: 15px;
+    padding-bottom: 15px;
+    resize: vertical;
+}
+
+.account-form input::placeholder,
+.account-form textarea::placeholder,
+.subject-dropdown-trigger {
+    color: #bd7d7d;
+}
+
+.account-form input:focus,
+.account-form select:focus,
+.account-form textarea:focus,
+.subject-dropdown-trigger:focus {
+    border-color: #d7a742;
+    box-shadow: 0 0 0 3px rgba(215, 167, 66, 0.2);
+}
+
+.account-form .input-invalid {
+    border-color: #ff9c9c;
+    box-shadow: 0 0 0 3px rgba(255, 99, 99, 0.18);
+}
+
+.field-error {
+    min-height: 18px;
+    margin: 5px 4px 0;
+    color: #ffb3b3;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1.35;
+}
+
+.field-hint,
+.field-meta {
+    color: #d9edf5;
+    font-size: 11px;
+    font-weight: 600;
+    margin: 5px 4px 0;
+}
+
+.field-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Password */
+.password-wrapper {
+    position: relative;
+}
+
+.password-wrapper input {
+    padding-right: 58px;
+}
+
+.password-wrapper button {
+    position: absolute;
+    top: 50%;
+    right: 16px;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.password-rules {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    margin: 7px 2px 0;
+}
+
+.password-rules span {
+    color: #d9edf5;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.password-rules span::before {
+    content: "○";
+    margin-right: 4px;
+}
+
+.password-rules span.valid {
+    color: #b6ffb6;
+}
+
+.password-rules span.valid::before {
+    content: "✓";
+}
+
+/* Terms */
+.terms-field {
+    margin-bottom: 20px;
+}
+
+.terms-check {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: white;
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.3;
+}
+
+.terms-check input[type="checkbox"] {
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    margin: 0;
+    padding: 0;
+    flex-shrink: 0;
+    accent-color: #8b0000;
+}
+
+.terms-check span {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.terms-check a {
+    color: #fff2d3;
+    font-weight: 900;
+    text-decoration: underline;
+}
+
+/* Subjects */
+.subject-dropdown-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.subject-dropdown-trigger {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    text-align: left;
+}
+
+.subject-dropdown-trigger svg {
+    flex-shrink: 0;
+}
+
+.subject-dropdown-trigger .has-value {
+    color: #8b0000;
+}
+
+.subject-dropdown-menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 5px);
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18);
+    z-index: 100;
+    max-height: 210px;
+    overflow-y: auto;
+    padding: 6px 0;
+}
+
+.subject-dropdown-menu.open {
+    display: block;
+}
+
+.subject-dropdown-menu label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #333;
+    line-height: 1;
+}
+
+.subject-dropdown-menu label:hover {
+    background: #fff2d3;
+}
+
+.subject-dropdown-menu input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    min-width: 16px;
+    margin: 0;
+    padding: 0;
+    accent-color: #8b0000;
+}
+
+/* Buttons */
+.main-login-btn {
+    width: 100%;
+    height: 58px;
+    background: #8b0000;
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-size: 22px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: background 0.2s ease, opacity 0.2s ease;
+}
+
+.main-login-btn:hover:not(:disabled) {
+    background: #a00000;
+}
+
+.main-login-btn:disabled {
+    cursor: wait;
+    opacity: 0.7;
+}
+
+.profile-buttons {
+    display: grid;
+    grid-template-columns: 0.7fr 1fr;
+    gap: 12px;
+}
+
+.back-profile-btn {
+    height: 58px;
+    border: none;
+    border-radius: 14px;
+    background: #fff2d3;
+    color: #003f5c;
+    font-size: 18px;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.switch-text {
+    text-align: center;
+    margin-top: 18px;
+    font-size: 13px;
+    color: white;
+}
+
+.switch-text a {
+    color: #fff2d3;
+    font-weight: 900;
+    text-decoration: none;
+}
+
+.switch-text a:hover {
+    text-decoration: underline;
+}
+
+#accountMessage {
+    text-align: center;
+    margin-top: 18px;
+    font-weight: 900;
+    font-size: 14px;
+    min-height: 20px;
+}
+
+.message-error {
+    color: #ffb3b3;
+}
+
+.message-success {
+    color: #b6ffb6;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .account-page {
+        grid-template-columns: 1fr;
+        overflow: visible;
+    }
+
+    .account-right {
+        display: none;
+    }
+
+    .account-left {
+        min-height: 100vh;
+        padding: 45px 25px;
+    }
+}
+
+@media (max-width: 560px) {
+    .account-box,
+    .account-box.profile-mode {
+        max-width: 100%;
+    }
+
+    .account-box h2 {
+        font-size: 27px;
+    }
+
+    .account-form input,
+    .account-form select,
+    .subject-dropdown-trigger {
+        height: 48px;
+        font-size: 15px;
+    }
+
+    .main-login-btn,
+    .back-profile-btn {
+        height: 54px;
+        font-size: 18px;
+    }
+
+    .profile-buttons,
+    .password-rules {
+        grid-template-columns: 1fr;
+    }
+}

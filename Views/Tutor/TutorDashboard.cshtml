@@ -1,0 +1,238 @@
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/skolar-dialog.css">
+  <meta name="description" content="Skolar Tutor Dashboard — Manage your bookings, reviews, and schedule in one place.">
+  <title>Dashboard — Skolar</title>
+  <link rel="icon" type="image/png" href="~/assets/img/skolarlogo.png">
+  <link rel="stylesheet" href="~/tutor/tutor-css/tutor-shared.css">
+  <link rel="stylesheet" href="~/tutor/tutor-css/tutor-dashboard.css">
+</head>
+<body>
+    <script src="~/js/skolar-dialog.js"></script>
+
+  <!-- ========== SIDEBAR ========== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-top">
+      <div class="logo">
+        <img src="~/assets/img/skolarlogo.png" alt="Skolar Logo" class="logo-icon">
+        <div class="logo-text-group">
+          <span class="logo-title">Skolar</span>
+          <span class="logo-subtitle">Tutor Portal</span>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <a href="/Tutor/TutorDashboard" class="nav-item active" data-page="dashboard">
+          <span class="svg-icon icon-01 nav-icon icon-size-20" aria-hidden="true"></span>
+          <span>Dashboard</span>
+        </a>
+        <a href="/Tutor/Bookings" class="nav-item" data-page="bookings">
+          <span class="svg-icon icon-02 nav-icon icon-size-20" aria-hidden="true"></span>
+          <span>Bookings</span>
+        </a>
+        <a href="/Tutor/Reviews" class="nav-item" data-page="reviews">
+          <span class="svg-icon icon-03 nav-icon icon-size-20" aria-hidden="true"></span>
+          <span>Reviews</span>
+        </a>
+        <a href="/Tutor/Calendar" class="nav-item" data-page="calendar">
+          <span class="svg-icon icon-04 nav-icon icon-size-20" aria-hidden="true"></span>
+          <span>Calendar</span>
+        </a>
+        <a href="/Payment/TutorFinance" class="nav-item" data-page="finance">
+          <span class="svg-icon icon-21 nav-icon icon-size-20" aria-hidden="true"></span>
+          <span>Earnings &amp; Penalties</span>
+        </a>
+      </nav>
+    </div>
+
+    <div class="sidebar-bottom">
+      <a href="/Tutor/EditProfile" class="nav-item" data-page="edit-profile">
+        <span class="svg-icon icon-05 nav-icon icon-size-20" aria-hidden="true"></span>
+        <span>Edit Profile</span>
+      </a>
+      <a href="/Tutor/Settings" class="nav-item" data-page="settings">
+        <span class="svg-icon icon-06 nav-icon icon-size-20" aria-hidden="true"></span>
+        <span>Settings</span>
+      </a>
+      <div class="profile-card">
+        <div class="profile-avatar-small" id="sidebarInitials">VL</div>
+        <div class="profile-info">
+          <span class="profile-name" id="sidebarName">Vannesa L. Cainong</span>
+          <span class="profile-role">Professional Teacher</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Sidebar overlay for mobile -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- ========== MAIN WRAPPER ========== -->
+  <div class="main-wrapper">
+
+    <!-- ========== TOPBAR ========== -->
+    <header class="topbar">
+      <button class="hamburger" id="hamburger" aria-label="Toggle sidebar">
+        <span class="svg-icon icon-07 icon-size-24" aria-hidden="true"></span>
+      </button>
+      <h1 class="page-title">Overview</h1>
+      <div class="topbar-right">
+        <div class="notif-wrapper">
+          <button class="notif-btn" id="notifBtn" type="button" aria-label="Notifications" aria-expanded="false">
+            <span class="svg-icon icon-08 icon-size-22" aria-hidden="true"></span>
+            <span class="notif-dot" id="notifDot" hidden></span>
+          </button>
+          <div class="notif-dropdown" id="notifDropdown">
+            <div class="notif-dropdown-header">
+              <span>Notifications</span>
+              <span class="notif-unread-count" id="notifUnreadCount"></span>
+            </div>
+            <div class="notif-list" id="notifList">
+              <div class="notif-empty">Loading notifications...</div>
+            </div>
+          </div>
+        </div>
+        <a href="/Tutor/EditProfile" class="topbar-avatar" id="topbarAvatar">T</a>
+      </div>
+    </header>
+
+    <!-- ========== MAIN CONTENT ========== -->
+    <main class="main-content">
+
+      <!-- Welcome Card -->
+      <div class="welcome-card" id="welcomeCard">
+        <div class="welcome-date">
+          <span class="svg-icon icon-17 icon-size-16" aria-hidden="true"></span>
+          <span id="currentDate"></span>
+        </div>
+        <h2 class="welcome-heading" id="welcomeHeading">Welcome Back, Vanessa</h2>
+        <div class="welcome-actions">
+          <button class="btn btn-outline-gold" id="newBookingBtn">New Booking</button>
+          <a href="/Tutor/Calendar" class="btn btn-outline-white">View Calendar</a>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">
+            <span class="svg-icon icon-18 icon-size-24" aria-hidden="true"></span>
+          </div>
+          <div class="stat-number" id="statTotal">0</div>
+          <div class="stat-label">Total Bookings</div>
+          <div class="stat-sublabel">This Month</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">
+            <span class="svg-icon icon-19 icon-size-24" aria-hidden="true"></span>
+          </div>
+          <div class="stat-number" id="statPending">0</div>
+          <div class="stat-label">Pending</div>
+          <div class="stat-sublabel">Needs Action</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">
+            <span class="svg-icon icon-20 icon-size-24" aria-hidden="true"></span>
+          </div>
+          <div class="stat-number" id="statConfirmed">0</div>
+          <div class="stat-label">Confirmed</div>
+          <div class="stat-sublabel">Upcoming Sessions</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">
+            <span class="svg-icon icon-03 icon-size-24" aria-hidden="true"></span>
+          </div>
+          <div class="stat-number" id="statReviews">0</div>
+          <div class="stat-label">Reviews</div>
+          <div class="stat-sublabel" id="statReviewsLabel">Published reviews</div>
+        </div>
+      </div>
+
+      <!-- Panels Grid -->
+      <div class="panels-grid">
+        <!-- Recent Bookings -->
+        <div class="panel" id="bookingsPanel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span class="svg-icon icon-19 icon-size-20" aria-hidden="true"></span>
+              Recent Bookings
+            </div>
+            <a href="/Tutor/Bookings" class="btn-see-all">See All</a>
+          </div>
+          <table class="bookings-table">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Subject</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="bookingsBody">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Latest Reviews -->
+        <div class="panel" id="reviewsPanel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span class="svg-icon icon-03 icon-size-20" aria-hidden="true"></span>
+              Latest Review
+            </div>
+            <a href="/Tutor/Reviews" class="btn-see-all">See All</a>
+          </div>
+          <div id="reviewsContainer">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ========== NEW BOOKING MODAL ========== -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <h2>New Booking</h2>
+      <div class="modal-field">
+        <label for="modalStudent">Student Name</label>
+        <input type="text" id="modalStudent" placeholder="Enter student name">
+      </div>
+      <div class="modal-field">
+        <label for="modalSubject">Subject</label>
+        <select id="modalSubject">
+          <option value="">Select a subject</option>
+          <option value="Math">Math</option>
+          <option value="Filipino">Filipino</option>
+          <option value="Writing">Writing</option>
+          <option value="Science">Science</option>
+          <option value="English">English</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label for="modalDate">Date</label>
+        <input type="date" id="modalDate">
+      </div>
+      <div class="modal-actions">
+        <button class="btn-primary" id="modalSubmit">Create Booking</button>
+        <button class="btn-secondary" id="modalCancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+  <script src="~/main-js/auth-guard.js"></script>
+  <script>
+    requireRole("tutor");
+  </script>
+
+
+
+  <script src="~/tutor/tutor-js/tutor-shared.js"></script>
+  <script src="~/tutor/tutor-js/tutor-dashboard.js"></script>
+</body>
+</html>

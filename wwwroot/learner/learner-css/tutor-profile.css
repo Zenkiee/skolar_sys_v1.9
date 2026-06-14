@@ -1,0 +1,324 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', Arial, sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    background: #003f5c;
+}
+
+.tutor-info-page {
+    min-height: 100vh;
+    background: #003f5c;
+    padding: 42px 55px 70px;
+    position: relative;
+}
+
+.back-btn {
+    position: absolute;
+    top: 35px;
+    left: 45px;
+    color: white;
+    font-size: 48px;
+    text-decoration: none;
+    line-height: 1;
+    font-weight: 900;
+}
+
+.tutor-info-page h1 {
+    text-align: center;
+    color: white;
+    font-size: 34px;
+    margin-bottom: 34px;
+}
+
+.tutor-info-layout {
+    max-width: 1150px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1.1fr 0.8fr;
+    gap: 35px;
+    align-items: flex-start;
+}
+
+/* LEFT PROFILE */
+.profile-panel,
+.availability-panel {
+    background: #fff2d3;
+    color: #111;
+    padding: 28px;
+}
+
+.profile-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.profile-main {
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+}
+
+.tutor-avatar {
+    width: 115px;
+    height: 115px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #2fc4a7;
+}
+
+.profile-details h2 {
+    color: #111;
+    font-size: 22px;
+    margin-bottom: 8px;
+}
+
+.profile-details p {
+    font-size: 13px;
+    margin-bottom: 4px;
+}
+
+.profile-rate {
+    font-weight: 900;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.stars {
+    color: #ff8a00;
+    font-size: 25px;
+    margin: 20px 0 8px;
+}
+
+.completed-lessons {
+    display: inline-block;
+    background: #00a9df;
+    color: white;
+    font-size: 11px;
+    font-weight: 900;
+    padding: 5px 8px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.info-section {
+    border-top: 1px solid #777;
+    padding-top: 15px;
+    margin-top: 15px;
+}
+
+.info-section h3 {
+    color: #111;
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.info-section p {
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.rating-summary {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 12px;
+}
+
+.rating-number {
+    color: #ff8a00;
+    font-size: 38px;
+}
+
+.review-item {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.review-avatar {
+    width: 38px;
+    height: 38px;
+    background: #00a9df;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 900;
+    flex-shrink: 0;
+}
+
+.review-content strong {
+    display: block;
+    font-size: 14px;
+}
+
+.review-content small {
+    color: #555;
+    font-size: 11px;
+}
+
+.review-stars {
+    color: #ff8a00;
+    font-size: 13px;
+}
+
+.subject-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.subject-table th,
+.subject-table td {
+    border: 1px solid #999;
+    padding: 8px;
+    font-size: 13px;
+    text-align: left;
+}
+
+.subject-table th {
+    color: #003f5c;
+}
+
+/* RIGHT AVAILABILITY */
+.availability-panel h2 {
+    text-align: center;
+    font-size: 21px;
+    margin-bottom: 25px;
+}
+
+.calendar-card {
+    background: white;
+    padding: 25px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.18);
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #999;
+    padding-bottom: 18px;
+    margin-bottom: 18px;
+}
+
+.calendar-header h3 {
+    font-size: 15px;
+    font-weight: 900;
+}
+
+.calendar-header button {
+    width: 38px;
+    height: 38px;
+    border: none;
+    background: white;
+    color: #777;
+    font-size: 32px;
+    cursor: pointer;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.12);
+}
+
+.calendar-weekdays,
+.calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 12px;
+    text-align: center;
+}
+
+.calendar-weekdays span {
+    font-size: 11px;
+    color: #777;
+    font-weight: 900;
+}
+
+.calendar-days button {
+    border: none;
+    background: transparent;
+    padding: 9px 0;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: default;
+}
+
+.calendar-days .muted {
+    color: #aaa;
+}
+
+.calendar-days .available {
+    background: #003f5c;
+    color: white;
+    cursor: pointer;
+}
+
+.calendar-days .selected {
+    background: white;
+    color: #003f5c;
+    border: 2px solid #003f5c;
+    padding: 7px 0;
+}
+
+.book-session-btn {
+    display: block;
+    width: fit-content;
+    margin: 25px auto 0;
+    background: #8b0000;
+    color: white;
+    text-decoration: none;
+    padding: 13px 24px;
+    border-radius: 8px;
+    font-weight: 900;
+}
+
+.book-session-btn:hover {
+    background: #a00000;
+}
+
+@media (max-width: 900px) {
+    .tutor-info-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .tutor-info-page {
+        padding: 38px 24px 60px;
+    }
+
+    .back-btn {
+        left: 24px;
+    }
+}
+
+@media (max-width: 600px) {
+    .tutor-info-page h1 {
+        font-size: 28px;
+        margin-top: 30px;
+    }
+
+    .profile-top {
+        flex-direction: column;
+    }
+
+    .profile-main {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .profile-rate {
+        text-align: center;
+    }
+
+    .calendar-weekdays,
+    .calendar-days {
+        gap: 7px;
+    }
+}

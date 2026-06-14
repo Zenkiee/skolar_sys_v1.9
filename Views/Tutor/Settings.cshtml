@@ -1,0 +1,208 @@
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/skolar-dialog.css">
+  <meta name="description" content="Skolar Tutor Settings — Manage notifications and contact support.">
+  <title>Settings — Skolar</title>
+  <link rel="icon" type="image/png" href="~/assets/img/skolarlogo.png">
+  <link rel="stylesheet" href="~/tutor/tutor-css/tutor-shared.css">
+  <link rel="stylesheet" href="~/tutor/tutor-css/settings.css">
+</head>
+<body>
+    <script src="~/js/skolar-dialog.js"></script>
+
+  <!-- ========== SIDEBAR ========== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-top">
+      <div class="logo">
+        <img src="~/assets/img/skolarlogo.png" alt="Skolar Logo" class="logo-icon">
+        <div class="logo-text-group">
+          <span class="logo-title">Skolar</span>
+          <span class="logo-subtitle">Tutor Portal</span>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <a href="/Tutor/TutorDashboard" class="nav-item" data-page="dashboard">
+          <span class="svg-icon icon-01 nav-icon icon-size-20" aria-hidden="true"></span>
+          <span>Dashboard</span>
+        </a>
+        <a href="/Tutor/Bookings" class="nav-item" data-page="bookings">
+          <span class="svg-icon icon-02 nav-icon icon-size-20" aria-hidden="true"></span>
+          <span>Bookings</span>
+        </a>
+        <a href="/Tutor/Reviews" class="nav-item" data-page="reviews">
+          <span class="svg-icon icon-03 nav-icon icon-size-20" aria-hidden="true"></span>
+          <span>Reviews</span>
+        </a>
+        <a href="/Tutor/Calendar" class="nav-item" data-page="calendar">
+          <span class="svg-icon icon-04 nav-icon icon-size-20" aria-hidden="true"></span>
+          <span>Calendar</span>
+        </a>
+        <a href="/Payment/TutorFinance" class="nav-item" data-page="finance">
+          <span class="svg-icon icon-21 nav-icon icon-size-20" aria-hidden="true"></span>
+          <span>Earnings &amp; Penalties</span>
+        </a>
+      </nav>
+    </div>
+
+    <div class="sidebar-bottom">
+      <a href="/Tutor/EditProfile" class="nav-item" data-page="edit-profile">
+        <span class="svg-icon icon-05 nav-icon icon-size-20" aria-hidden="true"></span>
+        <span>Edit Profile</span>
+      </a>
+      <a href="/Tutor/Settings" class="nav-item active" data-page="settings">
+        <span class="svg-icon icon-06 nav-icon icon-size-20" aria-hidden="true"></span>
+        <span>Settings</span>
+      </a>
+      <div class="profile-card">
+        <div class="profile-avatar-small" id="sidebarInitials">VL</div>
+        <div class="profile-info">
+          <span class="profile-name" id="sidebarName">Vannesa L. Cainong</span>
+          <span class="profile-role">Professional Teacher</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Sidebar overlay for mobile -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- ========== MAIN WRAPPER ========== -->
+  <div class="main-wrapper">
+
+    <!-- ========== TOPBAR ========== -->
+    <header class="topbar">
+      <button class="hamburger" id="hamburger" aria-label="Toggle sidebar">
+        <span class="svg-icon icon-07 icon-size-24" aria-hidden="true"></span>
+      </button>
+      <h1 class="page-title">Settings</h1>
+      <div class="topbar-right">
+        <div class="notif-wrapper">
+          <button class="notif-btn" id="notifBtn" type="button" aria-label="Notifications" aria-expanded="false">
+            <span class="svg-icon icon-08 icon-size-22" aria-hidden="true"></span>
+            <span class="notif-dot" id="notifDot" hidden></span>
+          </button>
+          <div class="notif-dropdown" id="notifDropdown">
+            <div class="notif-dropdown-header">
+              <span>Notifications</span>
+              <span class="notif-unread-count" id="notifUnreadCount"></span>
+            </div>
+            <div class="notif-list" id="notifList">
+              <div class="notif-empty">Loading notifications...</div>
+            </div>
+          </div>
+        </div>
+        <a href="/Tutor/EditProfile" class="topbar-avatar" id="topbarAvatar">T</a>
+      </div>
+    </header>
+
+    <!-- ========== MAIN CONTENT ========== -->
+    <main class="main-content">
+      <hr class="st-divider">
+
+      <div class="st-list">
+
+        <!-- Notifications -->
+        <div class="st-item open">
+          <div class="st-header">
+            <div class="st-icon-box">
+              <span class="svg-icon icon-14 icon-size-auto" aria-hidden="true"></span>
+            </div>
+            <span class="st-label">Notifications</span>
+            <div class="st-arrow-box">
+              <span class="svg-icon icon-15 icon-size-auto" aria-hidden="true"></span>
+            </div>
+          </div>
+          <div class="st-content" style="max-height: 420px;">
+            <div class="st-inner">
+              <div class="st-control-row">
+                <div>
+                  <div class="st-control-label">Email Notifications</div>
+                  <div class="st-desc">Save your preference for booking email alerts</div>
+                </div>
+                <label class="st-toggle">
+                  <input type="checkbox" id="emailNotifications">
+                  <span class="st-toggle-slider"></span>
+                </label>
+              </div>
+              <div class="st-control-row">
+                <div>
+                  <div class="st-control-label">Push Notifications</div>
+                  <div class="st-desc">Show browser alerts while the tutor portal is open</div>
+                </div>
+                <label class="st-toggle">
+                  <input type="checkbox" id="pushNotifications">
+                  <span class="st-toggle-slider"></span>
+                </label>
+              </div>
+              <div class="st-control-row">
+                <div>
+                  <div class="st-control-label">New Review Alerts</div>
+                  <div class="st-desc">Show new published reviews in the notification bell</div>
+                </div>
+                <label class="st-toggle">
+                  <input type="checkbox" id="newReviewAlerts">
+                  <span class="st-toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact Support -->
+        <div class="st-item">
+          <div class="st-header">
+            <div class="st-icon-box">
+              <span class="svg-icon icon-16 icon-size-auto" aria-hidden="true"></span>
+            </div>
+            <span class="st-label">Contact Support</span>
+            <div class="st-arrow-box">
+              <span class="svg-icon icon-15 icon-size-auto" aria-hidden="true"></span>
+            </div>
+          </div>
+          <div class="st-content">
+            <div class="st-inner">
+              <p class="st-support-copy">Reach the Skolar support team through any of these channels.</p>
+              <div class="st-support-socials">
+                <a href="https://www.facebook.com/profile.php?id=61590333854546" target="_blank" rel="noopener noreferrer" class="st-social-card">
+                  <img src="~/assets/img/facebook-logo.png" alt="Facebook">
+                  <span>Facebook</span>
+                </a>
+                <a href="https://www.instagram.com/skolar.ph/" target="_blank" rel="noopener noreferrer" class="st-social-card">
+                  <img src="~/assets/img/instagram-logo.png" alt="Instagram">
+                  <span>Instagram</span>
+                </a>
+                <a href="mailto:skolartutors.ph@gmail.com" class="st-social-card">
+                  <img src="~/assets/img/email-logo.png" alt="Email">
+                  <span>Email</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <button class="st-btn-signout" id="stSignout">Sign Out</button>
+
+    </main>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="st-toast" id="stToast"></div>
+  <script src="~/main-js/auth-guard.js"></script>
+  <script>
+    requireRole("tutor");
+  </script>
+
+
+
+  <script src="~/tutor/tutor-js/tutor-shared.js"></script>
+  <script src="~/tutor/tutor-js/settings.js"></script>
+</body>
+</html>
