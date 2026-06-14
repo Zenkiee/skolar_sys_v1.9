@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "4WCJsM39Q2s=",
+  "dgSpecHash": "915NgtE1JUo=",
   "success": true,
-  "projectFilePath": "C:\\Users\\Miguel\\Downloads\\SKOLAR\\inMVC.csproj",
+  "projectFilePath": "C:\\Users\\Miguel\\Downloads\\skolar_sys\\inMVC.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Miguel\\.nuget\\packages\\bcrypt.net-next\\4.2.0\\bcrypt.net-next.4.2.0.nupkg.sha512",
     "C:\\Users\\Miguel\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",

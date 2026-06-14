@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Miguel\\Downloads\\SKOLAR\\inMVC.csproj": {}
+    "C:\\Users\\Miguel\\Downloads\\skolar_sys\\inMVC.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Miguel\\Downloads\\SKOLAR\\inMVC.csproj": {
+    "C:\\Users\\Miguel\\Downloads\\skolar_sys\\inMVC.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Miguel\\Downloads\\SKOLAR\\inMVC.csproj",
+        "projectUniqueName": "C:\\Users\\Miguel\\Downloads\\skolar_sys\\inMVC.csproj",
         "projectName": "inMVC",
-        "projectPath": "C:\\Users\\Miguel\\Downloads\\SKOLAR\\inMVC.csproj",
+        "projectPath": "C:\\Users\\Miguel\\Downloads\\skolar_sys\\inMVC.csproj",
         "packagesPath": "C:\\Users\\Miguel\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Miguel\\Downloads\\SKOLAR\\obj\\",
+        "outputPath": "C:\\Users\\Miguel\\Downloads\\skolar_sys\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Miguel\\AppData\\Roaming\\NuGet\\NuGet.Config"

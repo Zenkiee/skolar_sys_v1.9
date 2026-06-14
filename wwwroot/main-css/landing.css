@@ -697,7 +697,7 @@ section {
 .footer-column {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 7px;
 }
 
 .footer-column a,
@@ -783,8 +783,8 @@ section {
         text-align: center;
     }
 
-    .footer-column {
-        align-items: center;
+    .footer-column > div {
+        align-items: center !important;
     }
 }
 
