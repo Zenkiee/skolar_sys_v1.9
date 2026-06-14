@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using inMVC.Data;
 using inMVC.Models;
 
@@ -8,11 +9,13 @@ public class PaymentService
 {
     private readonly AppDbContext _context;
     private readonly IPaymentGateway _gateway;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public PaymentService(AppDbContext context, IPaymentGateway gateway)
+    public PaymentService(AppDbContext context, IPaymentGateway gateway, IHttpContextAccessor httpContextAccessor)
     {
         _context = context;
         _gateway = gateway;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<PaymentTransaction> CreateCheckoutAsync(
@@ -21,19 +24,29 @@ public class PaymentService
         decimal amount,
         string description)
     {
-        var gatewayResult = await _gateway.CreateCheckoutAsync(amount, "PHP", description);
+        var config = _httpContextAccessor.HttpContext?.RequestServices.GetService(typeof(IConfiguration)) as IConfiguration;
+        var redirectDomain = config?["PayMongo:RedirectDomain"] ?? "";
+        var request = _httpContextAccessor.HttpContext?.Request;
+        var host = !string.IsNullOrWhiteSpace(redirectDomain) ? redirectDomain : (request?.Host.Value ?? "localhost");
+        var scheme = "https";
+
+        var successUrl = $"{scheme}://{host}/Learner/Booking?bookingGroupId={bookingGroupId}&status=confirmed";
+        var cancelUrl = $"{scheme}://{host}/Learner/Booking?bookingGroupId={bookingGroupId}&status=declined";
+
+        var gatewayResult = await _gateway.CreateCheckoutAsync(amount, "PHP", description, successUrl, cancelUrl);
+
         var transaction = new PaymentTransaction
         {
             LearnerId = learnerId,
             BookingGroupId = bookingGroupId,
-            ExternalPaymentId = gatewayResult.ExternalPaymentId,
-            CheckoutReference = gatewayResult.CheckoutReference,
             Amount = amount,
-            Status = "Pending"
+            Status = "Pending",
+            ExternalPaymentId = gatewayResult.ExternalPaymentId,
+            CheckoutReference = gatewayResult.CheckoutReference
         };
-
         _context.PaymentTransactions.Add(transaction);
         await _context.SaveChangesAsync();
+        
         return transaction;
     }
 
@@ -78,11 +91,33 @@ public class PaymentService
             booking.PaymentStatus = status;
             booking.Status = status switch
             {
-                "Paid" => "Pending",
+                "Paid" => "Confirmed",
                 "Failed" => "PaymentFailed",
                 "Cancelled" => "PaymentCancelled",
                 _ => "AwaitingPayment"
             };
+            booking.PaymentTransactionId = transactionId;
+
+            if (status == "Paid")
+            {
+                var existingPayout = await _context.TutorPayouts
+                    .FirstOrDefaultAsync(p => p.BookingId == booking.Id);
+
+                if (existingPayout == null)
+                {
+                    _context.TutorPayouts.Add(new TutorPayout
+                    {
+                        TutorId = booking.TutorId,
+                        BookingId = booking.Id,
+                        GrossAmount = booking.SessionAmount,
+                        PlatformFeeAmount = 0m,
+                        CompensationAmount = 0m,
+                        FineAmount = 0m,
+                        NetAmount = booking.SessionAmount,
+                        Status = "Pending"
+                    });
+                }
+            }
         }
 
         await _context.SaveChangesAsync();

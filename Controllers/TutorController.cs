@@ -92,7 +92,7 @@ public class TutorController : Controller
         await SessionCompletionHelper.ApplyAutomaticCompletionsAsync(_context);
 
         var bookings = await _context.Bookings
-            .Where(booking => booking.TutorId == tutor.Id)
+            .Where(booking => booking.TutorId == tutor.Id && booking.PaymentStatus != "PendingIntegration" && booking.PaymentStatus != "Unpaid" && booking.PaymentStatus != "Failed" && booking.PaymentStatus != "Cancelled")
             .Select(booking => new
             {
                 booking.Id,
@@ -471,7 +471,7 @@ public class TutorController : Controller
 
         var bookingRows = await _context.Bookings
             .AsNoTracking()
-            .Where(booking => booking.TutorId == tutor.Id && booking.Status == "Pending")
+            .Where(booking => booking.TutorId == tutor.Id && booking.Status == "Pending" && booking.PaymentStatus == "Paid")
             .Select(booking => new
             {
                 booking.Id,

@@ -12,10 +12,12 @@ namespace inMVC.Controllers;
 public class LearnerController : Controller
 {
     private readonly AppDbContext _context;
+    private readonly PaymentService _payments;
 
-    public LearnerController(AppDbContext context)
+    public LearnerController(AppDbContext context, PaymentService payments)
     {
         _context = context;
+        _payments = payments;
     }
 
     public IActionResult TutorProfile() => View();
@@ -555,25 +557,48 @@ public class LearnerController : Controller
             BookingType = bookingType,
             PaymentMethod = "",
             ReferenceNumber = "",
-            Status = "Pending",
+            Status = "AwaitingPayment",
             HourlyRate = hourlyRate,
             DurationHours = durationHours,
             SessionAmount = sessionAmount,
-            PaymentStatus = "PendingIntegration",
+            PaymentStatus = "Unpaid",
             PaymentTransactionId = null
         }).ToList();
 
         _context.Bookings.AddRange(bookings);
         await _context.SaveChangesAsync();
 
-        return Ok(new
+        try
         {
-            success = true,
-            bookingGroupId = groupId,
-            sessionCount = bookings.Count,
-            amount = totalAmount,
-            message = "Booking request submitted successfully."
-        });
+            var transaction = await _payments.CreateCheckoutAsync(
+                learnerId: userId.Value,
+                bookingGroupId: groupId,
+                amount: totalAmount,
+                description: $"Booking {bookings.Count} session(s) of {request.Subject} with Tutor {tutor.TutorName}"
+            );
+
+            foreach (var b in bookings)
+            {
+                b.PaymentTransactionId = transaction.Id;
+            }
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                success = true,
+                bookingGroupId = groupId,
+                sessionCount = bookings.Count,
+                amount = totalAmount,
+                checkoutUrl = transaction.CheckoutReference,
+                message = "Booking request created successfully. Please complete payment."
+            });
+        }
+        catch (Exception ex)
+        {
+            _context.Bookings.RemoveRange(bookings);
+            await _context.SaveChangesAsync();
+            return StatusCode(500, new { message = $"Payment provider error: {ex.Message}" });
+        }
     }
 
     // Reviews
@@ -659,6 +684,77 @@ public class LearnerController : Controller
         }
 
         return Ok(new { success = true, message = "Review submitted and published." });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetBookingGroupDetails(string bookingGroupId)
+    {
+        var userId = HttpContext.Session.GetUserId();
+        if (userId == null || !HttpContext.Session.HasRole("learner"))
+            return Unauthorized();
+
+        var bookings = await _context.Bookings
+            .Where(b => b.BookingGroupId == bookingGroupId && b.LearnerId == userId.Value)
+            .OrderBy(b => b.Date)
+            .ToListAsync();
+
+        if (bookings.Count == 0)
+            return NotFound(new { message = "Booking group not found." });
+
+        var transaction = await _context.PaymentTransactions
+            .FirstOrDefaultAsync(t => t.BookingGroupId == bookingGroupId && t.LearnerId == userId.Value);
+
+        var first = bookings[0];
+        var totalAmount = bookings.Sum(b => b.SessionAmount);
+
+        return Json(new
+        {
+            bookingGroupId = first.BookingGroupId,
+            tutorId = first.TutorId,
+            tutorName = first.TutorName,
+            subject = first.Subject,
+            time = first.Time,
+            dates = bookings.Select(b => b.Date.ToString("yyyy-MM-dd")).ToList(),
+            bookingType = first.BookingType,
+            learnerName = first.LearnerName,
+            learnerEmail = first.LearnerEmail,
+            learnerContact = first.LearnerContact,
+            totalAmount = totalAmount,
+            checkoutUrl = transaction?.CheckoutReference ?? ""
+        });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CancelUnpaidBooking([FromBody] CancelUnpaidRequest request)
+    {
+        var userId = HttpContext.Session.GetUserId();
+        if (userId == null || !HttpContext.Session.HasRole("learner"))
+            return Unauthorized();
+
+        var bookings = await _context.Bookings
+            .Where(b => b.BookingGroupId == request.BookingGroupId && b.LearnerId == userId.Value && b.PaymentStatus != "Paid")
+            .ToListAsync();
+
+        if (bookings.Count > 0)
+        {
+            _context.Bookings.RemoveRange(bookings);
+        }
+
+        var transaction = await _context.PaymentTransactions
+            .FirstOrDefaultAsync(t => t.BookingGroupId == request.BookingGroupId && t.LearnerId == userId.Value && t.Status != "Paid");
+
+        if (transaction != null)
+        {
+            _context.PaymentTransactions.Remove(transaction);
+        }
+
+        await _context.SaveChangesAsync();
+        return Ok(new { success = true, message = "Booking request cancelled." });
+    }
+
+    public class CancelUnpaidRequest
+    {
+        public string BookingGroupId { get; set; } = "";
     }
 
     public class LearnerProfileRequest

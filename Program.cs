@@ -17,8 +17,10 @@ builder.Services.AddControllersWithViews()
 
 builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.AddScoped<IPaymentGateway, PaymentGatewayPlaceholder>();
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<IPaymentGateway, PayMongoGateway>();
 builder.Services.AddScoped<PaymentService>();
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddAntiforgery(options =>
 {

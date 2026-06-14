@@ -15,6 +15,8 @@ let rangeStart = null;
 let rangeEnd = null;
 let selectedDates = [];
 let currentTutorRate = 0;
+let currentBookingGroupId = null;
+let currentCheckoutUrl = null;
 
 // Calendar
 function renderCalendar() {
@@ -398,16 +400,42 @@ async function submitBooking(event) {
         const result = await response.json().catch(() => ({}));
 
         if (!response.ok) throw new Error(result.message || "Booking failed. Please try again.");
-        showStep("confirmStep");
+
+        currentBookingGroupId = result.bookingGroupId;
+        currentCheckoutUrl = result.checkoutUrl;
+
+        submitButton.textContent = "Redirecting...";
+        window.location.href = result.checkoutUrl;
     } catch (error) {
         SkolarDialog.alert(error.message);
         submitButton.disabled = false;
-        submitButton.textContent = "Submit Booking Request";
+        submitButton.textContent = "Proceed to Payment";
 
         if (String(error.message).includes("reserved") || String(error.message).includes("available")) {
             await loadAvailability(tutorId);
             showStep("dateStep");
         }
+    }
+}
+
+async function cancelUnpaidBookingFlow() {
+    if (!currentBookingGroupId) return;
+
+    try {
+        const response = await fetch("/Learner/CancelUnpaidBooking", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ bookingGroupId: currentBookingGroupId })
+        });
+        if (response.ok) {
+            window.location.href = "/Learner/LearnerPortal";
+        } else {
+            SkolarDialog.alert("Could not cancel the booking request.");
+        }
+    } catch (err) {
+        SkolarDialog.alert("Error cancelling booking: " + err.message);
     }
 }
 
@@ -519,6 +547,76 @@ async function initializePage() {
     } else {
         calendarReady = true;
         renderCalendar();
+    }
+
+    document.getElementById("btnPayNow")?.addEventListener("click", () => {
+        if (currentCheckoutUrl) {
+            window.location.href = currentCheckoutUrl;
+        } else {
+            SkolarDialog.alert("Payment checkout URL not found. Please try booking again.");
+        }
+    });
+
+    const bookingGroupIdParam = params.get("bookingGroupId");
+    const statusParam = params.get("status");
+
+    if (bookingGroupIdParam) {
+        currentBookingGroupId = bookingGroupIdParam;
+        try {
+            const response = await fetch(`/Learner/GetBookingGroupDetails?bookingGroupId=${bookingGroupIdParam}`);
+            if (response.ok) {
+                const data = await response.json();
+                currentCheckoutUrl = data.checkoutUrl;
+
+                // Populate Step 4 (Payment) elements
+                document.getElementById("payRefText").textContent = data.bookingGroupId;
+                document.getElementById("payAmountText").textContent = `₱${data.totalAmount.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                document.getElementById("payStatusText").textContent = "Awaiting Payment";
+                document.getElementById("payStatusText").className = "pending-text";
+
+                // Populate sidebar summary details
+                document.getElementById("summaryTutorName").textContent = data.tutorName;
+                document.getElementById("summaryBookingType").textContent = data.bookingType === "Range" ? "Date Range" : "Single Day";
+                
+                const scheduleText = data.bookingType === "Range" 
+                    ? `${formatShortDate(data.dates[0])} – ${formatDate(data.dates[data.dates.length - 1])}`
+                    : formatDate(data.dates[0]);
+
+                document.getElementById("summaryDate").textContent = scheduleText;
+                document.getElementById("summarySessions").textContent = data.dates.length === 1 ? "1 session" : `${data.dates.length} sessions`;
+                document.getElementById("summarySubject").textContent = data.subject;
+                document.getElementById("summaryTime").textContent = data.time;
+                document.getElementById("summaryName").textContent = data.learnerName;
+                document.getElementById("summaryTotal").textContent = `₱${data.totalAmount.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+                // Also populate final summary in Done step
+                document.getElementById("finalName").textContent = data.learnerName;
+                document.getElementById("finalDate").textContent = scheduleText;
+                document.getElementById("finalSessions").textContent = data.dates.length === 1 ? "1 session" : `${data.dates.length} sessions`;
+                document.getElementById("finalSubject").textContent = data.subject;
+                document.getElementById("finalTime").textContent = data.time;
+                document.getElementById("successPlural").textContent = data.dates.length === 1 ? "" : "s";
+
+                // Fetch tutor avatar if possible
+                fetch(`/Tutor/GetProfile?id=${data.tutorId}`)
+                    .then(res => res.ok ? res.json() : null)
+                    .then(t => {
+                        const image = document.getElementById("summaryTutorPhoto");
+                        if (image && t?.profilePhoto) image.src = t.profilePhoto;
+                    });
+
+                if (statusParam === "declined") {
+                    SkolarDialog.alert("Your payment was declined. Please verify your payment details and try again.");
+                    showStep("summaryStep");
+                    return; // prevent overwriting step with availability loads
+                } else if (statusParam === "confirmed") {
+                    showStep("confirmStep");
+                    return; // prevent overwriting step
+                }
+            }
+        } catch (err) {
+            console.error("Error loading booking group details: ", err);
+        }
     }
 
     updateSelectionUI();

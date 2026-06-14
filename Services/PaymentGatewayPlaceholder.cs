@@ -7,7 +7,7 @@ public class PaymentGatewayPlaceholder : IPaymentGateway
         return new InvalidOperationException("The payment API has not been configured yet.");
     }
 
-    public Task<GatewayCheckoutResult> CreateCheckoutAsync(decimal amount, string currency, string description)
+    public Task<GatewayCheckoutResult> CreateCheckoutAsync(decimal amount, string currency, string description, string successUrl, string cancelUrl)
     {
         return Task.FromException<GatewayCheckoutResult>(NotConfigured());
     }

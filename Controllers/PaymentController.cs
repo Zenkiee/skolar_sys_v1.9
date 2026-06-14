@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using inMVC.Data;
 using inMVC.Helpers;
 using inMVC.Services;
+using System.IO;
+using System.Text.Json;
 
 namespace inMVC.Controllers;
 
@@ -10,11 +12,13 @@ public class PaymentController : Controller
 {
     private readonly AppDbContext _context;
     private readonly PaymentService _payments;
+    private readonly IPaymentGateway _gateway;
 
-    public PaymentController(AppDbContext context, PaymentService payments)
+    public PaymentController(AppDbContext context, PaymentService payments, IPaymentGateway gateway)
     {
         _context = context;
         _payments = payments;
+        _gateway = gateway;
     }
 
     [HttpGet]
@@ -352,6 +356,73 @@ public class PaymentController : Controller
     }
 
 
+
+    [HttpPost]
+    [IgnoreAntiforgeryToken]
+    public async Task<IActionResult> PayMongoWebhook()
+    {
+        using var reader = new StreamReader(Request.Body);
+        var payload = await reader.ReadToEndAsync();
+        var signature = Request.Headers["Paymongo-Signature"].ToString();
+
+        var verified = await _gateway.VerifyWebhookAsync(payload, signature);
+        if (!verified)
+        {
+            return BadRequest("Signature verification failed.");
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(payload);
+            var root = doc.RootElement;
+            var dataNode = root.GetProperty("data");
+            var attributes = dataNode.GetProperty("attributes");
+            var type = attributes.GetProperty("type").GetString();
+
+            if (type == "checkout_session.payment.paid")
+            {
+                var eventData = attributes.GetProperty("data");
+                var checkoutSessionId = eventData.GetProperty("id").GetString() ?? "";
+                
+                var paymentMethod = "gcash";
+                try
+                {
+                    var payments = eventData.GetProperty("attributes").GetProperty("payments");
+                    if (payments.GetArrayLength() > 0)
+                    {
+                        var firstPayment = payments[0];
+                        paymentMethod = firstPayment.GetProperty("attributes").GetProperty("source").GetProperty("type").GetString() ?? "gcash";
+                    }
+                }
+                catch {}
+
+                var transaction = await _context.PaymentTransactions
+                    .FirstOrDefaultAsync(t => t.ExternalPaymentId == checkoutSessionId);
+                if (transaction != null)
+                {
+                    await _payments.ApplyCheckoutResultAsync(transaction.Id, "success", paymentMethod);
+                }
+            }
+            else if (type == "checkout_session.payment.failed")
+            {
+                var eventData = attributes.GetProperty("data");
+                var checkoutSessionId = eventData.GetProperty("id").GetString() ?? "";
+                
+                var transaction = await _context.PaymentTransactions
+                    .FirstOrDefaultAsync(t => t.ExternalPaymentId == checkoutSessionId);
+                if (transaction != null)
+                {
+                    await _payments.ApplyCheckoutResultAsync(transaction.Id, "failed", "Payment Provider");
+                }
+            }
+
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            return BadRequest($"Error processing webhook: {ex.Message}");
+        }
+    }
 }
 
 public class CancelPaymentSessionRequest
