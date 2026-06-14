@@ -1117,3 +1117,5 @@ C:\Users\Jedi\Desktop\VSCode Stuff\skolar_sys_v1.9\obj\Debug\net10.0\inMVC.genru
 C:\Users\Jedi\Desktop\VSCode Stuff\skolar_sys_v1.9\obj\Debug\net10.0\ref\inMVC.dll
 C:\Users\Jedi\Desktop\VSCode Stuff\skolar_sys_v1.9\obj\Debug\net10.0\compressed\3v875aj15b-{0}-1f2if9v6pf-1f2if9v6pf.gz
 C:\Users\Jedi\Desktop\VSCode Stuff\skolar_sys_v1.9\obj\Debug\net10.0\compressed\5qqhsx2hyu-{0}-obo295h35u-obo295h35u.gz
+C:\Users\Jedi\Desktop\VSCode Stuff\skolar_sys_v1.9\obj\Debug\net10.0\compressed\5qqhsx2hyu-{0}-flasnunybk-flasnunybk.gz
+C:\Users\Jedi\Desktop\VSCode Stuff\skolar_sys_v1.9\obj\Debug\net10.0\compressed\u0yyis195e-{0}-lxzu66dlbn-lxzu66dlbn.gz

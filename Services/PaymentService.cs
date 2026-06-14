@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using inMVC.Data;
 using inMVC.Models;
 
@@ -24,11 +23,9 @@ public class PaymentService
         decimal amount,
         string description)
     {
-        var config = _httpContextAccessor.HttpContext?.RequestServices.GetService(typeof(IConfiguration)) as IConfiguration;
-        var redirectDomain = config?["PayMongo:RedirectDomain"] ?? "";
         var request = _httpContextAccessor.HttpContext?.Request;
-        var host = !string.IsNullOrWhiteSpace(redirectDomain) ? redirectDomain : (request?.Host.Value ?? "localhost");
-        var scheme = "https";
+        var host = request?.Host.Value ?? "localhost";
+        var scheme = request?.Scheme ?? "https";
 
         var successUrl = $"{scheme}://{host}/Learner/Booking?bookingGroupId={bookingGroupId}&status=confirmed";
         var cancelUrl = $"{scheme}://{host}/Learner/Booking?bookingGroupId={bookingGroupId}&status=declined";

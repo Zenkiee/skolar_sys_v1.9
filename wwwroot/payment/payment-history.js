@@ -64,7 +64,9 @@ async function logoutLearnerFromPayment() {
     window.location.href = "/";
 }
 
-async function retryPayment(button, checkoutReference, amount) {
+async function retryPayment(event, checkoutReference, amount) {
+    event.preventDefault();
+    const button = event.target;
     button.disabled = true;
     button.textContent = "Loading...";
 
@@ -120,20 +122,27 @@ function renderTransactions(transactions) {
                 <div><span>Refund requests</span><strong>${transaction.refunds.length}</strong></div>
             </div>
             <div>
-                ${transaction.sessions.map(session => `
-                    <div class="session-payment-row">
-                        <div><strong>${escapePaymentText(session.subject)}</strong><br><small>${escapePaymentText(session.tutorName)}</small></div>
-                        <span>${formatPaymentDate(session.date)}<br><small>${escapePaymentText(session.time)}</small></span>
-                        <strong>₱${Number(session.sessionAmount).toLocaleString("en-PH", { minimumFractionDigits: 2 })}</strong>
-                        <div style="display: flex; gap: 8px; align-items: center;">
-                            <span class="status-chip ${String(session.paymentStatus).toLowerCase()}">${escapePaymentText(session.paymentStatus)}</span>
-                            ${["Unpaid", "Failed"].includes(session.paymentStatus) ? `<button class="payment-retry-btn" onclick="retryPayment(this, '${transaction.checkoutReference}', ${transaction.amount})" style="padding: 4px 12px; font-size: 12px; border: none; border-radius: 4px; background: #007bff; color: white; cursor: pointer;">Pay Now</button>` : ""}
-                        </div>
-                    </div>`).join("")}
+                ${transaction.sessions.map(session => renderSessionRow(session, transaction)).join("")}
             </div>
             ${transaction.refunds.map(refund => renderRefund(refund)).join("")}
         </article>`).join("");
 
+}
+
+function renderSessionRow(session, transaction) {
+    const isPending = ["Unpaid", "Failed"].includes(session.paymentStatus);
+    const buttonHtml = isPending ? `<button class="payment-action-btn" onclick="retryPayment(event, '${transaction.checkoutReference}', ${transaction.amount})">Pay Now</button>` : "";
+
+    return `
+        <div class="session-payment-row">
+            <div><strong>${escapePaymentText(session.subject)}</strong><br><small>${escapePaymentText(session.tutorName)}</small></div>
+            <span>${formatPaymentDate(session.date)}<br><small>${escapePaymentText(session.time)}</small></span>
+            <strong>₱${Number(session.sessionAmount).toLocaleString("en-PH", { minimumFractionDigits: 2 })}</strong>
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <span class="status-chip ${String(session.paymentStatus).toLowerCase()}">${escapePaymentText(session.paymentStatus)}</span>
+                ${buttonHtml}
+            </div>
+        </div>`;
 }
 
 function renderRefund(refund) {
