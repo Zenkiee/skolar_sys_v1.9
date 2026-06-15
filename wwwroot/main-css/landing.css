@@ -5,8 +5,22 @@
     font-family: 'Inter', Arial, sans-serif;
 }
 
+:root {
+    --navbar-height: 82px;
+}
+
 html {
     scroll-behavior: smooth;
+    scroll-padding-top: var(--navbar-height);
+}
+
+.how-section,
+.subjects-section,
+.why-section,
+.roles-section,
+.faq-section,
+.shq-section {
+    min-height: calc(100vh - var(--navbar-height));
 }
 
 body {
