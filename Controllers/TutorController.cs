@@ -403,55 +403,90 @@ public class TutorController : Controller
         });
     }
 
-    // Notifications
+// Notifications
     [HttpGet]
     public async Task<IActionResult> GetNotificationSettings()
     {
         var userId = HttpContext.Session.GetUserId();
-        if (userId == null || !HttpContext.Session.HasRole("tutor")) return Unauthorized();
+
+        if (userId == null ||
+            !HttpContext.Session.HasRole("tutor"))
+        {
+            return Unauthorized();
+        }
 
         var tutor = await _context.TutorProfiles
             .AsNoTracking()
-            .FirstOrDefaultAsync(item => item.UserId == userId.Value);
-        if (tutor == null) return NotFound();
+            .FirstOrDefaultAsync(item =>
+                item.UserId == userId.Value);
+
+        if (tutor == null)
+        {
+            return NotFound();
+        }
 
         var settings = await _context.TutorNotificationSettings
             .AsNoTracking()
-            .FirstOrDefaultAsync(item => item.TutorId == tutor.Id);
+            .FirstOrDefaultAsync(item =>
+                item.TutorId == tutor.Id);
 
         return Json(new
         {
-            emailNotificationsEnabled = settings?.EmailNotificationsEnabled ?? true,
-            pushNotificationsEnabled = settings?.PushNotificationsEnabled ?? false,
-            newReviewAlertsEnabled = settings?.NewReviewAlertsEnabled ?? true
+            pushNotificationsEnabled =
+                settings?.PushNotificationsEnabled ?? false,
+
+            newReviewAlertsEnabled =
+                settings?.NewReviewAlertsEnabled ?? true
         });
     }
 
     [HttpPost]
-    public async Task<IActionResult> UpdateNotificationSettings([FromBody] UpdateNotificationSettingsRequest request)
+    public async Task<IActionResult> UpdateNotificationSettings(
+        [FromBody] UpdateNotificationSettingsRequest request)
     {
         var userId = HttpContext.Session.GetUserId();
-        if (userId == null || !HttpContext.Session.HasRole("tutor")) return Unauthorized();
+
+        if (userId == null ||
+            !HttpContext.Session.HasRole("tutor"))
+        {
+            return Unauthorized();
+        }
 
         var tutor = await _context.TutorProfiles
-            .FirstOrDefaultAsync(item => item.UserId == userId.Value);
-        if (tutor == null) return NotFound();
+            .FirstOrDefaultAsync(item =>
+                item.UserId == userId.Value);
+
+        if (tutor == null)
+        {
+            return NotFound();
+        }
 
         var settings = await _context.TutorNotificationSettings
-            .FirstOrDefaultAsync(item => item.TutorId == tutor.Id);
+            .FirstOrDefaultAsync(item =>
+                item.TutorId == tutor.Id);
 
         if (settings == null)
         {
-            settings = new TutorNotificationSettings { TutorId = tutor.Id };
+            settings = new TutorNotificationSettings
+            {
+                TutorId = tutor.Id
+            };
+
             _context.TutorNotificationSettings.Add(settings);
         }
 
-        settings.EmailNotificationsEnabled = request.EmailNotificationsEnabled;
-        settings.PushNotificationsEnabled = request.PushNotificationsEnabled;
-        settings.NewReviewAlertsEnabled = request.NewReviewAlertsEnabled;
+        settings.PushNotificationsEnabled =
+            request.PushNotificationsEnabled;
+
+        settings.NewReviewAlertsEnabled =
+            request.NewReviewAlertsEnabled;
 
         await _context.SaveChangesAsync();
-        return Ok(new { success = true });
+
+        return Ok(new
+        {
+            success = true
+        });
     }
 
     [HttpGet]
@@ -878,7 +913,6 @@ public class AvailabilityDayRequest
 
 public class UpdateNotificationSettingsRequest
 {
-    public bool EmailNotificationsEnabled { get; set; }
     public bool PushNotificationsEnabled { get; set; }
     public bool NewReviewAlertsEnabled { get; set; }
 }

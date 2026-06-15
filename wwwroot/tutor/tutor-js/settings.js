@@ -1,9 +1,9 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const emailToggle = document.getElementById("emailNotifications");
   const pushToggle = document.getElementById("pushNotifications");
   const reviewToggle = document.getElementById("newReviewAlerts");
   const signoutButton = document.getElementById("stSignout");
   const toast = document.getElementById("stToast");
+
   let isLoading = true;
 
   // Accordion
@@ -15,29 +15,58 @@ document.addEventListener("DOMContentLoaded", () => {
 
       document.querySelectorAll(".st-item").forEach(item => {
         item.classList.remove("open");
+
         const content = item.querySelector(".st-content");
-        if (content) content.style.maxHeight = null;
+
+        if (content) {
+          content.style.maxHeight = null;
+        }
       });
 
       if (!wasOpen) {
         selectedItem.classList.add("open");
-        selectedContent.style.maxHeight = `${selectedContent.scrollHeight}px`;
+
+        if (selectedContent) {
+          selectedContent.style.maxHeight =
+            `${selectedContent.scrollHeight}px`;
+        }
       }
     });
   });
 
-  // Notifications
+  // Notification settings
   async function loadSettings() {
     try {
-      const response = await fetch("/Tutor/GetNotificationSettings", { cache: "no-store" });
-      if (!response.ok) throw new Error("Could not load notification settings.");
+      const response = await fetch(
+        "/Tutor/GetNotificationSettings",
+        {
+          cache: "no-store"
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          "Could not load notification settings."
+        );
+      }
 
       const settings = await response.json();
-      if (emailToggle) emailToggle.checked = Boolean(settings.emailNotificationsEnabled);
-      if (pushToggle) pushToggle.checked = Boolean(settings.pushNotificationsEnabled);
-      if (reviewToggle) reviewToggle.checked = Boolean(settings.newReviewAlertsEnabled);
+
+      if (pushToggle) {
+        pushToggle.checked =
+          Boolean(settings.pushNotificationsEnabled);
+      }
+
+      if (reviewToggle) {
+        reviewToggle.checked =
+          Boolean(settings.newReviewAlertsEnabled);
+      }
     } catch (error) {
-      showToast("Could not load notification settings.", "info");
+      showToast(
+        "Could not load notification settings.",
+        "info"
+      );
+
       console.error(error);
     } finally {
       isLoading = false;
@@ -45,58 +74,94 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function saveSettings(message) {
-    if (isLoading) return;
+    if (isLoading) {
+      return;
+    }
 
     try {
-      const response = await fetch("/Tutor/UpdateNotificationSettings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          emailNotificationsEnabled: Boolean(emailToggle?.checked),
-          pushNotificationsEnabled: Boolean(pushToggle?.checked),
-          newReviewAlertsEnabled: Boolean(reviewToggle?.checked)
-        })
-      });
+      const response = await fetch(
+        "/Tutor/UpdateNotificationSettings",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            pushNotificationsEnabled:
+              Boolean(pushToggle?.checked),
 
-      if (!response.ok) throw new Error("Could not save notification settings.");
+            newReviewAlertsEnabled:
+              Boolean(reviewToggle?.checked)
+          })
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          "Could not save notification settings."
+        );
+      }
 
       showToast(message, "success");
+
       window.TutorPortal?.refreshNotifications();
     } catch (error) {
-      showToast("Could not save notification settings.", "info");
+      showToast(
+        "Could not save notification settings.",
+        "info"
+      );
+
       console.error(error);
     }
   }
 
-  emailToggle?.addEventListener("change", () => {
-    saveSettings(`Email notifications ${emailToggle.checked ? "enabled" : "disabled"}.`);
-  });
-
   reviewToggle?.addEventListener("change", () => {
-    saveSettings(`New review alerts ${reviewToggle.checked ? "enabled" : "disabled"}.`);
+    const status = reviewToggle.checked
+      ? "enabled"
+      : "disabled";
+
+    saveSettings(
+      `New review alerts ${status}.`
+    );
   });
 
   pushToggle?.addEventListener("change", async () => {
     if (!pushToggle.checked) {
-      await saveSettings("Push notifications disabled.");
+      await saveSettings(
+        "Push notifications disabled."
+      );
+
       return;
     }
 
     if (!("Notification" in window)) {
       pushToggle.checked = false;
-      await saveSettings("Push notifications are unavailable in this browser.");
+
+      await saveSettings(
+        "Push notifications are unavailable in this browser."
+      );
+
       return;
     }
 
-    const permission = await Notification.requestPermission();
+    const permission =
+      await Notification.requestPermission();
+
     if (permission !== "granted") {
       pushToggle.checked = false;
-      await saveSettings("Browser notification permission was not granted.");
+
+      await saveSettings(
+        "Browser notification permission was not granted."
+      );
+
       return;
     }
 
     window.TutorPortal?.setPushBaseline();
-    await saveSettings("Push notifications enabled.");
+
+    await saveSettings(
+      "Push notifications enabled."
+    );
   });
 
   // Sign out
@@ -115,11 +180,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Toast
   function showToast(message, type) {
-    if (!toast) return;
+    if (!toast) {
+      return;
+    }
 
     toast.textContent = message;
     toast.className = "st-toast show";
-    toast.classList.add(type === "success" ? "st-toast-success" : "st-toast-info");
+
+    toast.classList.add(
+      type === "success"
+        ? "st-toast-success"
+        : "st-toast-info"
+    );
 
     window.setTimeout(() => {
       toast.classList.remove("show");
@@ -127,9 +199,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Sidebar
-  const sidebar = document.getElementById("sidebar");
-  const hamburger = document.getElementById("hamburger");
-  const sidebarOverlay = document.getElementById("sidebarOverlay");
+  const sidebar =
+    document.getElementById("sidebar");
+
+  const hamburger =
+    document.getElementById("hamburger");
+
+  const sidebarOverlay =
+    document.getElementById("sidebarOverlay");
 
   function closeSidebar() {
     sidebar?.classList.remove("open");
@@ -141,10 +218,16 @@ document.addEventListener("DOMContentLoaded", () => {
     sidebarOverlay?.classList.toggle("show");
   });
 
-  sidebarOverlay?.addEventListener("click", closeSidebar);
+  sidebarOverlay?.addEventListener(
+    "click",
+    closeSidebar
+  );
 
   document.addEventListener("keydown", event => {
-    if (event.key !== "Escape") return;
+    if (event.key !== "Escape") {
+      return;
+    }
+
     closeSidebar();
   });
 
