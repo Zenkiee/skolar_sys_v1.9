@@ -12,6 +12,3 @@ Email:
 
 Password:
   admin_132
-
-The administrator account is created and synchronized automatically when the application starts.
-A future email-verification update can send the one-time code only to this fixed administrator email.
