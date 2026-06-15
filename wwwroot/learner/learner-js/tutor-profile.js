@@ -59,12 +59,34 @@ function renderTutorProfile() {
     `).join("");
 
     // ← THE ONLY CHANGE: use tutor.profilePhoto if it exists, otherwise fall back to default
-    const avatarSrc = tutor.profilePhoto || "/assets/img/tutor-avatar.png";
+    const tutorName =
+            String(tutor.tutorName || "Tutor").trim();
+
+    const tutorInitial =
+        tutorName.charAt(0).toUpperCase() || "T";
+
+    const profilePhoto =
+        String(tutor.profilePhoto || "").trim();
+
+    const avatarHtml = profilePhoto
+        ? `
+            <img
+                src="${profilePhoto}"
+                alt="${tutorName}"
+                class="tutor-avatar">
+        `
+        : `
+            <div
+                class="tutor-avatar tutor-avatar-initial"
+                aria-label="${tutorName}">
+                ${tutorInitial}
+            </div>
+        `;
 
     profilePanel.innerHTML = `
         <div class="profile-top">
             <div class="profile-main">
-                <img src="${avatarSrc}" alt="${tutor.tutorName}" class="tutor-avatar">
+                ${avatarHtml}
                 <div class="profile-details">
                     <h2>${tutor.tutorName}</h2>
                     <p>${tutor.education ?? ""}</p>

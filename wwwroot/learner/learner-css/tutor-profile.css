@@ -72,6 +72,16 @@ body {
     background: #2fc4a7;
 }
 
+.tutor-avatar-initial {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 42px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
 .profile-details h2 {
     color: #111;
     font-size: 22px;
