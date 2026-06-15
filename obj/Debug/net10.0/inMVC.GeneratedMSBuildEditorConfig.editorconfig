@@ -20,121 +20,121 @@ build_property.TargetFrameworkVersion = v10.0
 build_property.EntryPointFilePath = 
 build_property.RootNamespace = inMVC
 build_property.RootNamespace = inMVC
-build_property.ProjectDir = C:\Users\Jedi\Desktop\VSCode Stuff\skolar_sys_v1.9\
+build_property.ProjectDir = C:\Users\Miguel\Downloads\skolar_sys\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 build_property.RazorLangVersion = 10.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
-build_property.MSBuildProjectDirectory = C:\Users\Jedi\Desktop\VSCode Stuff\skolar_sys_v1.9
+build_property.MSBuildProjectDirectory = C:\Users\Miguel\Downloads\skolar_sys
 build_property._RazorSourceGeneratorDebug = 
 build_property.EffectiveAnalysisLevelStyle = 10.0
 build_property.EnableCodeStyleSeverity = 
 
-[C:/Users/Jedi/Desktop/VSCode Stuff/skolar_sys_v1.9/Views/Admin/Issues.cshtml]
+[C:/Users/Miguel/Downloads/skolar_sys/Views/Admin/Issues.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cSXNzdWVzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Jedi/Desktop/VSCode Stuff/skolar_sys_v1.9/Views/Home/Account.cshtml]
+[C:/Users/Miguel/Downloads/skolar_sys/Views/Home/Account.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxBY2NvdW50LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Jedi/Desktop/VSCode Stuff/skolar_sys_v1.9/Views/Home/ForgotPassword.cshtml]
+[C:/Users/Miguel/Downloads/skolar_sys/Views/Home/ForgotPassword.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxGb3Jnb3RQYXNzd29yZC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Jedi/Desktop/VSCode Stuff/skolar_sys_v1.9/Views/Home/Index.cshtml]
+[C:/Users/Miguel/Downloads/skolar_sys/Views/Home/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Jedi/Desktop/VSCode Stuff/skolar_sys_v1.9/Views/Home/Privacy.cshtml]
+[C:/Users/Miguel/Downloads/skolar_sys/Views/Home/Privacy.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxQcml2YWN5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Jedi/Desktop/VSCode Stuff/skolar_sys_v1.9/Views/Home/Signup.cshtml]
+[C:/Users/Miguel/Downloads/skolar_sys/Views/Home/Signup.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxTaWdudXAuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Jedi/Desktop/VSCode Stuff/skolar_sys_v1.9/Views/Home/Signupbak.cshtml]
+[C:/Users/Miguel/Downloads/skolar_sys/Views/Home/Signupbak.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxTaWdudXBiYWsuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Jedi/Desktop/VSCode Stuff/skolar_sys_v1.9/Views/Home/TermsLearner.cshtml]
+[C:/Users/Miguel/Downloads/skolar_sys/Views/Home/TermsLearner.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxUZXJtc0xlYXJuZXIuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Jedi/Desktop/VSCode Stuff/skolar_sys_v1.9/Views/Home/TermsTutor.cshtml]
+[C:/Users/Miguel/Downloads/skolar_sys/Views/Home/TermsTutor.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxUZXJtc1R1dG9yLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Jedi/Desktop/VSCode Stuff/skolar_sys_v1.9/Views/Learner/Booking.cshtml]
+[C:/Users/Miguel/Downloads/skolar_sys/Views/Learner/Booking.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTGVhcm5lclxCb29raW5nLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Jedi/Desktop/VSCode Stuff/skolar_sys_v1.9/Views/Learner/Contract.cshtml]
+[C:/Users/Miguel/Downloads/skolar_sys/Views/Learner/Contract.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTGVhcm5lclxDb250cmFjdC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Jedi/Desktop/VSCode Stuff/skolar_sys_v1.9/Views/Learner/LearnerPortal.cshtml]
+[C:/Users/Miguel/Downloads/skolar_sys/Views/Learner/LearnerPortal.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTGVhcm5lclxMZWFybmVyUG9ydGFsLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Jedi/Desktop/VSCode Stuff/skolar_sys_v1.9/Views/Learner/TutorProfile.cshtml]
+[C:/Users/Miguel/Downloads/skolar_sys/Views/Learner/TutorProfile.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTGVhcm5lclxUdXRvclByb2ZpbGUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Jedi/Desktop/VSCode Stuff/skolar_sys_v1.9/Views/Payment/History.cshtml]
+[C:/Users/Miguel/Downloads/skolar_sys/Views/Payment/History.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUGF5bWVudFxIaXN0b3J5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Jedi/Desktop/VSCode Stuff/skolar_sys_v1.9/Views/Payment/Result.cshtml]
+[C:/Users/Miguel/Downloads/skolar_sys/Views/Payment/Result.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUGF5bWVudFxSZXN1bHQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Jedi/Desktop/VSCode Stuff/skolar_sys_v1.9/Views/Payment/TutorFinance.cshtml]
+[C:/Users/Miguel/Downloads/skolar_sys/Views/Payment/TutorFinance.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUGF5bWVudFxUdXRvckZpbmFuY2UuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Jedi/Desktop/VSCode Stuff/skolar_sys_v1.9/Views/Shared/Error.cshtml]
+[C:/Users/Miguel/Downloads/skolar_sys/Views/Shared/Error.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXEVycm9yLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Jedi/Desktop/VSCode Stuff/skolar_sys_v1.9/Views/Shared/_ValidationScriptsPartial.cshtml]
+[C:/Users/Miguel/Downloads/skolar_sys/Views/Shared/_ValidationScriptsPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Jedi/Desktop/VSCode Stuff/skolar_sys_v1.9/Views/Tutor/Bookings.cshtml]
+[C:/Users/Miguel/Downloads/skolar_sys/Views/Tutor/Bookings.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVHV0b3JcQm9va2luZ3MuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Jedi/Desktop/VSCode Stuff/skolar_sys_v1.9/Views/Tutor/Calendar.cshtml]
+[C:/Users/Miguel/Downloads/skolar_sys/Views/Tutor/Calendar.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVHV0b3JcQ2FsZW5kYXIuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Jedi/Desktop/VSCode Stuff/skolar_sys_v1.9/Views/Tutor/EditProfile.cshtml]
+[C:/Users/Miguel/Downloads/skolar_sys/Views/Tutor/EditProfile.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVHV0b3JcRWRpdFByb2ZpbGUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Jedi/Desktop/VSCode Stuff/skolar_sys_v1.9/Views/Tutor/Reviews.cshtml]
+[C:/Users/Miguel/Downloads/skolar_sys/Views/Tutor/Reviews.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVHV0b3JcUmV2aWV3cy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Jedi/Desktop/VSCode Stuff/skolar_sys_v1.9/Views/Tutor/Settings.cshtml]
+[C:/Users/Miguel/Downloads/skolar_sys/Views/Tutor/Settings.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVHV0b3JcU2V0dGluZ3MuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Jedi/Desktop/VSCode Stuff/skolar_sys_v1.9/Views/Tutor/TutorDashboard.cshtml]
+[C:/Users/Miguel/Downloads/skolar_sys/Views/Tutor/TutorDashboard.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVHV0b3JcVHV0b3JEYXNoYm9hcmQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Jedi/Desktop/VSCode Stuff/skolar_sys_v1.9/Views/_ViewImports.cshtml]
+[C:/Users/Miguel/Downloads/skolar_sys/Views/_ViewImports.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdJbXBvcnRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Jedi/Desktop/VSCode Stuff/skolar_sys_v1.9/Views/_ViewStart.cshtml]
+[C:/Users/Miguel/Downloads/skolar_sys/Views/_ViewStart.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdTdGFydC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Jedi/Desktop/VSCode Stuff/skolar_sys_v1.9/Views/Shared/_Layout.cshtml]
+[C:/Users/Miguel/Downloads/skolar_sys/Views/Shared/_Layout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9MYXlvdXQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = b-ne62mji7ka

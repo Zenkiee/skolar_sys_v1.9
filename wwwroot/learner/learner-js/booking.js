@@ -332,6 +332,21 @@ async function loadAvailability(tutorId) {
 }
 
 // Forms
+function isValidBookingName(value) {
+    const text = String(value || "").trim();
+    return text.length >= 2 && text.length <= 60 && /[A-Za-z]/.test(text);
+}
+
+function isValidBookingEmail(value) {
+    const text = String(value || "").trim();
+    return text.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text);
+}
+
+function isValidBookingContact(value) {
+    const text = String(value || "").replace(/[\s-]/g, "");
+    return /^09\d{9}$/.test(text) || /^\+639\d{9}$/.test(text);
+}
+
 function bindForms() {
     document.getElementById("detailsForm").addEventListener("submit", event => {
         event.preventDefault();
@@ -339,9 +354,30 @@ function bindForms() {
         const firstName = document.getElementById("firstName").value.trim();
         const lastName = document.getElementById("lastName").value.trim();
         const email = document.getElementById("email").value.trim();
+        const contact = document.getElementById("contact").value.trim();
         const subject = document.getElementById("subject").value;
         const time = document.getElementById("time").value;
         const fullName = `${firstName} ${lastName}`.trim();
+
+        if (!isValidBookingName(firstName) || !isValidBookingName(lastName)) {
+            SkolarDialog.alert("Enter a valid first and last name.");
+            return;
+        }
+
+        if (!isValidBookingEmail(email)) {
+            SkolarDialog.alert("Enter a valid email address.");
+            return;
+        }
+
+        if (!isValidBookingContact(contact)) {
+            SkolarDialog.alert("Use 09XXXXXXXXX or +639XXXXXXXXX for the contact number.");
+            return;
+        }
+
+        if (!subject) {
+            SkolarDialog.alert("Please choose a subject.");
+            return;
+        }
 
         if (!time) {
             SkolarDialog.alert("Please choose an available time slot.");

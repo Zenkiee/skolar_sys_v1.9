@@ -7,8 +7,6 @@ const uploadProfilePhotoButton = document.getElementById("uploadProfilePhotoButt
 const removeProfilePhotoButton = document.getElementById("removeProfilePhotoButton");
 const profileAccountManager = document.getElementById("profileAccountManager");
 const guardianFields = document.getElementById("guardianFields");
-const profileLearningGoals = document.getElementById("profileLearningGoals");
-const learningGoalsCount = document.getElementById("learningGoalsCount");
 
 // Profile
 async function loadLearnerProfile() {
@@ -29,7 +27,6 @@ async function loadLearnerProfile() {
         setProfileValue("guardianRelationship", profile.guardianRelationship);
         setProfileValue("guardianEmail", profile.guardianEmail);
         setProfileValue("guardianContact", profile.guardianContactNumber);
-        setProfileValue("profilePreferredSchedule", profile.preferredSchedule);
         setProfileValue("profileLearningGoals", profile.learningGoals);
 
         document.querySelectorAll("#profileSubjects input[type='checkbox']").forEach(input => {
@@ -37,7 +34,6 @@ async function loadLearnerProfile() {
         });
 
         updateAccountManagerFields();
-        updateLearningGoalsCount();
         updateLearnerIdentity(profile.name, profile.profilePhoto);
     } catch (error) {
         setProfileMessage(error.message, "error");
@@ -98,7 +94,7 @@ function getProfileRequest() {
         subjects: Array.from(document.querySelectorAll("#profileSubjects input:checked"))
             .map(input => input.value),
         learningGoals: getProfileValue("profileLearningGoals"),
-        preferredSchedule: getProfileValue("profilePreferredSchedule")
+        preferredSchedule: ""
     };
 }
 
@@ -144,14 +140,6 @@ function validateProfile(profile) {
         if (!isValidPhilippineContact(profile.guardianContactNumber)) {
             return { valid: false, field: "guardianContact", message: "Use 09XXXXXXXXX or +639XXXXXXXXX." };
         }
-    }
-
-    if (profile.subjects.length > 5) {
-        return { valid: false, field: "profileSubjects", message: "Choose up to five subjects." };
-    }
-
-    if (profile.learningGoals.length > 500) {
-        return { valid: false, field: "profileLearningGoals", message: "Learning goals must be 500 characters or fewer." };
     }
 
     return { valid: true };
@@ -258,11 +246,6 @@ async function removeProfilePhoto() {
 function updateAccountManagerFields() {
     if (!guardianFields || !profileAccountManager) return;
     guardianFields.hidden = profileAccountManager.value !== "Guardian";
-}
-
-function updateLearningGoalsCount() {
-    if (!profileLearningGoals || !learningGoalsCount) return;
-    learningGoalsCount.textContent = profileLearningGoals.value.length;
 }
 
 function updateLearnerIdentity(name, photoUrl) {
@@ -423,10 +406,6 @@ if (profileAccountManager) {
     profileAccountManager.addEventListener("change", updateAccountManagerFields);
 }
 
-if (profileLearningGoals) {
-    profileLearningGoals.addEventListener("input", updateLearningGoalsCount);
-}
-
 const profileNameInput = document.getElementById("profileName");
 if (profileNameInput) {
     profileNameInput.addEventListener("input", () => {
@@ -448,14 +427,8 @@ if (profileNameInput) {
 
 document.querySelectorAll("#profileSubjects input[type='checkbox']").forEach(input => {
     input.addEventListener("change", () => {
-        const selected = document.querySelectorAll("#profileSubjects input:checked");
-        if (selected.length > 5) {
-            input.checked = false;
-            showProfileError("profileSubjects", "Choose up to five subjects.");
-        } else {
-            const error = document.querySelector('[data-error-for="profileSubjects"]');
-            if (error) error.textContent = "";
-        }
+        const error = document.querySelector('[data-error-for="profileSubjects"]');
+        if (error) error.textContent = "";
     });
 });
 

@@ -137,6 +137,9 @@
   transition: background var(--duration) var(--ease);
   border-bottom: 1px solid var(--cream-dark);
 }
+.bk-full-table tbody tr:nth-child(even) {
+  background: #fbfcf8;
+}
 .bk-full-table tbody tr:last-child {
   border-bottom: none;
 }
@@ -144,10 +147,23 @@
   background: var(--cream);
 }
 .bk-full-table td {
-  padding: 14px 16px;
+  padding: 16px 18px;
   color: var(--navy);
   vertical-align: middle;
   white-space: nowrap;
+}
+
+.bk-full-table th:nth-child(8),
+.bk-full-table th:nth-child(9),
+.bk-full-table td:nth-child(8),
+.bk-full-table td:nth-child(9) {
+  text-align: center;
+  min-width: 116px;
+}
+
+.bk-full-table td:nth-child(8),
+.bk-full-table td:nth-child(9) {
+  padding-inline: 22px;
 }
 
 /* Student cell inside bookings table (override color for light bg) */
@@ -158,13 +174,45 @@
 }
 
 /* Badge — Done and Rejected additions */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 88px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  padding: 7px 12px;
+  margin: 2px 0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1;
+  text-transform: capitalize;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
+.badge-pending {
+  border-color: #f0c66a;
+  background: #fff5d8;
+  color: #8a6100;
+}
+
+.badge-confirmed,
+.badge-paid,
+.badge-refunded {
+  border-color: #a8d9ba;
+  background: #e4f7ec;
+  color: #17683b;
+}
+
 .badge-done {
-  background: var(--navy);
-  color: var(--white);
+  border-color: #9fb6c4;
+  background: #e7f0f4;
+  color: var(--navy);
 }
 .badge-rejected {
-  background: #E74C3C;
-  color: var(--white);
+  border-color: #f0b5b5;
+  background: #fde7e7;
+  color: #971d1d;
 }
 
 /* Empty state */
@@ -272,8 +320,9 @@
 }
 
 .badge-mixed {
-  background: var(--gold);
-  color: var(--navy-dark);
+  border-color: #e5c981;
+  background: #fff3ca;
+  color: #735200;
 }
 
 .bk-modal[hidden] {
@@ -468,11 +517,13 @@ body.modal-open {
 
 /* Session Confirmation */
 .badge-awaiting {
+  border-color: #e5c981;
   background: #FFF1CC;
   color: #7A5300;
 }
 
 .badge-disputed {
+  border-color: #f0b5b5;
   background: #FBE7E7;
   color: #A13535;
 }
@@ -699,12 +750,14 @@ body.modal-open {
 /* Session Issue Response */
 .badge-underreview,
 .bk-session-status-underreview {
+  border-color: #d8d0ff;
   background: #e9e4ff;
   color: #51408f;
 }
 
 .badge-cancelled,
 .bk-session-status-cancelled {
+  border-color: #d2d9de;
   background: #f1f2f3;
   color: #616b72;
 }
@@ -890,6 +943,7 @@ body.modal-open {
 
 .badge-paid,
 .badge-refunded {
+  border-color: #a8d9ba;
   background: #e4f5ea;
   color: #17683b;
 }
@@ -898,6 +952,7 @@ body.modal-open {
 .badge-refundprocessing,
 .badge-partiallyrefunding,
 .badge-partiallyrefunded {
+  border-color: #e5c981;
   background: #fff1c9;
   color: #735200;
 }
@@ -905,6 +960,7 @@ body.modal-open {
 .badge-failed,
 .badge-refundfailed,
 .badge-cancelled {
+  border-color: #f0b5b5;
   background: #fde4e4;
   color: #971d1d;
 }
@@ -926,6 +982,7 @@ body.modal-open {
 
 .badge-pendingintegration,
 .badge-notprocessed {
+  border-color: #d2d9de;
   background: #eef1f2;
   color: #425466;
 }

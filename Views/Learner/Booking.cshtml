@@ -105,19 +105,19 @@
                             <div class="form-grid">
                                 <div class="form-group">
                                     <label for="firstName">First Name*</label>
-                                    <input type="text" id="firstName" placeholder="e.g. Maria" required>
+                                    <input type="text" id="firstName" placeholder="e.g. Maria" minlength="2" maxlength="60" required>
                                 </div>
                                 <div class="form-group">
                                     <label for="lastName">Last Name*</label>
-                                    <input type="text" id="lastName" placeholder="e.g. Santos" required>
+                                    <input type="text" id="lastName" placeholder="e.g. Santos" minlength="2" maxlength="60" required>
                                 </div>
                                 <div class="form-group">
                                     <label for="email">Gmail Address*</label>
-                                    <input type="email" id="email" placeholder="yourname@gmail.com" required>
+                                    <input type="email" id="email" placeholder="yourname@gmail.com" maxlength="254" required>
                                 </div>
                                 <div class="form-group">
                                     <label for="contact">Contact Number*</label>
-                                    <input type="number" id="contact" placeholder="09XXXXXXXXX" required>
+                                    <input type="tel" id="contact" placeholder="09XXXXXXXXX" inputmode="tel" maxlength="13" required>
                                 </div>
                             </div>
 

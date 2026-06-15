@@ -600,6 +600,14 @@ public class TutorController : Controller
             .Take(20)
             .ToList();
 
+        var clearedAt = settings?.LastNotificationClearedAt;
+        if (clearedAt != null)
+        {
+            items = items
+                .Where(item => item.CreatedAt > clearedAt.Value)
+                .ToList();
+        }
+
         var lastReadAt = settings?.LastNotificationReadAt;
         var unreadCount = items.Count(item => lastReadAt == null || item.CreatedAt > lastReadAt.Value);
 
@@ -631,6 +639,33 @@ public class TutorController : Controller
         }
 
         settings.LastNotificationReadAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+        return Ok(new { success = true });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ClearNotifications()
+    {
+        var userId = HttpContext.Session.GetUserId();
+        if (userId == null || !HttpContext.Session.HasRole("tutor")) return Unauthorized();
+
+        var tutor = await _context.TutorProfiles
+            .FirstOrDefaultAsync(item => item.UserId == userId.Value);
+        if (tutor == null) return NotFound();
+
+        var settings = await _context.TutorNotificationSettings
+            .FirstOrDefaultAsync(item => item.TutorId == tutor.Id);
+
+        if (settings == null)
+        {
+            settings = new TutorNotificationSettings { TutorId = tutor.Id };
+            _context.TutorNotificationSettings.Add(settings);
+        }
+
+        var now = DateTime.UtcNow;
+        settings.LastNotificationReadAt = now;
+        settings.LastNotificationClearedAt = now;
+
         await _context.SaveChangesAsync();
         return Ok(new { success = true });
     }

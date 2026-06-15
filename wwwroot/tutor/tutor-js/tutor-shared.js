@@ -4,6 +4,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const notificationList = document.getElementById("notifList");
   const notificationDot = document.getElementById("notifDot");
   const notificationCount = document.getElementById("notifUnreadCount");
+  const notificationHeader = notificationDropdown?.querySelector(".notif-dropdown-header");
+  let clearNotificationsButton = document.getElementById("notifClearAll");
   let pollingTimer = null;
 
   // Profile
@@ -88,6 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (notificationDot) notificationDot.hidden = unreadCount === 0;
     if (notificationCount) notificationCount.textContent = unreadCount > 0 ? `${unreadCount} new` : "";
+    if (clearNotificationsButton) clearNotificationsButton.hidden = items.length === 0;
 
     if (!notificationList) return;
 
@@ -176,9 +179,50 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  async function clearNotifications() {
+    if (!clearNotificationsButton) return;
+
+    const originalText = clearNotificationsButton.textContent;
+    clearNotificationsButton.disabled = true;
+    clearNotificationsButton.textContent = "Removing...";
+
+    try {
+      const response = await fetch("/Tutor/ClearNotifications", { method: "POST" });
+      if (!response.ok) throw new Error("Could not remove notifications.");
+
+      renderNotifications({ unreadCount: 0, items: [] });
+      setPushBaseline();
+    } catch (error) {
+      console.error("Could not remove tutor notifications.", error);
+      clearNotificationsButton.textContent = "Try again";
+      window.setTimeout(() => {
+        if (!clearNotificationsButton) return;
+        clearNotificationsButton.textContent = originalText;
+      }, 1600);
+    } finally {
+      clearNotificationsButton.disabled = false;
+    }
+  }
+
   function setPushBaseline() {
     sessionStorage.setItem("tutorPushNotificationBaseline", String(Date.now()));
   }
+
+  if (notificationHeader && !clearNotificationsButton) {
+    clearNotificationsButton = document.createElement("button");
+    clearNotificationsButton.id = "notifClearAll";
+    clearNotificationsButton.className = "notif-clear-all";
+    clearNotificationsButton.type = "button";
+    clearNotificationsButton.textContent = "Remove all";
+    clearNotificationsButton.hidden = true;
+    notificationHeader.appendChild(clearNotificationsButton);
+  }
+
+  clearNotificationsButton?.addEventListener("click", async event => {
+    event.preventDefault();
+    event.stopPropagation();
+    await clearNotifications();
+  });
 
   notificationButton?.addEventListener("click", async event => {
     event.stopPropagation();

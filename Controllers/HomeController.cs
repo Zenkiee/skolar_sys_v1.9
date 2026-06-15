@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using inMVC.Models;
 using inMVC.Data;
 using inMVC.Helpers;
+using inMVC.Services;
 
 namespace inMVC.Controllers;
 
@@ -38,7 +39,23 @@ public class HomeController : Controller
         "Filipino",
         "Early Learning Skills",
         "Science",
-        "Social Studies"
+        "Social Studies",
+        "Literacy, Language & Communication",
+        "Socio-Emotional Development",
+        "Values Development",
+        "Physical Health and Motor Development",
+        "Aesthetic/Creative Development",
+        "Cognitive Development",
+        "Language",
+        "Reading and Literacy",
+        "Mathematics",
+        "Makabansa",
+        "GMRC",
+        "AP",
+        "MAPEH",
+        "EPP",
+        "TLE",
+        "ESP"
     };
 
     public HomeController(
@@ -249,6 +266,14 @@ public class HomeController : Controller
             return Unauthorized();
         }
 
+        if (request == null)
+        {
+            return BadRequest(new
+            {
+                message = "Profile details are required."
+            });
+        }
+
         var user = await _context.Users.FindAsync(userId.Value);
 
         if (user == null)
@@ -256,42 +281,139 @@ public class HomeController : Controller
             return Unauthorized();
         }
 
+        var tutorName = request.TutorName?.Trim() ?? "";
+        var email = request.Email?.Trim().ToLowerInvariant() ?? "";
+        var education = request.Education?.Trim() ?? "";
+        var contactNumber = NormalizeContactNumber(request.ContactNumber);
+        var bio = request.Bio?.Trim() ?? "";
+        var subjects = NormalizeSubjects(
+            (request.Subjects ?? "")
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+        var hourlyRate = PaymentPolicyCalculator.ParseHourlyRate(request.Rate ?? "");
+
+        if (tutorName.Length is < 2 or > 60 ||
+            !tutorName.Any(char.IsLetter))
+        {
+            return BadRequest(new
+            {
+                field = "epFirstName",
+                message = "Tutor name must be 2 to 60 characters and contain a letter."
+            });
+        }
+
+        if (email.Length > 254 ||
+            !new EmailAddressAttribute().IsValid(email))
+        {
+            return BadRequest(new
+            {
+                field = "epGmail",
+                message = "Enter a valid email address."
+            });
+        }
+
+        var emailTaken = await _context.Users
+            .AsNoTracking()
+            .AnyAsync(other =>
+                other.Id != user.Id &&
+                other.Email.ToLower() == email);
+
+        if (emailTaken)
+        {
+            return BadRequest(new
+            {
+                field = "epGmail",
+                message = "That email is already used by another account."
+            });
+        }
+
+        if (hourlyRate is < 1m or > 10000m)
+        {
+            return BadRequest(new
+            {
+                field = "epSessionRate",
+                message = "Enter a rate from PHP 1 to PHP 10,000 per hour."
+            });
+        }
+
+        if (education.Length is < 3 or > 120)
+        {
+            return BadRequest(new
+            {
+                field = "epDisplayTitle",
+                message = "Display title must be 3 to 120 characters."
+            });
+        }
+
+        if (contactNumber == null)
+        {
+            return BadRequest(new
+            {
+                field = "epPhone",
+                message = "Use 09XXXXXXXXX or +639XXXXXXXXX."
+            });
+        }
+
+        if (bio.Length is < 20 or > 500)
+        {
+            return BadRequest(new
+            {
+                field = "epBio",
+                message = "Bio must be 20 to 500 characters."
+            });
+        }
+
+        if (subjects == null ||
+            subjects.Count is < 1 or > 5)
+        {
+            return BadRequest(new
+            {
+                field = "epSubjectInput",
+                message = "Choose 1 to 5 valid subjects."
+            });
+        }
+
+        var rateText = hourlyRate.ToString(
+            "0.##",
+            CultureInfo.InvariantCulture);
+
         var existing = await _context.TutorProfiles
             .FirstOrDefaultAsync(profile =>
                 profile.UserId == user.Id);
 
         if (existing != null)
         {
-            existing.TutorName = request.TutorName;
-            existing.Rate = request.Rate;
-            existing.Education = request.Education;
-            existing.ContactNumber = request.ContactNumber;
-            existing.Bio = request.Bio;
-            existing.Subjects = request.Subjects;
+            existing.TutorName = tutorName;
+            existing.Rate = $"\u20B1{rateText}/hr";
+            existing.Education = education;
+            existing.ContactNumber = contactNumber;
+            existing.Bio = bio;
+            existing.Subjects = string.Join(",", subjects);
         }
         else
         {
             var profile = new TutorProfile
             {
                 UserId = user.Id,
-                TutorName = request.TutorName,
-                Rate = request.Rate,
-                Education = request.Education,
-                ContactNumber = request.ContactNumber,
-                Bio = request.Bio,
-                Subjects = request.Subjects
+                TutorName = tutorName,
+                Rate = $"\u20B1{rateText}/hr",
+                Education = education,
+                ContactNumber = contactNumber,
+                Bio = bio,
+                Subjects = string.Join(",", subjects)
             };
 
             _context.TutorProfiles.Add(profile);
         }
 
-        user.Name = request.TutorName;
+        user.Name = tutorName;
+        user.Email = email;
 
         await _context.SaveChangesAsync();
 
         return Ok(new
         {
-            success = true
+            success = true,
+            email
         });
     }
 

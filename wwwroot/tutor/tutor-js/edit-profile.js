@@ -19,6 +19,32 @@ document.addEventListener('DOMContentLoaded', () => {
     subjects: []
   };
   let currentData = JSON.parse(JSON.stringify(initialData));
+  const allowedTutorSubjects = [
+    'English',
+    'Math',
+    'Reading',
+    'Writing',
+    'Filipino',
+    'Early Learning Skills',
+    'Science',
+    'Social Studies',
+    'Literacy, Language & Communication',
+    'Socio-Emotional Development',
+    'Values Development',
+    'Physical Health and Motor Development',
+    'Aesthetic/Creative Development',
+    'Cognitive Development',
+    'Language',
+    'Reading and Literacy',
+    'Mathematics',
+    'Makabansa',
+    'GMRC',
+    'AP',
+    'MAPEH',
+    'EPP',
+    'TLE',
+    'ESP'
+  ];
 // Elements
   // Personal Info
   const fNameInput = document.getElementById('epFirstName');
@@ -95,7 +121,69 @@ document.addEventListener('DOMContentLoaded', () => {
         renderSubjects();
       });
     });
-  }  // ← renderSubjects ends here (CORRECT)
+  }
+  function normalizeTutorSubject(value) {
+    const text = String(value || '').trim();
+    return allowedTutorSubjects.find(subject => subject.toLowerCase() === text.toLowerCase()) || '';
+  }
+
+  function parseTutorRate(value) {
+    const numeric = String(value || '').replace(/[^0-9.]/g, '');
+    return Number.parseFloat(numeric) || 0;
+  }
+
+  function isValidTutorContact(value) {
+    const text = String(value || '').replace(/[\s-]/g, '');
+    return /^09\d{9}$/.test(text) || /^\+639\d{9}$/.test(text);
+  }
+
+  function isValidTutorEmail(value) {
+    const text = String(value || '').trim();
+    return text.length > 0 && text.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text);
+  }
+
+  function validateTutorPayload(payload) {
+    const name = String(payload.tutorName || '').trim();
+    const email = String(payload.email || '').trim();
+    const education = String(payload.education || '').trim();
+    const bio = String(payload.bio || '').trim();
+    const subjects = String(payload.subjects || '').split(',').filter(Boolean);
+    const rate = parseTutorRate(payload.rate);
+
+    if (name.length < 2 || name.length > 60 || !/[A-Za-z]/.test(name)) {
+      return { field: 'epFirstName', message: 'Tutor name must be 2 to 60 characters and contain a letter.' };
+    }
+
+    if (!isValidTutorEmail(email)) {
+      return { field: 'epGmail', message: 'Enter a valid email address.' };
+    }
+
+    if (education.length < 3 || education.length > 120) {
+      return { field: 'epDisplayTitle', message: 'Display title must be 3 to 120 characters.' };
+    }
+
+    if (!isValidTutorContact(payload.contactNumber)) {
+      return { field: 'epPhone', message: 'Use 09XXXXXXXXX or +639XXXXXXXXX.' };
+    }
+
+    if (rate < 1 || rate > 10000) {
+      return { field: 'epSessionRate', message: 'Enter a rate from PHP 1 to PHP 10,000 per hour.' };
+    }
+
+    if (bio.length < 20 || bio.length > 500) {
+      return { field: 'epBio', message: 'Bio must be 20 to 500 characters.' };
+    }
+
+    if (subjects.length < 1 || subjects.length > 5) {
+      return { field: 'epSubjectInput', message: 'Choose 1 to 5 valid subjects.' };
+    }
+
+    if (subjects.some(subject => !normalizeTutorSubject(subject))) {
+      return { field: 'epSubjectInput', message: 'Choose subjects from the suggested list.' };
+    }
+
+    return null;
+  }
 // Profile Data
   fetch('/Home/Me')
     .then(r => r.ok ? r.json() : null)
@@ -150,10 +238,10 @@ document.addEventListener('DOMContentLoaded', () => {
         currentData.personal.phone     = phoneInput.value;
         currentData.personal.location  = locInput.value;
 
+        if (!await saveToDatabase()) return;
+
         if (sidebarName) sidebarName.textContent = `${currentData.personal.firstName} ${currentData.personal.lastName}`;
         if (sidebarRole) sidebarRole.textContent = currentData.personal.displayTitle;
-
-        await saveToDatabase();
         showToast('Personal information saved!', 'success');
     });
   }
@@ -173,7 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentData.about.studentsTaught = taughtInput.value;
         currentData.about.sessionRate = rateInput.value;
 
-        await saveToDatabase();
+        if (!await saveToDatabase()) return;
         showToast('About Me saved!', 'success');
     });
   }
@@ -187,15 +275,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (btnAddSubject) {
     btnAddSubject.addEventListener('click', () => {
-      const val = subjectInput.value.trim();
-      if (val !== "") {
-        currentData.subjects.push(val);
-        renderSubjects();
-        showToast(`Added subject: ${val}`, 'success');
-        subjectInput.value = "";
-      } else {
+      const val = normalizeTutorSubject(subjectInput.value);
+      if (!val) {
         showToast('Please enter a subject', 'info');
+        return;
       }
+
+      if (currentData.subjects.some(subject => subject.toLowerCase() === val.toLowerCase())) {
+        showToast('That subject is already listed.', 'info');
+        return;
+      }
+
+      if (currentData.subjects.length >= 5) {
+        showToast('You can list up to 5 subjects.', 'info');
+        return;
+      }
+
+      currentData.subjects.push(val);
+      renderSubjects();
+      showToast(`Added subject: ${val}`, 'success');
+      subjectInput.value = "";
     });
   }
 
@@ -210,8 +309,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (btnSubjectsSave) {
     btnSubjectsSave.addEventListener('click', async () => {
+        if (!await saveToDatabase()) return;
         initialData.subjects = JSON.parse(JSON.stringify(currentData.subjects));
-        await saveToDatabase();
         showToast('Subjects saved!', 'success');
     });
   }
@@ -233,24 +332,42 @@ document.addEventListener('DOMContentLoaded', () => {
 // Save Profile
   async function saveToDatabase() {
       const meRes = await fetch('/Home/Me');
-      if (!meRes.ok) return;
+      if (!meRes.ok) return false;
       const user = await meRes.json();
 
       const payload = {
-          email: user.email,
-          tutorName: `${currentData.personal.firstName} ${currentData.personal.lastName}`,
-          rate: currentData.about.sessionRate,
-          education: currentData.personal.displayTitle,
-          contactNumber: currentData.personal.phone,
-          bio: currentData.about.bio,
-          subjects: currentData.subjects.join(',')
+          email: String(currentData.personal.gmail || user.email || '').trim(),
+          tutorName: `${currentData.personal.firstName} ${currentData.personal.lastName}`.trim(),
+          rate: String(currentData.about.sessionRate || '').trim(),
+          education: String(currentData.personal.displayTitle || '').trim(),
+          contactNumber: String(currentData.personal.phone || '').trim(),
+          bio: String(currentData.about.bio || '').trim(),
+          subjects: currentData.subjects.map(normalizeTutorSubject).filter(Boolean).join(',')
       };
 
-      await fetch('/Home/SaveTutorProfile', {
+      const validation = validateTutorPayload(payload);
+      if (validation) {
+        showToast(validation.message, 'info');
+        document.getElementById(validation.field)?.focus();
+        return false;
+      }
+
+      const response = await fetch('/Home/SaveTutorProfile', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
       });
+
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        showToast(result.message || 'Could not save profile changes.', 'info');
+        if (result.field) document.getElementById(result.field)?.focus();
+        return false;
+      }
+
+      currentData.subjects = payload.subjects.split(',').filter(Boolean);
+      renderSubjects();
+      return true;
   }
 // Profile Photo
   const btnUpload = document.getElementById('epUploadBtn');

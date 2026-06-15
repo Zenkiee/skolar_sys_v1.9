@@ -424,6 +424,25 @@ body {
   font-size: 0.72rem;
   font-weight: 700;
 }
+.notif-clear-all {
+  margin-left: auto;
+  border: 0;
+  background: transparent;
+  color: var(--gold);
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.notif-clear-all:hover,
+.notif-clear-all:focus-visible {
+  color: var(--navy);
+  outline: none;
+}
+.notif-clear-all:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
 .notif-list {
   max-height: 380px;
   overflow-y: auto;

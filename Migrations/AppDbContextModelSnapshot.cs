@@ -571,6 +571,9 @@ namespace inMVC.Migrations
                     b.Property<DateTime?>("LastNotificationReadAt")
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime?>("LastNotificationClearedAt")
+                        .HasColumnType("TEXT");
+
                     b.Property<bool>("NewReviewAlertsEnabled")
                         .HasColumnType("INTEGER");
 

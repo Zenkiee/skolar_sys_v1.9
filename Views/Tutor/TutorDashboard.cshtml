@@ -112,8 +112,7 @@
         </div>
         <h2 class="welcome-heading" id="welcomeHeading">Welcome Back, Vanessa</h2>
         <div class="welcome-actions">
-          <button class="btn btn-outline-gold" id="newBookingBtn">New Booking</button>
-          <a href="/Tutor/Calendar" class="btn btn-outline-white">View Calendar</a>
+          <a href="/Tutor/Calendar" class="btn btn-outline-white">View My Schedule</a>
         </div>
       </div>
 
@@ -196,35 +195,6 @@
     </main>
   </div>
 
-  <!-- ========== NEW BOOKING MODAL ========== -->
-  <div class="modal-overlay" id="modalOverlay">
-    <div class="modal">
-      <h2>New Booking</h2>
-      <div class="modal-field">
-        <label for="modalStudent">Student Name</label>
-        <input type="text" id="modalStudent" placeholder="Enter student name">
-      </div>
-      <div class="modal-field">
-        <label for="modalSubject">Subject</label>
-        <select id="modalSubject">
-          <option value="">Select a subject</option>
-          <option value="Math">Math</option>
-          <option value="Filipino">Filipino</option>
-          <option value="Writing">Writing</option>
-          <option value="Science">Science</option>
-          <option value="English">English</option>
-        </select>
-      </div>
-      <div class="modal-field">
-        <label for="modalDate">Date</label>
-        <input type="date" id="modalDate">
-      </div>
-      <div class="modal-actions">
-        <button class="btn-primary" id="modalSubmit">Create Booking</button>
-        <button class="btn-secondary" id="modalCancel">Cancel</button>
-      </div>
-    </div>
-  </div>
   <script src="~/main-js/auth-guard.js"></script>
   <script>
     requireRole("tutor");

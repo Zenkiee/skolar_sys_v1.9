@@ -126,27 +126,27 @@
         <div class="ep-form-grid">
           <div class="ep-field">
             <label for="epFirstName">First Name</label>
-            <input type="text" id="epFirstName" placeholder="Enter first name">
+            <input type="text" id="epFirstName" placeholder="Enter first name" minlength="2" maxlength="60">
           </div>
           <div class="ep-field">
             <label for="epLastName">Last Name</label>
-            <input type="text" id="epLastName" placeholder="Enter last name">
+            <input type="text" id="epLastName" placeholder="Enter last name" maxlength="60">
           </div>
           <div class="ep-field">
             <label for="epDisplayTitle">Display Title</label>
-            <input type="text" id="epDisplayTitle" placeholder="e.g. Professional Teacher">
+            <input type="text" id="epDisplayTitle" placeholder="e.g. Professional Teacher" minlength="3" maxlength="120">
           </div>
           <div class="ep-field">
             <label for="epGmail">Gmail</label>
-            <input type="email" id="epGmail" placeholder="Enter email address">
+            <input type="email" id="epGmail" placeholder="Enter email address" maxlength="254" required>
           </div>
           <div class="ep-field">
             <label for="epPhone">Phone Number</label>
-            <input type="tel" id="epPhone" placeholder="Enter phone number">
+            <input type="tel" id="epPhone" placeholder="Enter phone number" inputmode="tel" maxlength="13">
           </div>
           <div class="ep-field">
             <label for="epLocation">Location</label>
-            <input type="text" id="epLocation" placeholder="Enter location">
+            <input type="text" id="epLocation" placeholder="Enter location" maxlength="80">
           </div>
         </div>
 
@@ -164,24 +164,24 @@
         <div class="ep-form-grid">
           <div class="ep-field full-width">
             <label for="epTagline">Short Tagline</label>
-            <input type="text" id="epTagline" placeholder="A brief description about yourself">
+            <input type="text" id="epTagline" placeholder="A brief description about yourself" maxlength="120">
           </div>
           <div class="ep-field full-width">
             <label for="epBio">Full Bio</label>
-            <textarea id="epBio" placeholder="Write a detailed bio about yourself, your teaching experience, and specializations..."></textarea>
+            <textarea id="epBio" placeholder="Write a detailed bio about yourself, your teaching experience, and specializations..." minlength="20" maxlength="500"></textarea>
           </div>
           <div class="ep-stats-row">
             <div class="ep-field">
               <label for="epYearsExp">Years of Experience</label>
-              <input type="text" id="epYearsExp" placeholder="e.g. 5 Years">
+              <input type="text" id="epYearsExp" placeholder="e.g. 5 Years" maxlength="40">
             </div>
             <div class="ep-field">
               <label for="epStudentsTaught">Students Taught</label>
-              <input type="text" id="epStudentsTaught" placeholder="e.g. 50+ Students">
+              <input type="text" id="epStudentsTaught" placeholder="e.g. 50+ Students" maxlength="40">
             </div>
             <div class="ep-field">
               <label for="epSessionRate">Session Rate</label>
-              <input type="text" id="epSessionRate" placeholder="e.g. $20/hr">
+              <input type="text" id="epSessionRate" placeholder="e.g. 500/hr" maxlength="20">
             </div>
           </div>
         </div>
@@ -199,7 +199,33 @@
         
         <div class="ep-add-row">
           <div class="ep-field">
-            <input type="text" id="epSubjectInput" placeholder="Add a subject e.g. Filipino">
+            <input type="text" id="epSubjectInput" placeholder="Add a subject e.g. Filipino" maxlength="50" list="epSubjectOptions">
+            <datalist id="epSubjectOptions">
+              <option value="English"></option>
+              <option value="Math"></option>
+              <option value="Reading"></option>
+              <option value="Writing"></option>
+              <option value="Filipino"></option>
+              <option value="Early Learning Skills"></option>
+              <option value="Science"></option>
+              <option value="Social Studies"></option>
+              <option value="Literacy, Language & Communication"></option>
+              <option value="Socio-Emotional Development"></option>
+              <option value="Values Development"></option>
+              <option value="Physical Health and Motor Development"></option>
+              <option value="Aesthetic/Creative Development"></option>
+              <option value="Cognitive Development"></option>
+              <option value="Language"></option>
+              <option value="Reading and Literacy"></option>
+              <option value="Mathematics"></option>
+              <option value="Makabansa"></option>
+              <option value="GMRC"></option>
+              <option value="AP"></option>
+              <option value="MAPEH"></option>
+              <option value="EPP"></option>
+              <option value="TLE"></option>
+              <option value="ESP"></option>
+            </datalist>
           </div>
           <button class="ep-btn-tan" id="epAddSubject">+ Add</button>
         </div>

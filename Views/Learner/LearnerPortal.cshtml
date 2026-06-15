@@ -345,7 +345,7 @@
                         <section class="profile-section">
                             <div class="profile-section-title">
                                 <h3>Learning Preferences</h3>
-                                <p>Add subjects, goals, and the learner's preferred study schedule.</p>
+                                <p>Add subjects and learning goals for the learner.</p>
                             </div>
 
                             <div class="profile-field">
@@ -359,31 +359,31 @@
                                     <label><input type="checkbox" value="Early Learning Skills"> Early Learning Skills</label>
                                     <label><input type="checkbox" value="Science"> Science</label>
                                     <label><input type="checkbox" value="Social Studies"> Social Studies</label>
+                                    <label><input type="checkbox" value="Literacy, Language & Communication"> Literacy, Language & Communication</label>
+                                    <label><input type="checkbox" value="Socio-Emotional Development"> Socio-Emotional Development</label>
+                                    <label><input type="checkbox" value="Values Development"> Values Development</label>
+                                    <label><input type="checkbox" value="Physical Health and Motor Development"> Physical Health and Motor Development</label>
+                                    <label><input type="checkbox" value="Aesthetic/Creative Development"> Aesthetic/Creative Development</label>
+                                    <label><input type="checkbox" value="Cognitive Development"> Cognitive Development</label>
+                                    <label><input type="checkbox" value="Language"> Language</label>
+                                    <label><input type="checkbox" value="Reading and Literacy"> Reading and Literacy</label>
+                                    <label><input type="checkbox" value="Mathematics"> Mathematics</label>
+                                    <label><input type="checkbox" value="Makabansa"> Makabansa</label>
+                                    <label><input type="checkbox" value="GMRC"> GMRC</label>
+                                    <label><input type="checkbox" value="AP"> AP</label>
+                                    <label><input type="checkbox" value="MAPEH"> MAPEH</label>
+                                    <label><input type="checkbox" value="EPP"> EPP</label>
+                                    <label><input type="checkbox" value="TLE"> TLE</label>
+                                    <label><input type="checkbox" value="ESP"> ESP</label>
                                 </div>
-                                <small>Choose up to five subjects.</small>
+                                <small>Choose any subjects that match the learner's goals.</small>
                                 <p class="profile-field-error" data-error-for="profileSubjects"></p>
                             </div>
 
-                            <div class="profile-grid profile-learning-grid">
-                                <div class="profile-field">
-                                    <label for="profilePreferredSchedule">Preferred Schedule</label>
-                                    <select id="profilePreferredSchedule">
-                                        <option value="">Select preferred schedule</option>
-                                        <option value="Weekday Mornings">Weekday Mornings</option>
-                                        <option value="Weekday Afternoons">Weekday Afternoons</option>
-                                        <option value="Weekday Evenings">Weekday Evenings</option>
-                                        <option value="Weekends">Weekends</option>
-                                        <option value="Flexible">Flexible</option>
-                                    </select>
-                                    <p class="profile-field-error" data-error-for="profilePreferredSchedule"></p>
-                                </div>
-
-                                <div class="profile-field profile-goals-field">
-                                    <label for="profileLearningGoals">Learning Goals</label>
-                                    <textarea id="profileLearningGoals" maxlength="500" placeholder="Describe what the learner wants to improve."></textarea>
-                                    <div class="profile-character-count"><span id="learningGoalsCount">0</span>/500</div>
-                                    <p class="profile-field-error" data-error-for="profileLearningGoals"></p>
-                                </div>
+                            <div class="profile-field profile-goals-field">
+                                <label for="profileLearningGoals">Learning Goals</label>
+                                <textarea id="profileLearningGoals" placeholder="Describe what the learner wants to improve."></textarea>
+                                <p class="profile-field-error" data-error-for="profileLearningGoals"></p>
                             </div>
                         </section>
 

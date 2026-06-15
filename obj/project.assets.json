@@ -2473,19 +2473,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Jedi\\.nuget\\packages\\": {}
+    "C:\\Users\\Miguel\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Jedi\\Desktop\\VSCode Stuff\\skolar_sys_v1.9\\inMVC.csproj",
+      "projectUniqueName": "C:\\Users\\Miguel\\Downloads\\skolar_sys\\inMVC.csproj",
       "projectName": "inMVC",
-      "projectPath": "C:\\Users\\Jedi\\Desktop\\VSCode Stuff\\skolar_sys_v1.9\\inMVC.csproj",
-      "packagesPath": "C:\\Users\\Jedi\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Jedi\\Desktop\\VSCode Stuff\\skolar_sys_v1.9\\obj\\",
+      "projectPath": "C:\\Users\\Miguel\\Downloads\\skolar_sys\\inMVC.csproj",
+      "packagesPath": "C:\\Users\\Miguel\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Miguel\\Downloads\\skolar_sys\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\Jedi\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "C:\\Users\\Miguel\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net10.0"
@@ -2557,7 +2557,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.301/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.300/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.AspNetCore": "(,10.0.32767]",
           "Microsoft.AspNetCore.Antiforgery": "(,10.0.32767]",

@@ -34,13 +34,12 @@ public class LearnerController : Controller
     private static readonly string[] AllowedSubjects =
     {
         "English", "Math", "Reading", "Writing", "Filipino",
-        "Early Learning Skills", "Science", "Social Studies"
-    };
-
-    private static readonly string[] AllowedSchedules =
-    {
-        "Weekday Mornings", "Weekday Afternoons", "Weekday Evenings",
-        "Weekends", "Flexible"
+        "Early Learning Skills", "Science", "Social Studies",
+        "Literacy, Language & Communication", "Socio-Emotional Development",
+        "Values Development", "Physical Health and Motor Development",
+        "Aesthetic/Creative Development", "Cognitive Development",
+        "Language", "Reading and Literacy", "Mathematics",
+        "Makabansa", "GMRC", "AP", "MAPEH", "EPP", "TLE", "ESP"
     };
 
     // Profile
@@ -101,7 +100,6 @@ public class LearnerController : Controller
         var guardianContactNumber = NormalizeProfileContact(request.GuardianContactNumber, accountManager == "Guardian");
         var guardianEmail = request.GuardianEmail?.Trim().ToLowerInvariant() ?? "";
         var learningGoals = request.LearningGoals?.Trim() ?? "";
-        var preferredSchedule = request.PreferredSchedule?.Trim() ?? "";
 
         if (name.Length is < 2 or > 60 || !name.Any(char.IsLetter))
             return BadRequest(new { field = "profileName", message = "Name must be 2 to 60 characters and contain a letter." });
@@ -156,18 +154,6 @@ public class LearnerController : Controller
             .Distinct(StringComparer.Ordinal)
             .ToList();
 
-        if (subjects.Count > 5)
-            return BadRequest(new { field = "profileSubjects", message = "Choose up to five subjects." });
-
-        if (learningGoals.Length > 500)
-            return BadRequest(new { field = "profileLearningGoals", message = "Learning goals must be 500 characters or fewer." });
-
-        if (!string.IsNullOrWhiteSpace(preferredSchedule) &&
-            !AllowedSchedules.Contains(preferredSchedule, StringComparer.Ordinal))
-        {
-            return BadRequest(new { field = "profilePreferredSchedule", message = "Select a valid preferred schedule." });
-        }
-
         var profile = await _context.LearnerProfiles
             .FirstOrDefaultAsync(item => item.UserId == userId.Value);
 
@@ -189,7 +175,7 @@ public class LearnerController : Controller
         profile.GuardianEmail = guardianEmail;
         profile.Subjects = string.Join(",", subjects);
         profile.LearningGoals = learningGoals;
-        profile.PreferredSchedule = preferredSchedule;
+        profile.PreferredSchedule = "";
 
         await _context.SaveChangesAsync();
         HttpContext.Session.SetString("userName", user.Name);
@@ -448,11 +434,14 @@ public class LearnerController : Controller
         if (userId == null || !HttpContext.Session.HasRole("learner"))
             return Unauthorized();
 
-        var bookingType = request.BookingType.Equals("Range", StringComparison.OrdinalIgnoreCase)
+        if (request == null)
+            return BadRequest(new { message = "Booking details are required." });
+
+        var bookingType = string.Equals(request.BookingType, "Range", StringComparison.OrdinalIgnoreCase)
             ? "Range"
             : "Single";
 
-        var requestedDates = request.Dates
+        var requestedDates = (request.Dates ?? new List<string>())
             .Where(date => !string.IsNullOrWhiteSpace(date))
             .Select(date => date.Trim())
             .Distinct(StringComparer.Ordinal)
@@ -493,22 +482,44 @@ public class LearnerController : Controller
         var normalizedDates = parsedDates
             .Select(date => date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture))
             .ToList();
-        var time = request.Time.Trim();
+        var time = request.Time?.Trim() ?? "";
+        var learnerName = request.LearnerName?.Trim() ?? "";
+        var learnerEmail = request.LearnerEmail?.Trim().ToLowerInvariant() ?? "";
+        var learnerContact = NormalizeProfileContact(request.LearnerContact, true);
+        var learnerGrade = request.LearnerGrade?.Trim() ?? "";
+        var subject = request.Subject?.Trim() ?? "";
 
         if (request.TutorId <= 0 || string.IsNullOrWhiteSpace(time))
             return BadRequest(new { message = "Tutor and time are required." });
 
-        if (string.IsNullOrWhiteSpace(request.Subject) ||
-            string.IsNullOrWhiteSpace(request.LearnerName) ||
-            string.IsNullOrWhiteSpace(request.LearnerEmail))
-        {
-            return BadRequest(new { message = "Complete all required booking details." });
-        }
+        if (learnerName.Length is < 2 or > 120 || !learnerName.Any(char.IsLetter))
+            return BadRequest(new { message = "Learner name must be 2 to 120 characters and contain a letter." });
+
+        if (learnerEmail.Length > 254 || !new EmailAddressAttribute().IsValid(learnerEmail))
+            return BadRequest(new { message = "Enter a valid learner email address." });
+
+        if (learnerContact == null)
+            return BadRequest(new { message = "Use 09XXXXXXXXX or +639XXXXXXXXX for the contact number." });
+
+        if (!string.IsNullOrWhiteSpace(learnerGrade) &&
+            !AllowedGradeLevels.Contains(learnerGrade, StringComparer.Ordinal))
+            return BadRequest(new { message = "Select a valid learner grade level." });
+
+        if (!AllowedSubjects.Contains(subject, StringComparer.Ordinal))
+            return BadRequest(new { message = "Select a valid subject." });
 
         var tutor = await _context.TutorProfiles
             .AsNoTracking()
             .FirstOrDefaultAsync(item => item.Id == request.TutorId);
         if (tutor == null) return NotFound(new { message = "Tutor not found." });
+
+        var tutorSubjects = (tutor.Subjects ?? "")
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (tutorSubjects.Length > 0 &&
+            !tutorSubjects.Contains(subject, StringComparer.Ordinal))
+        {
+            return BadRequest(new { message = "The selected tutor does not offer that subject." });
+        }
 
         var hourlyRate = PaymentPolicyCalculator.ParseHourlyRate(tutor.Rate);
         var durationHours = PaymentPolicyCalculator.GetDurationHours(time);
@@ -545,11 +556,11 @@ public class LearnerController : Controller
         {
             LearnerId = userId.Value,
             TutorId = request.TutorId,
-            LearnerName = request.LearnerName.Trim(),
-            LearnerEmail = request.LearnerEmail.Trim(),
-            LearnerContact = request.LearnerContact.Trim(),
-            LearnerGrade = request.LearnerGrade ?? "",
-            Subject = request.Subject.Trim(),
+            LearnerName = learnerName,
+            LearnerEmail = learnerEmail,
+            LearnerContact = learnerContact,
+            LearnerGrade = learnerGrade,
+            Subject = subject,
             TutorName = tutor.TutorName,
             Date = date,
             Time = time,
@@ -574,7 +585,7 @@ public class LearnerController : Controller
                 learnerId: userId.Value,
                 bookingGroupId: groupId,
                 amount: totalAmount,
-                description: $"Booking {bookings.Count} session(s) of {request.Subject} with Tutor {tutor.TutorName}"
+                description: $"Booking {bookings.Count} session(s) of {subject} with Tutor {tutor.TutorName}"
             );
 
             foreach (var b in bookings)

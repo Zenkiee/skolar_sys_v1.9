@@ -7,7 +7,6 @@ document.addEventListener("DOMContentLoaded", () => {
   loadReviews();
   displayCurrentDate();
   initializeSidebar();
-  initializeBookingModal();
 
   async function loadProfile() {
     try {
@@ -160,63 +159,6 @@ document.addEventListener("DOMContentLoaded", () => {
     sidebarOverlay?.addEventListener("click", closeSidebar);
     document.addEventListener("keydown", event => {
       if (event.key === "Escape") closeSidebar();
-    });
-  }
-
-  function initializeBookingModal() {
-    const modalOverlay = document.getElementById("modalOverlay");
-    const newBookingBtn = document.getElementById("newBookingBtn");
-    const modalCancel = document.getElementById("modalCancel");
-    const modalSubmit = document.getElementById("modalSubmit");
-
-    const closeModal = () => {
-      modalOverlay?.classList.remove("show");
-      ["modalStudent", "modalDate"].forEach(id => {
-        const input = document.getElementById(id);
-        if (input) input.value = "";
-      });
-      const subject = document.getElementById("modalSubject");
-      if (subject) subject.value = "";
-    };
-
-    newBookingBtn?.addEventListener("click", () => modalOverlay?.classList.add("show"));
-    modalCancel?.addEventListener("click", closeModal);
-    modalOverlay?.addEventListener("click", event => {
-      if (event.target === modalOverlay) closeModal();
-    });
-
-    modalSubmit?.addEventListener("click", () => {
-      const studentInput = document.getElementById("modalStudent");
-      const subjectInput = document.getElementById("modalSubject");
-      const studentName = studentInput?.value.trim() || "";
-      const subject = subjectInput?.value || "";
-
-      if (!studentName || !subject) {
-        const modal = document.querySelector(".modal");
-        if (modal) {
-          modal.style.animation = "none";
-          void modal.offsetHeight;
-          modal.style.animation = "shake 0.4s ease";
-        }
-        return;
-      }
-
-      bookings.unshift({
-        name: studentName,
-        initials: createInitials(studentName),
-        avatar: `av-${(bookings.length % 8) + 1}`,
-        subject,
-        status: "pending"
-      });
-
-      renderBookings(bookings, DEFAULT_VISIBLE);
-      setText("statTotal", bookings.length);
-      setText("statPending", bookings.filter(item => item.status === "pending").length);
-      closeModal();
-    });
-
-    document.addEventListener("keydown", event => {
-      if (event.key === "Escape") closeModal();
     });
   }
 

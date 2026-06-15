@@ -7,4 +7,5 @@ public class TutorNotificationSettings
     public bool PushNotificationsEnabled { get; set; }
     public bool NewReviewAlertsEnabled { get; set; } = true;
     public DateTime? LastNotificationReadAt { get; set; }
+    public DateTime? LastNotificationClearedAt { get; set; }
 }
