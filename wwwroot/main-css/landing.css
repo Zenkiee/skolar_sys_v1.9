@@ -14,15 +14,6 @@ html {
     scroll-padding-top: var(--navbar-height);
 }
 
-.how-section,
-.subjects-section,
-.why-section,
-.roles-section,
-.faq-section,
-.shq-section {
-    min-height: calc(100vh - var(--navbar-height));
-}
-
 body {
     background: #003f5c;
     color: #ffffff;
