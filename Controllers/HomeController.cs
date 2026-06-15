@@ -14,49 +14,251 @@ public class HomeController : Controller
     private readonly AppDbContext _context;
     private readonly IConfiguration _configuration;
 
+    private const string PasswordResetUserIdKey = "passwordResetUserId";
+    private const string PasswordResetRoleKey = "passwordResetRole";
+
     private static readonly string[] AllowedYearLevels =
     {
-        "Preschool", "Kindergarten", "Grade 1", "Grade 2",
-        "Grade 3", "Grade 4", "Grade 5", "Grade 6"
+        "Preschool",
+        "Kindergarten",
+        "Grade 1",
+        "Grade 2",
+        "Grade 3",
+        "Grade 4",
+        "Grade 5",
+        "Grade 6"
     };
 
     private static readonly string[] AllowedSubjects =
     {
-        "English", "Math", "Reading", "Writing", "Filipino",
-        "Early Learning Skills", "Science", "Social Studies"
+        "English",
+        "Math",
+        "Reading",
+        "Writing",
+        "Filipino",
+        "Early Learning Skills",
+        "Science",
+        "Social Studies"
     };
 
-    public HomeController(AppDbContext context, IConfiguration configuration)
+    public HomeController(
+        AppDbContext context,
+        IConfiguration configuration)
     {
         _context = context;
         _configuration = configuration;
     }
 
     public IActionResult Index() => View();
-    public IActionResult Account() => View();
-    public IActionResult ForgotPassword() => View();
 
-    public IActionResult TermsLearner() => View();  
+    public IActionResult Account() => View();
+
+    public IActionResult ForgotPassword()
+    {
+        ClearPasswordResetSession();
+        return View();
+    }
+
+    public IActionResult TermsLearner() => View();
+
     public IActionResult TermsTutor() => View();
 
     [HttpGet]
     public IActionResult Signup() => View();
 
     [HttpGet]
-    public IActionResult AdminSetup() => Redirect("/Home/Account?role=admin");
+    public IActionResult AdminSetup()
+    {
+        return Redirect("/Home/Account?role=admin");
+    }
 
     [HttpPost]
-    public async Task<IActionResult> SaveTutorProfile([FromBody] SaveTutorRequest request)
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> VerifyResetAccount(
+        [FromBody] VerifyResetAccountRequest request)
+    {
+        ClearPasswordResetSession();
+
+        var email = request.Email?
+            .Trim()
+            .ToLowerInvariant() ?? "";
+
+        var role = request.Role?
+            .Trim()
+            .ToLowerInvariant() ?? "";
+
+        if (role is not ("learner" or "tutor"))
+        {
+            return BadRequest(new
+            {
+                error = "Select a valid account role."
+            });
+        }
+
+        if (email.Length > 254 ||
+            !new EmailAddressAttribute().IsValid(email))
+        {
+            return BadRequest(new
+            {
+                error = "Enter a valid email address."
+            });
+        }
+
+        var matchingUsers = await _context.Users
+            .Where(user =>
+                user.Email.ToLower() == email &&
+                user.Role.ToLower() == role)
+            .Take(2)
+            .ToListAsync();
+
+        if (matchingUsers.Count == 0)
+        {
+            return NotFound(new
+            {
+                error =
+                    $"No {role} account was found with this email."
+            });
+        }
+
+        if (matchingUsers.Count > 1)
+        {
+            return Conflict(new
+            {
+                error =
+                    "Multiple accounts use this email and role. " +
+                    "The local database must be cleaned first."
+            });
+        }
+
+        var user = matchingUsers[0];
+
+        if (string.Equals(
+                user.Role,
+                "admin",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return BadRequest(new
+            {
+                error =
+                    "The administrator password cannot be reset here."
+            });
+        }
+
+        HttpContext.Session.SetInt32(
+            PasswordResetUserIdKey,
+            user.Id);
+
+        HttpContext.Session.SetString(
+            PasswordResetRoleKey,
+            role);
+
+        return Ok(new
+        {
+            success = true,
+            message =
+                "Account found. You may now create a new password."
+        });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ResetPassword(
+        [FromBody] ResetPasswordRequest request)
+    {
+        var userId = HttpContext.Session.GetInt32(
+            PasswordResetUserIdKey);
+
+        var pendingRole = HttpContext.Session.GetString(
+            PasswordResetRoleKey);
+
+        if (userId == null ||
+            string.IsNullOrWhiteSpace(pendingRole))
+        {
+            ClearPasswordResetSession();
+
+            return Unauthorized(new
+            {
+                error =
+                    "Your password-reset session has expired. " +
+                    "Enter your email again."
+            });
+        }
+
+        var newPassword = request.NewPassword ?? "";
+        var confirmPassword = request.ConfirmPassword ?? "";
+
+        if (newPassword != confirmPassword)
+        {
+            return BadRequest(new
+            {
+                error = "Passwords do not match."
+            });
+        }
+
+        if (newPassword.Length is < 8 or > 64 ||
+            !newPassword.Any(char.IsLetter) ||
+            !newPassword.Any(char.IsDigit))
+        {
+            return BadRequest(new
+            {
+                error =
+                    "Password must be 8–64 characters and " +
+                    "include a letter and number."
+            });
+        }
+
+        var user = await _context.Users
+            .FirstOrDefaultAsync(item =>
+                item.Id == userId.Value &&
+                item.Role.ToLower() == pendingRole &&
+                item.Role.ToLower() != "admin");
+
+        if (user == null)
+        {
+            ClearPasswordResetSession();
+
+            return NotFound(new
+            {
+                error = "The account could not be found."
+            });
+        }
+
+        user.PasswordHash =
+            BCrypt.Net.BCrypt.HashPassword(newPassword);
+
+        await _context.SaveChangesAsync();
+
+        ClearPasswordResetSession();
+
+        return Ok(new
+        {
+            success = true,
+            message = "Password reset successfully."
+        });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> SaveTutorProfile(
+        [FromBody] SaveTutorRequest request)
     {
         var userId = HttpContext.Session.GetUserId();
-        if (userId == null || !HttpContext.Session.HasRole("tutor"))
+
+        if (userId == null ||
+            !HttpContext.Session.HasRole("tutor"))
+        {
             return Unauthorized();
+        }
 
         var user = await _context.Users.FindAsync(userId.Value);
-        if (user == null) return Unauthorized();
+
+        if (user == null)
+        {
+            return Unauthorized();
+        }
 
         var existing = await _context.TutorProfiles
-            .FirstOrDefaultAsync(p => p.UserId == user.Id);
+            .FirstOrDefaultAsync(profile =>
+                profile.UserId == user.Id);
 
         if (existing != null)
         {
@@ -79,44 +281,93 @@ public class HomeController : Controller
                 Bio = request.Bio,
                 Subjects = request.Subjects
             };
+
             _context.TutorProfiles.Add(profile);
         }
 
         user.Name = request.TutorName;
 
         await _context.SaveChangesAsync();
-        return Ok(new { success = true });
+
+        return Ok(new
+        {
+            success = true
+        });
     }
 
-    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+    [ResponseCache(
+        Duration = 0,
+        Location = ResponseCacheLocation.None,
+        NoStore = true)]
     public IActionResult Error()
     {
-        return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        return View(new ErrorViewModel
+        {
+            RequestId =
+                Activity.Current?.Id ??
+                HttpContext.TraceIdentifier
+        });
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Signup([FromBody] SignupRequest request)
+    public async Task<IActionResult> Signup(
+        [FromBody] SignupRequest request)
     {
         var name = request.Name?.Trim() ?? "";
-        var email = request.Email?.Trim().ToLowerInvariant() ?? "";
+
+        var email = request.Email?
+            .Trim()
+            .ToLowerInvariant() ?? "";
+
         var password = request.Password ?? "";
-        var role = request.Role?.Trim().ToLowerInvariant() ?? "";
+
+        var role = request.Role?
+            .Trim()
+            .ToLowerInvariant() ?? "";
 
         if (!request.AcceptedTerms)
-            return SignupError("agreeTerms", "You must accept the Terms and Conditions.");
+        {
+            return SignupError(
+                "agreeTerms",
+                "You must accept the Terms and Conditions.");
+        }
 
         if (role is not ("learner" or "tutor"))
-            return SignupError("", "Select a valid account role.");
+        {
+            return SignupError(
+                "",
+                "Select a valid account role.");
+        }
 
-        if (name.Length is < 2 or > 60 || !name.Any(char.IsLetter))
-            return SignupError(role == "tutor" ? "tutorName" : "learnerName", "Name must be 2 to 60 characters and contain a letter.");
+        if (name.Length is < 2 or > 60 ||
+            !name.Any(char.IsLetter))
+        {
+            return SignupError(
+                role == "tutor"
+                    ? "tutorName"
+                    : "learnerName",
+                "Name must be 2 to 60 characters " +
+                "and contain a letter.");
+        }
 
-        if (email.Length > 254 || !new EmailAddressAttribute().IsValid(email))
-            return SignupError("signupEmail", "Enter a valid email address.");
+        if (email.Length > 254 ||
+            !new EmailAddressAttribute().IsValid(email))
+        {
+            return SignupError(
+                "signupEmail",
+                "Enter a valid email address.");
+        }
 
-        if (password.Length is < 8 or > 64 || !password.Any(char.IsLetter) || !password.Any(char.IsDigit))
-            return SignupError("signupPassword", "Password must be 8–64 characters and include a letter and number.");
+        if (password.Length is < 8 or > 64 ||
+            !password.Any(char.IsLetter) ||
+            !password.Any(char.IsDigit))
+        {
+            return SignupError(
+                "signupPassword",
+                "Password must be 8–64 characters " +
+                "and include a letter and number.");
+        }
 
         TutorProfile? tutorProfile = null;
         LearnerProfile? learnerProfile = null;
@@ -124,29 +375,65 @@ public class HomeController : Controller
         if (role == "tutor")
         {
             if (request.TutorProfile == null)
-                return SignupError("", "Tutor profile information is required.");
+            {
+                return SignupError(
+                    "",
+                    "Tutor profile information is required.");
+            }
 
-            var education = request.TutorProfile.Education?.Trim() ?? "";
-            var contactNumber = NormalizeContactNumber(request.TutorProfile.ContactNumber);
-            var bio = request.TutorProfile.Bio?.Trim() ?? "";
-            var subjects = NormalizeSubjects(request.TutorProfile.Subjects);
+            var education =
+                request.TutorProfile.Education?.Trim() ?? "";
+
+            var contactNumber = NormalizeContactNumber(
+                request.TutorProfile.ContactNumber);
+
+            var bio =
+                request.TutorProfile.Bio?.Trim() ?? "";
+
+            var subjects = NormalizeSubjects(
+                request.TutorProfile.Subjects);
 
             if (request.TutorProfile.Rate is < 1 or > 10000)
-                return SignupError("rate", "Enter a rate from ₱1 to ₱10,000 per hour.");
+            {
+                return SignupError(
+                    "rate",
+                    "Enter a rate from ₱1 to ₱10,000 per hour.");
+            }
 
             if (education.Length is < 3 or > 120)
-                return SignupError("education", "Education must be 3 to 120 characters.");
+            {
+                return SignupError(
+                    "education",
+                    "Education must be 3 to 120 characters.");
+            }
 
             if (contactNumber == null)
-                return SignupError("contactNumber", "Use 09XXXXXXXXX or +639XXXXXXXXX.");
+            {
+                return SignupError(
+                    "contactNumber",
+                    "Use 09XXXXXXXXX or +639XXXXXXXXX.");
+            }
 
             if (bio.Length is < 20 or > 500)
-                return SignupError("bio", "Bio must be 20 to 500 characters.");
+            {
+                return SignupError(
+                    "bio",
+                    "Bio must be 20 to 500 characters.");
+            }
 
-            if (subjects == null || subjects.Count is < 1 or > 5)
-                return SignupError("subjectDropdownTrigger", "Choose 1 to 5 valid subjects.");
+            if (subjects == null ||
+                subjects.Count is < 1 or > 5)
+            {
+                return SignupError(
+                    "subjectDropdownTrigger",
+                    "Choose 1 to 5 valid subjects.");
+            }
 
-            var rateText = request.TutorProfile.Rate.ToString("0.##", CultureInfo.InvariantCulture);
+            var rateText =
+                request.TutorProfile.Rate.ToString(
+                    "0.##",
+                    CultureInfo.InvariantCulture);
+
             tutorProfile = new TutorProfile
             {
                 TutorName = name,
@@ -160,17 +447,36 @@ public class HomeController : Controller
         else
         {
             if (request.LearnerProfile == null)
-                return SignupError("", "Learner profile information is required.");
+            {
+                return SignupError(
+                    "",
+                    "Learner profile information is required.");
+            }
 
-            var gradeLevel = request.LearnerProfile.GradeLevel?.Trim() ?? "";
-            var school = request.LearnerProfile.School?.Trim() ?? "";
-            var birthdayText = request.LearnerProfile.Birthday?.Trim() ?? "";
+            var gradeLevel =
+                request.LearnerProfile.GradeLevel?.Trim() ?? "";
 
-            if (!AllowedYearLevels.Contains(gradeLevel, StringComparer.Ordinal))
-                return SignupError("yearLevel", "Select a valid year level.");
+            var school =
+                request.LearnerProfile.School?.Trim() ?? "";
+
+            var birthdayText =
+                request.LearnerProfile.Birthday?.Trim() ?? "";
+
+            if (!AllowedYearLevels.Contains(
+                    gradeLevel,
+                    StringComparer.Ordinal))
+            {
+                return SignupError(
+                    "yearLevel",
+                    "Select a valid year level.");
+            }
 
             if (school.Length > 100)
-                return SignupError("school", "School must be 100 characters or fewer.");
+            {
+                return SignupError(
+                    "school",
+                    "School must be 100 characters or fewer.");
+            }
 
             if (!DateTime.TryParseExact(
                     birthdayText,
@@ -179,11 +485,17 @@ public class HomeController : Controller
                     DateTimeStyles.None,
                     out var birthday))
             {
-                return SignupError("birthday", "Enter a valid birthdate.");
+                return SignupError(
+                    "birthday",
+                    "Enter a valid birthdate.");
             }
 
             if (birthday.Date > DateTime.Today)
-                return SignupError("birthday", "Birthdate cannot be in the future.");
+            {
+                return SignupError(
+                    "birthday",
+                    "Birthdate cannot be in the future.");
+            }
 
             learnerProfile = new LearnerProfile
             {
@@ -194,19 +506,26 @@ public class HomeController : Controller
             };
         }
 
-        await using var transaction = await _context.Database.BeginTransactionAsync();
+        await using var transaction =
+            await _context.Database.BeginTransactionAsync();
 
         var emailExists = await _context.Users
-            .AnyAsync(user => user.Email.ToLower() == email);
+            .AnyAsync(user =>
+                user.Email.ToLower() == email);
 
         if (emailExists)
-            return SignupError("signupEmail", "Email is already registered.");
+        {
+            return SignupError(
+                "signupEmail",
+                "Email is already registered.");
+        }
 
         var user = new User
         {
             Name = name,
             Email = email,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
+            PasswordHash =
+                BCrypt.Net.BCrypt.HashPassword(password),
             Role = role
         };
 
@@ -228,143 +547,288 @@ public class HomeController : Controller
         await _context.SaveChangesAsync();
         await transaction.CommitAsync();
 
-        HttpContext.Session.SetString("userId", user.Id.ToString());
-        HttpContext.Session.SetString("userName", user.Name);
-        HttpContext.Session.SetString("userEmail", user.Email);
-        HttpContext.Session.SetString("userRole", user.Role);
+        HttpContext.Session.SetString(
+            "userId",
+            user.Id.ToString());
 
-        return Ok(new { success = true, role = user.Role });
+        HttpContext.Session.SetString(
+            "userName",
+            user.Name);
+
+        HttpContext.Session.SetString(
+            "userEmail",
+            user.Email);
+
+        HttpContext.Session.SetString(
+            "userRole",
+            user.Role);
+
+        return Ok(new
+        {
+            success = true,
+            role = user.Role
+        });
     }
 
     [HttpPost]
-    public async Task<IActionResult> Login([FromBody] LoginRequest request)
+    public async Task<IActionResult> Login(
+        [FromBody] LoginRequest request)
     {
-        var email = request.Email?.Trim().ToLowerInvariant() ?? "";
-        var role = request.Role?.Trim().ToLowerInvariant() ?? "";
+        var email = request.Email?
+            .Trim()
+            .ToLowerInvariant() ?? "";
+
+        var role = request.Role?
+            .Trim()
+            .ToLowerInvariant() ?? "";
 
         if (role == "admin")
         {
-            var adminEmail = (_configuration["AdminCredentials:Email"] ?? "skolartutors.ph@gmail.com")
+            var adminEmail =
+                (_configuration["AdminCredentials:Email"] ??
+                 "skolartutors.ph@gmail.com")
                 .Trim()
                 .ToLowerInvariant();
 
-            if (!string.Equals(email, adminEmail, StringComparison.Ordinal))
-                return Unauthorized(new { error = "Invalid administrator email or password." });
+            if (!string.Equals(
+                    email,
+                    adminEmail,
+                    StringComparison.Ordinal))
+            {
+                return Unauthorized(new
+                {
+                    error =
+                        "Invalid administrator email or password."
+                });
+            }
         }
 
         var user = await _context.Users
-            .FirstOrDefaultAsync(item => item.Email.ToLower() == email && item.Role == role);
+            .FirstOrDefaultAsync(item =>
+                item.Email.ToLower() == email &&
+                item.Role.ToLower() == role);
 
-        if (user == null || string.IsNullOrEmpty(user.PasswordHash))
-            return Unauthorized(new { error = "Invalid email or password." });
+        if (user == null ||
+            string.IsNullOrEmpty(user.PasswordHash))
+        {
+            return Unauthorized(new
+            {
+                error = "Invalid email or password."
+            });
+        }
 
-        if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
-            return Unauthorized(new { error = "Invalid email or password." });
+        if (!BCrypt.Net.BCrypt.Verify(
+                request.Password,
+                user.PasswordHash))
+        {
+            return Unauthorized(new
+            {
+                error = "Invalid email or password."
+            });
+        }
 
-        HttpContext.Session.SetString("userId", user.Id.ToString());
-        HttpContext.Session.SetString("userName", user.Name);
-        HttpContext.Session.SetString("userEmail", user.Email);
-        HttpContext.Session.SetString("userRole", user.Role);
+        HttpContext.Session.SetString(
+            "userId",
+            user.Id.ToString());
 
-        return Ok(new { success = true, role = user.Role });
+        HttpContext.Session.SetString(
+            "userName",
+            user.Name);
+
+        HttpContext.Session.SetString(
+            "userEmail",
+            user.Email);
+
+        HttpContext.Session.SetString(
+            "userRole",
+            user.Role);
+
+        return Ok(new
+        {
+            success = true,
+            role = user.Role
+        });
     }
 
     [HttpPost]
     public IActionResult Logout()
     {
         HttpContext.Session.Clear();
-        return Ok(new { success = true });
+
+        return Ok(new
+        {
+            success = true
+        });
     }
 
     [HttpGet]
     public async Task<IActionResult> Me()
     {
-        var userId = HttpContext.Session.GetString("userId");
-        if (userId == null) return Unauthorized();
-        var user = await _context.Users.FindAsync(int.Parse(userId));
-        if (user == null) return Unauthorized();
+        var userId =
+            HttpContext.Session.GetString("userId");
+
+        if (userId == null ||
+            !int.TryParse(userId, out var parsedUserId))
+        {
+            return Unauthorized();
+        }
+
+        var user =
+            await _context.Users.FindAsync(parsedUserId);
+
+        if (user == null)
+        {
+            return Unauthorized();
+        }
 
         var profilePhoto = "";
-        if (user.Role.Equals("learner", StringComparison.OrdinalIgnoreCase))
+
+        if (user.Role.Equals(
+                "learner",
+                StringComparison.OrdinalIgnoreCase))
         {
             profilePhoto = await _context.LearnerProfiles
-                .Where(profile => profile.UserId == user.Id)
-                .Select(profile => profile.ProfilePhoto)
+                .Where(profile =>
+                    profile.UserId == user.Id)
+                .Select(profile =>
+                    profile.ProfilePhoto)
                 .FirstOrDefaultAsync() ?? "";
         }
-        else if (user.Role.Equals("tutor", StringComparison.OrdinalIgnoreCase))
+        else if (user.Role.Equals(
+                     "tutor",
+                     StringComparison.OrdinalIgnoreCase))
         {
             profilePhoto = await _context.TutorProfiles
-                .Where(profile => profile.UserId == user.Id)
-                .Select(profile => profile.ProfilePhoto)
+                .Where(profile =>
+                    profile.UserId == user.Id)
+                .Select(profile =>
+                    profile.ProfilePhoto)
                 .FirstOrDefaultAsync() ?? "";
         }
 
-        return Json(new { user.Id, user.Name, user.Email, user.Role, profilePhoto });
+        return Json(new
+        {
+            user.Id,
+            user.Name,
+            user.Email,
+            user.Role,
+            profilePhoto
+        });
     }
 
     [HttpPost]
-    public async Task<IActionResult> UploadTutorPhoto(IFormFile photo)
+    public async Task<IActionResult> UploadTutorPhoto(
+        IFormFile photo)
     {
         var userId = HttpContext.Session.GetUserId();
-        if (userId == null || !HttpContext.Session.HasRole("tutor"))
+
+        if (userId == null ||
+            !HttpContext.Session.HasRole("tutor"))
+        {
             return Unauthorized();
+        }
 
         if (photo == null || photo.Length == 0)
-            return BadRequest(new { error = "No file." });
+        {
+            return BadRequest(new
+            {
+                error = "No file."
+            });
+        }
 
-        var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "tutor-photos");
-        Directory.CreateDirectory(uploadsDir);
+        var uploadsDirectory = Path.Combine(
+            Directory.GetCurrentDirectory(),
+            "wwwroot",
+            "uploads",
+            "tutor-photos");
 
-        var ext = Path.GetExtension(photo.FileName);
-        var fileName = $"tutor_{userId.Value}{ext}";
-        var filePath = Path.Combine(uploadsDir, fileName);
+        Directory.CreateDirectory(uploadsDirectory);
 
-        using (var stream = new FileStream(filePath, FileMode.Create))
+        var extension =
+            Path.GetExtension(photo.FileName);
+
+        var fileName =
+            $"tutor_{userId.Value}{extension}";
+
+        var filePath = Path.Combine(
+            uploadsDirectory,
+            fileName);
+
+        await using (var stream =
+                     new FileStream(
+                         filePath,
+                         FileMode.Create))
+        {
             await photo.CopyToAsync(stream);
+        }
 
-        var photoUrl = $"/uploads/tutor-photos/{fileName}";
+        var photoUrl =
+            $"/uploads/tutor-photos/{fileName}";
 
         var profile = await _context.TutorProfiles
-            .FirstOrDefaultAsync(p => p.UserId == userId.Value);
+            .FirstOrDefaultAsync(item =>
+                item.UserId == userId.Value);
+
         if (profile != null)
         {
             profile.ProfilePhoto = photoUrl;
             await _context.SaveChangesAsync();
         }
 
-        return Ok(new { success = true, photoUrl });
+        return Ok(new
+        {
+            success = true,
+            photoUrl
+        });
     }
-
 
     [HttpPost]
     public async Task<IActionResult> RemoveTutorPhoto()
     {
         var userId = HttpContext.Session.GetUserId();
-        if (userId == null || !HttpContext.Session.HasRole("tutor"))
+
+        if (userId == null ||
+            !HttpContext.Session.HasRole("tutor"))
+        {
             return Unauthorized();
+        }
 
         var profile = await _context.TutorProfiles
-            .FirstOrDefaultAsync(item => item.UserId == userId.Value);
+            .FirstOrDefaultAsync(item =>
+                item.UserId == userId.Value);
 
         if (profile == null)
-            return NotFound(new { message = "Tutor profile not found." });
+        {
+            return NotFound(new
+            {
+                message = "Tutor profile not found."
+            });
+        }
 
-        if (!string.IsNullOrWhiteSpace(profile.ProfilePhoto))
+        if (!string.IsNullOrWhiteSpace(
+                profile.ProfilePhoto))
         {
             var uploadsDirectory = Path.Combine(
                 Directory.GetCurrentDirectory(),
                 "wwwroot",
                 "uploads",
                 "tutor-photos");
-            var fileName = Path.GetFileName(profile.ProfilePhoto);
-            var filePath = Path.Combine(uploadsDirectory, fileName);
+
+            var fileName =
+                Path.GetFileName(profile.ProfilePhoto);
+
+            var filePath = Path.Combine(
+                uploadsDirectory,
+                fileName);
 
             if (System.IO.File.Exists(filePath))
+            {
                 System.IO.File.Delete(filePath);
+            }
         }
 
         profile.ProfilePhoto = "";
+
         await _context.SaveChangesAsync();
 
         return Ok(new
@@ -374,31 +838,58 @@ public class HomeController : Controller
         });
     }
 
-
-    private IActionResult SignupError(string field, string message)
+    private IActionResult SignupError(
+        string field,
+        string message)
     {
-        return BadRequest(new { field, error = message });
+        return BadRequest(new
+        {
+            field,
+            error = message
+        });
     }
 
-    private static string? NormalizeContactNumber(string? value)
+    private void ClearPasswordResetSession()
+    {
+        HttpContext.Session.Remove(
+            PasswordResetUserIdKey);
+
+        HttpContext.Session.Remove(
+            PasswordResetRoleKey);
+    }
+
+    private static string? NormalizeContactNumber(
+        string? value)
     {
         var contact = (value ?? "")
             .Replace(" ", "")
             .Replace("-", "")
             .Trim();
 
-        if (contact.Length == 11 && contact.StartsWith("09") && contact.All(char.IsDigit))
+        if (contact.Length == 11 &&
+            contact.StartsWith("09") &&
+            contact.All(char.IsDigit))
+        {
             return $"+63{contact[1..]}";
+        }
 
-        if (contact.Length == 13 && contact.StartsWith("+639") && contact[1..].All(char.IsDigit))
+        if (contact.Length == 13 &&
+            contact.StartsWith("+639") &&
+            contact[1..].All(char.IsDigit))
+        {
             return contact;
+        }
 
         return null;
     }
 
-    private static List<string>? NormalizeSubjects(IEnumerable<string>? values)
+    private static List<string>? NormalizeSubjects(
+        IEnumerable<string>? values)
     {
-        if (values == null) return null;
+        if (values == null)
+        {
+            return null;
+        }
 
         var requested = values
             .Select(value => value?.Trim() ?? "")
@@ -406,17 +897,35 @@ public class HomeController : Controller
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
 
-        if (requested.Any(value => !AllowedSubjects.Contains(value, StringComparer.OrdinalIgnoreCase)))
+        if (requested.Any(value =>
+                !AllowedSubjects.Contains(
+                    value,
+                    StringComparer.OrdinalIgnoreCase)))
+        {
             return null;
+        }
 
         return requested
-            .Select(value => AllowedSubjects.First(subject => subject.Equals(value, StringComparison.OrdinalIgnoreCase)))
+            .Select(value =>
+                AllowedSubjects.First(subject =>
+                    subject.Equals(
+                        value,
+                        StringComparison.OrdinalIgnoreCase)))
             .ToList();
     }
-
-    
 }
 
+public class VerifyResetAccountRequest
+{
+    public string Email { get; set; } = "";
+    public string Role { get; set; } = "";
+}
+
+public class ResetPasswordRequest
+{
+    public string NewPassword { get; set; } = "";
+    public string ConfirmPassword { get; set; } = "";
+}
 
 public class SaveTutorRequest
 {
@@ -459,7 +968,8 @@ public class SignupRequest
     public string Password { get; set; } = "";
     public string Role { get; set; } = "";
     public bool AcceptedTerms { get; set; }
+
     public TutorProfileData? TutorProfile { get; set; }
+
     public LearnerProfileData? LearnerProfile { get; set; }
 }
-
