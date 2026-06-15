@@ -2,10 +2,7 @@ SKOLAR ADMINISTRATOR LOGIN
 ==========================
 
 Run the project:
-  dotnet restore
   dotnet run
-
-The application applies existing database migrations automatically when it starts.
 
 Open:
   /Home/Account?role=admin
