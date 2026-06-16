@@ -1,0 +1,358 @@
+diff --git a/Controllers/PaymentController.cs b/Controllers/PaymentController.cs
+index c8823f5..82164ba 100644
+--- a/Controllers/PaymentController.cs
++++ b/Controllers/PaymentController.cs
+@@ -73,6 +73,84 @@ public class PaymentController : Controller
+         return View();
+     }
+ 
++    [HttpPost]
++    [ValidateAntiForgeryToken]
++    public async Task<IActionResult> ConfirmCheckoutReturn([FromBody] ConfirmCheckoutRequest? request)
++    {
++        var userId = HttpContext.Session.GetUserId();
++        if (userId == null || !HttpContext.Session.HasRole("learner")) return Unauthorized();
++
++        var bookingGroupId = request?.BookingGroupId?.Trim() ?? "";
++        if (string.IsNullOrWhiteSpace(bookingGroupId))
++            return BadRequest(new { message = "The booking reference is missing." });
++
++        var transaction = await _context.PaymentTransactions
++            .FirstOrDefaultAsync(item =>
++                item.BookingGroupId == bookingGroupId &&
++                item.LearnerId == userId.Value);
++
++        if (transaction == null)
++            return NotFound(new { message = "Payment transaction not found." });
++
++        if (transaction.Status == "Paid")
++        {
++            return Ok(new
++            {
++                status = "Paid",
++                transactionId = transaction.Id,
++                paymentMethod = transaction.PaymentMethod
++            });
++        }
++
++        try
++        {
++            var checkout = await _gateway.RetrieveCheckoutAsync(transaction.ExternalPaymentId);
++
++            if (checkout.Status == "Paid")
++            {
++                if (checkout.Amount.HasValue && checkout.Amount.Value != transaction.Amount)
++                {
++                    _logger.LogWarning(
++                        "PayMongo amount mismatch for transaction {TransactionId}. Expected {ExpectedAmount}, received {ReceivedAmount}.",
++                        transaction.Id,
++                        transaction.Amount,
++                        checkout.Amount.Value);
++
++                    return Conflict(new
++                    {
++                        status = "AmountMismatch",
++                        message = "The payment amount could not be verified. Please contact support."
++                    });
++                }
++
++                transaction = await _payments.ApplyCheckoutResultAsync(
++                    transaction.Id,
++                    "success",
++                    checkout.PaymentMethod);
++            }
++
++            return Ok(new
++            {
++                status = transaction?.Status ?? checkout.Status,
++                transactionId = transaction?.Id,
++                paymentMethod = transaction?.PaymentMethod ?? checkout.PaymentMethod
++            });
++        }
++        catch (Exception error)
++        {
++            _logger.LogError(
++                error,
++                "Unable to verify PayMongo checkout for transaction {TransactionId}.",
++                transaction.Id);
++
++            return StatusCode(StatusCodes.Status503ServiceUnavailable, new
++            {
++                status = "VerificationUnavailable",
++                message = "Payment verification is temporarily unavailable. Your payment record has not been changed."
++            });
++        }
++    }
++
+     [HttpGet]
+     public async Task<IActionResult> MyTransactions()
+     {
+@@ -452,6 +530,11 @@ public class PaymentController : Controller
+     }
+ }
+ 
++public class ConfirmCheckoutRequest
++{
++    public string BookingGroupId { get; set; } = "";
++}
++
+ public class CancelPaymentSessionRequest
+ {
+     public int BookingId { get; set; }
+diff --git a/Services/IPaymentGateway.cs b/Services/IPaymentGateway.cs
+index 43ad8f2..c0acaab 100644
+--- a/Services/IPaymentGateway.cs
++++ b/Services/IPaymentGateway.cs
+@@ -3,9 +3,11 @@ namespace inMVC.Services;
+ public interface IPaymentGateway
+ {
+     Task<GatewayCheckoutResult> CreateCheckoutAsync(decimal amount, string currency, string description, string successUrl, string cancelUrl);
++    Task<GatewayCheckoutStatus> RetrieveCheckoutAsync(string externalPaymentId);
+     Task<GatewayRefundResult> CreateRefundAsync(string externalPaymentId, decimal amount, string reason);
+     Task<bool> VerifyWebhookAsync(string payload, string signature);
+ }
+ 
+ public record GatewayCheckoutResult(string ExternalPaymentId, string CheckoutReference);
++public record GatewayCheckoutStatus(string Status, string PaymentMethod, decimal? Amount, string PaymentId);
+ public record GatewayRefundResult(string ExternalRefundId, string Status);
+diff --git a/Services/PayMongoGateway.cs b/Services/PayMongoGateway.cs
+index df61c54..481acb3 100644
+--- a/Services/PayMongoGateway.cs
++++ b/Services/PayMongoGateway.cs
+@@ -81,6 +81,102 @@ public class PayMongoGateway : IPaymentGateway
+         return new GatewayCheckoutResult(id, checkoutUrl);
+     }
+ 
++    public async Task<GatewayCheckoutStatus> RetrieveCheckoutAsync(string externalPaymentId)
++    {
++        if (string.IsNullOrWhiteSpace(externalPaymentId))
++            throw new InvalidOperationException("The checkout session reference is missing.");
++
++        if (string.IsNullOrWhiteSpace(SecretKey))
++            throw new InvalidOperationException("The PayMongo secret key is not configured.");
++
++        var request = new HttpRequestMessage(
++            HttpMethod.Get,
++            $"https://api.paymongo.com/v1/checkout_sessions/{Uri.EscapeDataString(externalPaymentId)}");
++
++        var base64Key = Convert.ToBase64String(Encoding.UTF8.GetBytes(SecretKey + ":"));
++        request.Headers.Authorization = new AuthenticationHeaderValue("Basic", base64Key);
++        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
++
++        var response = await _client.SendAsync(request);
++        if (!response.IsSuccessStatusCode)
++        {
++            var error = await response.Content.ReadAsStringAsync();
++            throw new InvalidOperationException(
++                $"PayMongo checkout verification error: {response.StatusCode} - {error}");
++        }
++
++        var responseContent = await response.Content.ReadAsStringAsync();
++        using var document = JsonDocument.Parse(responseContent);
++
++        var data = document.RootElement.GetProperty("data");
++        var returnedId = data.GetProperty("id").GetString() ?? "";
++        if (!string.Equals(returnedId, externalPaymentId, StringComparison.Ordinal))
++            throw new InvalidOperationException("PayMongo returned a different checkout session.");
++
++        var attributes = data.GetProperty("attributes");
++
++        if (attributes.TryGetProperty("payments", out var payments) &&
++            payments.ValueKind == JsonValueKind.Array)
++        {
++            foreach (var payment in payments.EnumerateArray())
++            {
++                if (!payment.TryGetProperty("attributes", out var paymentAttributes))
++                    continue;
++
++                var paymentStatus = paymentAttributes.TryGetProperty("status", out var statusNode)
++                    ? statusNode.GetString() ?? ""
++                    : "";
++
++                if (!string.Equals(paymentStatus, "paid", StringComparison.OrdinalIgnoreCase))
++                    continue;
++
++                var paymentMethod = "Payment Provider";
++                if (paymentAttributes.TryGetProperty("source", out var source) &&
++                    source.ValueKind == JsonValueKind.Object &&
++                    source.TryGetProperty("type", out var sourceType))
++                {
++                    paymentMethod = sourceType.GetString() ?? paymentMethod;
++                }
++
++                decimal? amount = null;
++                if (paymentAttributes.TryGetProperty("amount", out var amountNode) &&
++                    amountNode.TryGetInt64(out var amountInCentavos))
++                {
++                    amount = amountInCentavos / 100m;
++                }
++
++                var paymentId = payment.TryGetProperty("id", out var paymentIdNode)
++                    ? paymentIdNode.GetString() ?? ""
++                    : "";
++
++                return new GatewayCheckoutStatus("Paid", paymentMethod, amount, paymentId);
++            }
++        }
++
++        if (attributes.TryGetProperty("payment_intent", out var paymentIntent) &&
++            paymentIntent.ValueKind == JsonValueKind.Object &&
++            paymentIntent.TryGetProperty("attributes", out var intentAttributes))
++        {
++            var intentStatus = intentAttributes.TryGetProperty("status", out var intentStatusNode)
++                ? intentStatusNode.GetString() ?? ""
++                : "";
++
++            if (string.Equals(intentStatus, "succeeded", StringComparison.OrdinalIgnoreCase))
++            {
++                decimal? amount = null;
++                if (intentAttributes.TryGetProperty("amount", out var amountNode) &&
++                    amountNode.TryGetInt64(out var amountInCentavos))
++                {
++                    amount = amountInCentavos / 100m;
++                }
++
++                return new GatewayCheckoutStatus("Paid", "Payment Provider", amount, "");
++            }
++        }
++
++        return new GatewayCheckoutStatus("Pending", "", null, "");
++    }
++
+     public async Task<GatewayRefundResult> CreateRefundAsync(string externalPaymentId, decimal amount, string reason)
+     {
+         var amountInCents = (int)Math.Round(amount * 100);
+diff --git a/Services/PaymentGatewayPlaceholder.cs b/Services/PaymentGatewayPlaceholder.cs
+index 8151f21..8cbe78b 100644
+--- a/Services/PaymentGatewayPlaceholder.cs
++++ b/Services/PaymentGatewayPlaceholder.cs
+@@ -12,6 +12,11 @@ public class PaymentGatewayPlaceholder : IPaymentGateway
+         return Task.FromException<GatewayCheckoutResult>(NotConfigured());
+     }
+ 
++    public Task<GatewayCheckoutStatus> RetrieveCheckoutAsync(string externalPaymentId)
++    {
++        return Task.FromException<GatewayCheckoutStatus>(NotConfigured());
++    }
++
+     public Task<GatewayRefundResult> CreateRefundAsync(string externalPaymentId, decimal amount, string reason)
+     {
+         return Task.FromException<GatewayRefundResult>(NotConfigured());
+diff --git a/Views/Payment/History.cshtml b/Views/Payment/History.cshtml
+index 25c60d9..fb50e24 100644
+--- a/Views/Payment/History.cshtml
++++ b/Views/Payment/History.cshtml
+@@ -13,6 +13,9 @@
+ </head>
+ <body class="learner-payment-body">
+     <script src="~/js/skolar-dialog.js"></script>
++    <form id="paymentVerificationToken" hidden>
++        @Html.AntiForgeryToken()
++    </form>
+ 
+     <!-- SIDEBAR -->
+     <aside class="sidebar" id="portalSidebar">
+diff --git a/wwwroot/payment/payment-history.js b/wwwroot/payment/payment-history.js
+index 36d436a..bfc5247 100644
+--- a/wwwroot/payment/payment-history.js
++++ b/wwwroot/payment/payment-history.js
+@@ -1,21 +1,91 @@
+ document.addEventListener("DOMContentLoaded", async () => {
+     await loadPaymentLearner();
++    await checkPaymentStatus();
+     await loadPaymentHistory();
+-    checkPaymentStatus();
+ });
+ 
+-function checkPaymentStatus() {
++async function checkPaymentStatus() {
+     const params = new URLSearchParams(window.location.search);
+-    const status = params.get("status");
++    const returnStatus = params.get("status");
+     const bookingGroupId = params.get("bookingGroupId");
+ 
+-    if (status === "confirmed") {
+-        showPaymentToast("Payment completed successfully! Your session booking is confirmed.", "success");
+-        window.history.replaceState({}, document.title, "/Payment/History");
+-    } else if (status === "declined") {
+-        showPaymentToast("Payment was declined or cancelled. Please try again.", "error");
++    if (returnStatus === "declined") {
++        showPaymentToast("Payment was declined or cancelled. You can retry from this page.", "error");
+         window.history.replaceState({}, document.title, "/Payment/History");
++        return;
++    }
++
++    if (returnStatus !== "confirmed" || !bookingGroupId) return;
++
++    showPaymentToast("Confirming your test payment with PayMongo...", "success");
++
++    let clearReturnUrl = false;
++
++    try {
++        const result = await pollCheckoutConfirmation(bookingGroupId);
++
++        if (result.status === "Paid") {
++            clearReturnUrl = true;
++            showPaymentToast("Payment verified successfully! Your session booking is confirmed.", "success");
++        } else if (result.status === "AmountMismatch") {
++            clearReturnUrl = true;
++            showPaymentToast(result.message || "The payment amount could not be verified.", "error");
++        } else {
++            showPaymentToast(
++                "PayMongo has not confirmed the payment yet. Refresh this page to check again.",
++                "error");
++        }
++    } catch (error) {
++        showPaymentToast(error.message || "Payment verification could not be completed.", "error");
++    } finally {
++        if (clearReturnUrl) {
++            window.history.replaceState({}, document.title, "/Payment/History");
++        }
++    }
++}
++
++async function pollCheckoutConfirmation(bookingGroupId) {
++    const maximumAttempts = 6;
++
++    for (let attempt = 1; attempt <= maximumAttempts; attempt += 1) {
++        const result = await confirmCheckoutPayment(bookingGroupId);
++        if (result.status === "Paid" || result.status === "AmountMismatch") return result;
++
++        if (attempt < maximumAttempts) {
++            await new Promise(resolve => window.setTimeout(resolve, 1500));
++        }
++    }
++
++    return { status: "Pending" };
++}
++
++async function confirmCheckoutPayment(bookingGroupId) {
++    const csrfToken = document.querySelector(
++        '#paymentVerificationToken input[name="__RequestVerificationToken"]'
++    )?.value || "";
++
++    const response = await fetch("/Payment/ConfirmCheckoutReturn", {
++        method: "POST",
++        headers: {
++            "Content-Type": "application/json",
++            "X-CSRF-TOKEN": csrfToken
++        },
++        body: JSON.stringify({ bookingGroupId }),
++        cache: "no-store"
++    });
++
++    const data = await response.json().catch(() => ({}));
++    if (!response.ok) {
++        if (response.status === 409 && data.status === "AmountMismatch") {
++            return data;
++        }
++
++        const error = new Error(data.message || "Payment verification failed.");
++        error.status = data.status || "Error";
++        throw error;
+     }
++
++    return data;
+ }
+ 
+ // Learner
