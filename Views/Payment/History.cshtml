@@ -13,6 +13,9 @@
 </head>
 <body class="learner-payment-body">
     <script src="~/js/skolar-dialog.js"></script>
+    <form id="paymentVerificationToken" hidden>
+        @Html.AntiForgeryToken()
+    </form>
 
     <!-- SIDEBAR -->
     <aside class="sidebar" id="portalSidebar">

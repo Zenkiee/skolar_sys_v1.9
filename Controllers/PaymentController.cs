@@ -73,6 +73,84 @@ public class PaymentController : Controller
         return View();
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ConfirmCheckoutReturn([FromBody] ConfirmCheckoutRequest? request)
+    {
+        var userId = HttpContext.Session.GetUserId();
+        if (userId == null || !HttpContext.Session.HasRole("learner")) return Unauthorized();
+
+        var bookingGroupId = request?.BookingGroupId?.Trim() ?? "";
+        if (string.IsNullOrWhiteSpace(bookingGroupId))
+            return BadRequest(new { message = "The booking reference is missing." });
+
+        var transaction = await _context.PaymentTransactions
+            .FirstOrDefaultAsync(item =>
+                item.BookingGroupId == bookingGroupId &&
+                item.LearnerId == userId.Value);
+
+        if (transaction == null)
+            return NotFound(new { message = "Payment transaction not found." });
+
+        if (transaction.Status == "Paid")
+        {
+            return Ok(new
+            {
+                status = "Paid",
+                transactionId = transaction.Id,
+                paymentMethod = transaction.PaymentMethod
+            });
+        }
+
+        try
+        {
+            var checkout = await _gateway.RetrieveCheckoutAsync(transaction.ExternalPaymentId);
+
+            if (checkout.Status == "Paid")
+            {
+                if (checkout.Amount.HasValue && checkout.Amount.Value != transaction.Amount)
+                {
+                    _logger.LogWarning(
+                        "PayMongo amount mismatch for transaction {TransactionId}. Expected {ExpectedAmount}, received {ReceivedAmount}.",
+                        transaction.Id,
+                        transaction.Amount,
+                        checkout.Amount.Value);
+
+                    return Conflict(new
+                    {
+                        status = "AmountMismatch",
+                        message = "The payment amount could not be verified. Please contact support."
+                    });
+                }
+
+                transaction = await _payments.ApplyCheckoutResultAsync(
+                    transaction.Id,
+                    "success",
+                    checkout.PaymentMethod);
+            }
+
+            return Ok(new
+            {
+                status = transaction?.Status ?? checkout.Status,
+                transactionId = transaction?.Id,
+                paymentMethod = transaction?.PaymentMethod ?? checkout.PaymentMethod
+            });
+        }
+        catch (Exception error)
+        {
+            _logger.LogError(
+                error,
+                "Unable to verify PayMongo checkout for transaction {TransactionId}.",
+                transaction.Id);
+
+            return StatusCode(StatusCodes.Status503ServiceUnavailable, new
+            {
+                status = "VerificationUnavailable",
+                message = "Payment verification is temporarily unavailable. Your payment record has not been changed."
+            });
+        }
+    }
+
     [HttpGet]
     public async Task<IActionResult> MyTransactions()
     {
@@ -450,6 +528,11 @@ public class PaymentController : Controller
             return BadRequest($"Error processing webhook: {ex.Message}");
         }
     }
+}
+
+public class ConfirmCheckoutRequest
+{
+    public string BookingGroupId { get; set; } = "";
 }
 
 public class CancelPaymentSessionRequest
