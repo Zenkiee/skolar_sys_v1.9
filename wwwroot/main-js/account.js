@@ -137,7 +137,7 @@ function stopResendCountdown() {
 }
 
 if (selectedRole === "admin" && loginUsername) {
-    loginUsername.value = "skolartutors.ph@gmail.com";
+    loginUsername.value = loginUsername.dataset.adminEmail || "";
     loginUsername.readOnly = true;
 }
 
