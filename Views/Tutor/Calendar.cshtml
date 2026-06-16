@@ -144,12 +144,14 @@
               <div class="time-slot-inputs">
                 <label>
                   Start time
-                  <input type="time" id="slotStart">
+                  <select id="slotStart">
+                    <option value="">-- Select --</option>
+                  </select>
                 </label>
                 <span>to</span>
                 <label>
                   End time
-                  <input type="time" id="slotEnd">
+                  <input type="text" id="slotEnd" readonly placeholder="Auto-set (+1 hr)">
                 </label>
                 <button type="button" id="addTimeSlotBtn">Add Time</button>
               </div>
@@ -278,17 +280,17 @@
           if (!activeDate) return;
 
           const startInput = document.getElementById('slotStart');
-          const endInput = document.getElementById('slotEnd');
           const start = startInput.value;
-          const end = endInput.value;
 
-          if (!start || !end) {
-              SkolarDialog.alert('Select both a start time and an end time.');
+          if (!start) {
+              SkolarDialog.alert('Please select a start time.');
               return;
           }
 
           const startMinutes = toMinutes(start);
-          const endMinutes = toMinutes(end);
+          const endMinutes = startMinutes + 60;
+          const end = fromMinutes(endMinutes);
+
           if (endMinutes <= startMinutes) {
               SkolarDialog.alert('End time must be later than start time.');
               return;
@@ -314,7 +316,7 @@
           if (!availability.has(activeDate)) availability.set(activeDate, new Set());
           availability.get(activeDate).add(slot);
           startInput.value = '';
-          endInput.value = '';
+          document.getElementById('slotEnd').value = '';
           renderAvailCalendar();
           renderTimeSlots();
       }
@@ -329,17 +331,22 @@
           renderTimeSlots();
       }
 
-      function formatTime(value) {
-          const [hourText, minute] = value.split(':');
-          const hour = Number(hourText);
-          const period = hour >= 12 ? 'PM' : 'AM';
-          const displayHour = hour % 12 || 12;
-          return `${displayHour}:${minute} ${period}`;
+      function fromMinutes(totalMinutes) {
+          const h = Math.floor(totalMinutes / 60) % 24;
+          const m = totalMinutes % 60;
+          return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
       }
 
       function toMinutes(value) {
           const [hour, minute] = value.split(':').map(Number);
           return hour * 60 + minute;
+      }
+
+      function formatTime(value) {
+          const [hour, minute] = value.split(':').map(Number);
+          const period = hour >= 12 ? 'PM' : 'AM';
+          const displayHour = hour % 12 || 12;
+          return `${displayHour}:${String(minute).padStart(2, '0')} ${period}`;
       }
 
       function getSlotMinutes(slot) {
@@ -410,6 +417,36 @@
           message.hidden = false;
           setTimeout(() => message.hidden = true, 3000);
       });
+      //test
+      // Populate start time dropdown with 15-min intervals (6:00 AM – 10:00 PM)
+      (function buildStartDropdown() {
+          const select = document.getElementById('slotStart');
+          for (let minutes = 360; minutes <= 1320; minutes += 15) {
+              const h = Math.floor(minutes / 60);
+              const m = minutes % 60;
+              const value = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+              const period = h >= 12 ? 'PM' : 'AM';
+              const displayH = h % 12 || 12;
+              const label = `${displayH}:${String(m).padStart(2, '0')} ${period}`;
+              const opt = document.createElement('option');
+              opt.value = value;
+              opt.textContent = label;
+              select.appendChild(opt);
+          }
+          // Show auto-calculated end time when start changes
+          select.addEventListener('change', () => {
+              const endInput = document.getElementById('slotEnd');
+              if (!select.value) { endInput.value = ''; return; }
+              const endMins = toMinutes(select.value) + 60;
+              endInput.value = (() => {
+                  const h = Math.floor(endMins / 60) % 24;
+                  const m = endMins % 60;
+                  const period = h >= 12 ? 'PM' : 'AM';
+                  const displayH = h % 12 || 12;
+                  return `${displayH}:${String(m).padStart(2, '0')} ${period}`;
+              })();
+          });
+      })();
 
       initAvailability();
       </script>

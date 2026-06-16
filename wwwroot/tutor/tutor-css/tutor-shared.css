@@ -33,6 +33,15 @@ input, button, textarea, select {
 
 button {
   cursor: pointer;
+  transition: filter 0.15s ease, transform 0.1s ease;
+}
+
+button:active {
+  filter: brightness(1.00);
+  transform: scale(0.97);
+}
+button:hover {
+  filter: brightness(1.15);
 }
 
 a {

@@ -20,6 +20,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IPaymentGateway, PayMongoGateway>();
 builder.Services.AddScoped<PaymentService>();
+builder.Services.AddScoped<inMVC.Services.EmailService>();
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddAntiforgery(options =>
