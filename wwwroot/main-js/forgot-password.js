@@ -1,286 +1,187 @@
-const params = new URLSearchParams(window.location.search);
+// ── helpers ──────────────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
 
-const selectedRole =
-    params.get("role") === "tutor"
-        ? "tutor"
-        : "learner";
-
-const forgotTitle = document.getElementById("forgotTitle");
-const backToLogin = document.getElementById("backToLogin");
-const backToLoginTwo = document.getElementById("backToLoginTwo");
-const forgotMessage = document.getElementById("forgotMessage");
-
-const emailForm = document.getElementById("emailForm");
-const resetForm = document.getElementById("resetForm");
-
-initializeForgotPasswordPage();
-
-function initializeForgotPasswordPage() {
-    if (forgotTitle) {
-        forgotTitle.textContent =
-            selectedRole === "tutor"
-                ? "Forgot Tutor Password"
-                : "Forgot Learner Password";
-    }
-
-    const loginUrl = `/Home/Account?role=${selectedRole}`;
-
-    if (backToLogin) {
-        backToLogin.href = loginUrl;
-    }
-
-    if (backToLoginTwo) {
-        backToLoginTwo.href = loginUrl;
-    }
-
-    if (emailForm) {
-        emailForm.addEventListener(
-            "submit",
-            handleEmailSubmit
-        );
-    }
-
-    if (resetForm) {
-        resetForm.addEventListener(
-            "submit",
-            handlePasswordReset
-        );
-    }
+function getCsrf() {
+    return document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
 }
 
-function togglePassword(inputId, button) {
-    const input = document.getElementById(inputId);
-
-    if (!input) {
-        return;
-    }
-
-    if (input.type === "password") {
-        input.type = "text";
-        button.textContent = "🙈";
-    } else {
-        input.type = "password";
-        button.textContent = "👁";
-    }
+function showMsg(text, isError = true) {
+    const el = $('forgotMessage');
+    el.textContent = text;
+    el.style.color = isError ? '#c0392b' : '#2ecc71';
 }
 
-/* STEP 1: CHECK ACCOUNT IN SQLITE DATABASE */
-async function handleEmailSubmit(event) {
-    event.preventDefault();
+function showStep(formId, title, subtitle) {
+    document.querySelectorAll('.forgot-form').forEach(f => f.classList.remove('active'));
+    document.getElementById(formId).classList.add('active');
+    $('forgotTitle').textContent = title;
+    $('forgotSubtitle').textContent = subtitle;
+    showMsg('');
+}
 
-    clearMessage();
+function getLoginUrl() {
+    const role = sessionStorage.getItem('resetRole') ?? 'learner';
+    return `/Home/Account?role=${role}`;
+}
 
-    const emailInput =
-        document.getElementById("resetEmail");
+// ── OTP countdown ─────────────────────────────────────────────────────────────
+let timerHandle = null;
 
-    if (!emailInput) {
-        showMessage(
-            "The email field could not be found.",
-            "error"
-        );
-
-        return;
-    }
-
-    const email =
-        emailInput.value.trim().toLowerCase();
-
-    if (!email) {
-        showMessage(
-            "Enter your registered email address.",
-            "error"
-        );
-
-        emailInput.focus();
-        return;
-    }
-
-    setFormBusy(emailForm, true);
-
-    try {
-        const data = await postJson(
-            "/Home/VerifyResetAccount",
-            {
-                email: email,
-                role: selectedRole
-            }
-        );
-
-        showMessage(
-            data.message ||
-                "Account found. Create a new password.",
-            "success"
-        );
-
-        emailForm.classList.remove("active");
-        resetForm.classList.add("active");
-
-        const newPasswordInput =
-            document.getElementById("newPassword");
-
-        if (newPasswordInput) {
-            newPasswordInput.focus();
+function startTimer(seconds = 60) {
+    clearInterval(timerHandle);
+    const btn = $('resendBtn');
+    const span = $('otpTimer');
+    btn.disabled = true;
+    let left = seconds;
+    span.textContent = left;
+    timerHandle = setInterval(() => {
+        left--;
+        span.textContent = left;
+        if (left <= 0) {
+            clearInterval(timerHandle);
+            btn.disabled = false;
+            btn.textContent = 'Resend';
         }
-    } catch (error) {
-        showMessage(
-            error.message,
-            "error"
-        );
-    } finally {
-        setFormBusy(emailForm, false);
-    }
+    }, 1000);
 }
 
-/* STEP 2: UPDATE PASSWORD IN SQLITE DATABASE */
-async function handlePasswordReset(event) {
-    event.preventDefault();
+// ── OTP digit auto-advance ────────────────────────────────────────────────────
+document.querySelectorAll('.otp-digit').forEach((input, i, all) => {
+    input.addEventListener('input', () => {
+        input.value = input.value.replace(/\D/g, '').slice(0, 1);
+        if (input.value && i < all.length - 1) all[i + 1].focus();
+    });
+    input.addEventListener('keydown', e => {
+        if (e.key === 'Backspace' && !input.value && i > 0) all[i - 1].focus();
+    });
+    input.addEventListener('paste', e => {
+        e.preventDefault();
+        const digits = (e.clipboardData.getData('text').replace(/\D/g, '')).slice(0, 6);
+        [...digits].forEach((d, j) => { if (all[i + j]) all[i + j].value = d; });
+        const next = all[Math.min(i + digits.length, all.length - 1)];
+        next?.focus();
+    });
+});
 
-    clearMessage();
-
-    const newPasswordInput =
-        document.getElementById("newPassword");
-
-    const confirmPasswordInput =
-        document.getElementById("confirmNewPassword");
-
-    if (!newPasswordInput || !confirmPasswordInput) {
-        showMessage(
-            "The password fields could not be found.",
-            "error"
-        );
-
-        return;
-    }
-
-    const newPassword = newPasswordInput.value;
-    const confirmPassword = confirmPasswordInput.value;
-
-    if (
-        newPassword.length < 8 ||
-        newPassword.length > 64 ||
-        !/[A-Za-z]/.test(newPassword) ||
-        !/\d/.test(newPassword)
-    ) {
-        showMessage(
-            "Password must be 8–64 characters and include a letter and number.",
-            "error"
-        );
-
-        newPasswordInput.focus();
-        return;
-    }
-
-    if (newPassword !== confirmPassword) {
-        showMessage(
-            "Passwords do not match.",
-            "error"
-        );
-
-        confirmPasswordInput.focus();
-        return;
-    }
-
-    setFormBusy(resetForm, true);
-
-    try {
-        const data = await postJson(
-            "/Home/ResetPassword",
-            {
-                newPassword: newPassword,
-                confirmPassword: confirmPassword
-            }
-        );
-
-        showMessage(
-            `${data.message} Redirecting to login...`,
-            "success"
-        );
-
-        setTimeout(() => {
-            window.location.href =
-                `/Home/Account?role=${selectedRole}`;
-        }, 1200);
-    } catch (error) {
-        showMessage(
-            error.message,
-            "error"
-        );
-    } finally {
-        setFormBusy(resetForm, false);
-    }
+function getOtpValue() {
+    return [...document.querySelectorAll('.otp-digit')].map(d => d.value).join('');
 }
 
-async function postJson(url, payload) {
-    const antiForgeryToken =
-        document.querySelector(
-            'input[name="__RequestVerificationToken"]'
-        )?.value || "";
+function clearOtp() {
+    document.querySelectorAll('.otp-digit').forEach(d => d.value = '');
+    document.querySelector('.otp-digit')?.focus();
+}
 
-    const response = await fetch(url, {
-        method: "POST",
-        credentials: "same-origin",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRF-TOKEN": antiForgeryToken
-        },
-        body: JSON.stringify(payload)
+// ── STEP 1: submit email ──────────────────────────────────────────────────────
+$('emailForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const email = $('resetEmail').value.trim();
+    const role  = new URLSearchParams(location.search).get('role') ?? 'learner';
+    sessionStorage.setItem('resetRole', role);
+
+    showMsg('Sending verification code…', false);
+
+    const res = await fetch('/Home/VerifyResetAccount', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrf() },
+        body: JSON.stringify({ email, role })
     });
 
-    const data = await response
-        .json()
-        .catch(() => ({}));
+    const data = await res.json();
 
-    if (!response.ok) {
-        throw new Error(
-            data.error ||
-                "Something went wrong. Please try again."
-        );
-    }
+    if (!res.ok) { showMsg(data.error ?? 'Something went wrong.'); return; }
 
-    return data;
-}
+    showStep('otpForm',
+        'Check Your Email',
+        `We sent a 6-digit code to ${email}. It expires in 10 minutes.`);
+    clearOtp();
+    startTimer();
+});
 
-function setFormBusy(form, isBusy) {
-    if (!form) {
-        return;
-    }
+// ── STEP 2: resend OTP ────────────────────────────────────────────────────────
+$('resendBtn').addEventListener('click', async () => {
+    const email = $('resetEmail').value.trim();
+    const role  = sessionStorage.getItem('resetRole') ?? 'learner';
 
-    const submitButton =
-        form.querySelector('button[type="submit"]');
+    showMsg('Resending code…', false);
 
-    if (!submitButton) {
-        return;
-    }
+    const res = await fetch('/Home/VerifyResetAccount', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrf() },
+        body: JSON.stringify({ email, role })
+    });
 
-    submitButton.disabled = isBusy;
+    const data = await res.json();
 
-    if (isBusy) {
-        submitButton.dataset.originalText =
-            submitButton.textContent;
+    if (!res.ok) { showMsg(data.error ?? 'Failed to resend.'); return; }
 
-        submitButton.textContent = "Please wait...";
-    } else {
-        submitButton.textContent =
-            submitButton.dataset.originalText ||
-            submitButton.textContent;
-    }
-}
+    showMsg('A new code was sent!', false);
+    clearOtp();
+    startTimer();
+});
 
-function showMessage(message, type) {
-    if (!forgotMessage) {
-        return;
-    }
+// ── STEP 2: verify OTP ───────────────────────────────────────────────────────
+$('otpForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const otp = getOtpValue();
 
-    forgotMessage.textContent = message;
+    if (otp.length !== 6) { showMsg('Enter the full 6-digit code.'); return; }
 
-    forgotMessage.style.color =
-        type === "success"
-            ? "#b6ffb6"
-            : "#ffb3b3";
-}
+    const res = await fetch('/Home/VerifyOtp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrf() },
+        body: JSON.stringify({ otp })
+    });
 
-function clearMessage() {
-    if (forgotMessage) {
-        forgotMessage.textContent = "";
-    }
+    const data = await res.json();
+
+    if (!res.ok) { showMsg(data.error ?? 'Invalid code.'); return; }
+
+    showStep('resetForm', 'Create New Password',
+        'Your identity is verified. Enter your new password below.');
+});
+
+// ── STEP 3: reset password ────────────────────────────────────────────────────
+$('resetForm').addEventListener('submit', async e => {
+    e.preventDefault();
+
+    const res = await fetch('/Home/ResetPassword', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrf() },
+        body: JSON.stringify({
+            newPassword: $('newPassword').value,
+            confirmPassword: $('confirmNewPassword').value
+        })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) { showMsg(data.error ?? 'Reset failed.'); return; }
+
+    showMsg('Password reset! Redirecting to login…', false);
+    setTimeout(() => location.href = getLoginUrl(), 2000);
+});
+
+// ── back links ────────────────────────────────────────────────────────────────
+$('backToEmail').addEventListener('click', e => {
+    e.preventDefault();
+    clearInterval(timerHandle);
+    showStep('emailForm', 'Forgot Password',
+        'Enter your registered email address first, then create a new password.');
+});
+
+$('backToLogin').addEventListener('click', e => {
+    e.preventDefault();
+    location.href = getLoginUrl();
+});
+
+$('backToLoginTwo').addEventListener('click', e => {
+    e.preventDefault();
+    location.href = getLoginUrl();
+});
+
+function togglePassword(id, btn) {
+    const input = document.getElementById(id);
+    input.type = input.type === 'password' ? 'text' : 'password';
+    btn.textContent = input.type === 'password' ? '👁' : '🙈';
 }
