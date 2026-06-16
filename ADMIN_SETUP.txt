@@ -1,14 +1,8 @@
 SKOLAR ADMINISTRATOR LOGIN
 ==========================
 
-Run the project:
-  dotnet run
-
 Open:
   http://localhost:<port>/Home/Account?role=admin
-
-Email:
-  skolartutors.ph@gmail.com
 
 Password:
   admin_132
