@@ -745,7 +745,7 @@ function escapeTutorText(value) {
         .replaceAll("'", "&#039;");
 }
 
-async function loadTutors(filter = "") {
+async function loadTutors(filter = "", sortBy = "default", availability = "all") {
     const grid = document.getElementById("tutorGrid");
     if (!grid) return;
 
@@ -757,14 +757,42 @@ async function loadTutors(filter = "") {
 
         const tutors = await response.json();
         const normalizedFilter = filter.toLowerCase().trim();
-        const filtered = tutors.filter(t => {
+
+        let filtered = tutors.filter(t => {
             const name = String(t.tutorName ?? "").toLowerCase();
             const subjects = String(t.subjects ?? "").toLowerCase();
             const education = String(t.education ?? "").toLowerCase();
-            return name.includes(normalizedFilter) ||
+            const matchesSearch = !normalizedFilter ||
+                name.includes(normalizedFilter) ||
                 subjects.includes(normalizedFilter) ||
                 education.includes(normalizedFilter);
+
+            const matchesAvailability =
+                availability === "all" ||
+                (availability === "available" && t.isAvailable) ||
+                (availability === "unavailable" && !t.isAvailable);
+
+            return matchesSearch && matchesAvailability;
         });
+
+        // Sort
+        if (sortBy === "rate-asc") {
+            filtered.sort((a, b) => parseFloat(a.rate) - parseFloat(b.rate));
+        } else if (sortBy === "rate-desc") {
+            filtered.sort((a, b) => parseFloat(b.rate) - parseFloat(a.rate));
+        } else if (sortBy === "name-asc") {
+            filtered.sort((a, b) => String(a.tutorName ?? "").localeCompare(String(b.tutorName ?? "")));
+        } else if (sortBy === "name-desc") {
+            filtered.sort((a, b) => String(b.tutorName ?? "").localeCompare(String(a.tutorName ?? "")));
+        }
+
+        // Update result count
+        const countEl = document.getElementById("tutorResultCount");
+        if (countEl) {
+            countEl.textContent = filtered.length === 0
+                ? ""
+                : `${filtered.length} tutor${filtered.length !== 1 ? "s" : ""} found`;
+        }
 
         if (filtered.length === 0) {
             grid.innerHTML = `<p class="tutor-grid-message">No tutors found.</p>`;
@@ -835,10 +863,42 @@ async function loadTutors(filter = "") {
     }
 }
 
+function getSearchParams() {
+    const filter = document.getElementById("tutorSearch")?.value ?? "";
+    const sortBy = document.getElementById("tutorSortSelect")?.value ?? "default";
+    const availability = document.getElementById("tutorAvailabilityFilter")?.value ?? "all";
+    return { filter, sortBy, availability };
+}
+
 const tutorSearchInput = document.getElementById("tutorSearch");
 if (tutorSearchInput) {
-    tutorSearchInput.addEventListener("input", event => {
-        loadTutors(event.target.value);
+    tutorSearchInput.addEventListener("input", () => {
+        const { filter, sortBy, availability } = getSearchParams();
+        loadTutors(filter, sortBy, availability);
+    });
+}
+
+const tutorSortSelect = document.getElementById("tutorSortSelect");
+if (tutorSortSelect) {
+    tutorSortSelect.addEventListener("change", () => {
+        const { filter, sortBy, availability } = getSearchParams();
+        loadTutors(filter, sortBy, availability);
+    });
+}
+
+const tutorAvailabilityFilter = document.getElementById("tutorAvailabilityFilter");
+if (tutorAvailabilityFilter) {
+    tutorAvailabilityFilter.addEventListener("change", () => {
+        const { filter, sortBy, availability } = getSearchParams();
+        loadTutors(filter, sortBy, availability);
+    });
+}
+
+const tutorSearchBtn = document.getElementById("tutorSearchBtn");
+if (tutorSearchBtn) {
+    tutorSearchBtn.addEventListener("click", () => {
+        const { filter, sortBy, availability } = getSearchParams();
+        loadTutors(filter, sortBy, availability);
     });
 }
 
