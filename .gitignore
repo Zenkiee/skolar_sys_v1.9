@@ -1,0 +1,7 @@
+# Local runtime data
+skolar.db
+wwwroot/uploads/**
+!wwwroot/uploads/.gitkeep
+
+bin/
+obj/
