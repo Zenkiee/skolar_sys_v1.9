@@ -18,6 +18,9 @@ public class HomeController : Controller
     private const string PasswordResetUserIdKey = "passwordResetUserId";
     private const string PasswordResetRoleKey = "passwordResetRole";
 
+    private const string PasswordResetOtpKey = "passwordResetOtp";
+    private const string PasswordResetOtpExpiryKey = "passwordResetOtpExpiry";
+
     private static readonly string[] AllowedYearLevels =
     {
         "Preschool",
