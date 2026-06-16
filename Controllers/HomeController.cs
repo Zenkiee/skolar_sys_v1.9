@@ -12,6 +12,7 @@ namespace inMVC.Controllers;
 
 public class HomeController : Controller
 {
+    
     private readonly AppDbContext _context;
     private readonly IConfiguration _configuration;
 
@@ -20,6 +21,8 @@ public class HomeController : Controller
 
     private const string PasswordResetOtpKey = "passwordResetOtp";
     private const string PasswordResetOtpExpiryKey = "passwordResetOtpExpiry";
+
+    
 
     private static readonly string[] AllowedYearLevels =
     {
@@ -103,85 +106,80 @@ public class HomeController : Controller
     {
         ClearPasswordResetSession();
 
-        var email = request.Email?
-            .Trim()
-            .ToLowerInvariant() ?? "";
-
-        var role = request.Role?
-            .Trim()
-            .ToLowerInvariant() ?? "";
+        var email = request.Email?.Trim().ToLowerInvariant() ?? "";
+        var role  = request.Role?.Trim().ToLowerInvariant() ?? "";
 
         if (role is not ("learner" or "tutor"))
-        {
-            return BadRequest(new
-            {
-                error = "Select a valid account role."
-            });
-        }
+            return BadRequest(new { error = "Select a valid account role." });
 
-        if (email.Length > 254 ||
-            !new EmailAddressAttribute().IsValid(email))
-        {
-            return BadRequest(new
-            {
-                error = "Enter a valid email address."
-            });
-        }
+        if (email.Length > 254 || !new EmailAddressAttribute().IsValid(email))
+            return BadRequest(new { error = "Enter a valid email address." });
 
         var matchingUsers = await _context.Users
-            .Where(user =>
-                user.Email.ToLower() == email &&
-                user.Role.ToLower() == role)
+            .Where(u => u.Email.ToLower() == email && u.Role.ToLower() == role)
             .Take(2)
             .ToListAsync();
 
         if (matchingUsers.Count == 0)
-        {
-            return NotFound(new
-            {
-                error =
-                    $"No {role} account was found with this email."
-            });
-        }
+            return NotFound(new { error = $"No {role} account was found with this email." });
 
         if (matchingUsers.Count > 1)
-        {
-            return Conflict(new
-            {
-                error =
-                    "Multiple accounts use this email and role. " +
-                    "The local database must be cleaned first."
-            });
-        }
+            return Conflict(new { error = "Multiple accounts use this email and role." });
 
         var user = matchingUsers[0];
 
-        if (string.Equals(
-                user.Role,
-                "admin",
-                StringComparison.OrdinalIgnoreCase))
-        {
-            return BadRequest(new
+        if (string.Equals(user.Role, "admin", StringComparison.OrdinalIgnoreCase))
+            return BadRequest(new { error = "The administrator password cannot be reset here." });
+
+        // Generate 6-digit OTP
+        var otp = Random.Shared.Next(100000, 999999).ToString();
+        var expiry = DateTimeOffset.UtcNow.AddMinutes(10).ToUnixTimeSeconds();
+
+        HttpContext.Session.SetInt32(PasswordResetUserIdKey, user.Id);
+        HttpContext.Session.SetString(PasswordResetRoleKey, role);
+        HttpContext.Session.SetString(PasswordResetOtpKey, otp);
+        HttpContext.Session.SetString(PasswordResetOtpExpiryKey, expiry.ToString());
+
+        try
             {
-                error =
-                    "The administrator password cannot be reset here."
-            });
+                await _emailService.SendOtpEmailAsync(user.Email, otp);
+            }
+            catch (Exception ex)
+            {
+                ClearPasswordResetSession();
+                return StatusCode(500, new { error = ex.Message + " | " + ex.InnerException?.Message });
+            }
+
+            return Ok(new { success = true, message = "A verification code was sent to your email." });
+    }
+    
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult VerifyOtp([FromBody] VerifyOtpRequest request)
+    {
+        var userId  = HttpContext.Session.GetInt32(PasswordResetUserIdKey);
+        var storedOtp = HttpContext.Session.GetString(PasswordResetOtpKey);
+        var expiryStr = HttpContext.Session.GetString(PasswordResetOtpExpiryKey);
+
+        if (userId == null || storedOtp == null || expiryStr == null)
+            return Unauthorized(new { error = "Session expired. Start over." });
+
+        if (!long.TryParse(expiryStr, out var expiry) ||
+            DateTimeOffset.UtcNow.ToUnixTimeSeconds() > expiry)
+        {
+            ClearPasswordResetSession();
+            return BadRequest(new { error = "The verification code has expired. Start over." });
         }
 
-        HttpContext.Session.SetInt32(
-            PasswordResetUserIdKey,
-            user.Id);
+        if (request.Otp?.Trim() != storedOtp)
+            return BadRequest(new { error = "Incorrect verification code. Try again." });
 
-        HttpContext.Session.SetString(
-            PasswordResetRoleKey,
-            role);
+        // OTP verified — clear it so it can't be reused
+        HttpContext.Session.Remove(PasswordResetOtpKey);
+        HttpContext.Session.Remove(PasswordResetOtpExpiryKey);
 
-        return Ok(new
-        {
-            success = true,
-            message =
-                "Account found. You may now create a new password."
-        });
+        return Ok(new { success = true });
     }
 
     [HttpPost]
@@ -980,11 +978,10 @@ public class HomeController : Controller
 
     private void ClearPasswordResetSession()
     {
-        HttpContext.Session.Remove(
-            PasswordResetUserIdKey);
-
-        HttpContext.Session.Remove(
-            PasswordResetRoleKey);
+        HttpContext.Session.Remove(PasswordResetUserIdKey);
+        HttpContext.Session.Remove(PasswordResetRoleKey);
+        HttpContext.Session.Remove(PasswordResetOtpKey);
+        HttpContext.Session.Remove(PasswordResetOtpExpiryKey);
     }
 
     private static string? NormalizeContactNumber(
@@ -1043,6 +1040,8 @@ public class HomeController : Controller
             .ToList();
     }
 }
+
+public record VerifyOtpRequest(string? Otp);
 
 public class VerifyResetAccountRequest
 {
