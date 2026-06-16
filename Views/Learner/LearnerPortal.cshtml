@@ -165,8 +165,40 @@
                 <div class="panel">
                     <div class="panel-header">
                         <h2>Find Tutors</h2>
-                        <input type="text" id="tutorSearch" class="search-input" placeholder="Search tutor or subject...">
                     </div>
+
+                    <!-- Search & Filter Bar -->
+                    <div class="tutor-search-bar">
+                        <div class="tutor-search-input-wrap">
+                            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                                <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+                            </svg>
+                            <input type="text" id="tutorSearch" class="search-input-new" placeholder="Search tutor or subject...">
+                        </div>
+
+                        <select id="tutorSortSelect" class="tutor-filter-select">
+                            <option value="default">Sort by: Default</option>
+                            <option value="rate-asc">Rate: Low to High</option>
+                            <option value="rate-desc">Rate: High to Low</option>
+                            <option value="name-asc">Name: A → Z</option>
+                            <option value="name-desc">Name: Z → A</option>
+                        </select>
+
+                        <select id="tutorAvailabilityFilter" class="tutor-filter-select">
+                            <option value="all">Availability: All</option>
+                            <option value="available">Available Only</option>
+                            <option value="unavailable">No Open Slots</option>
+                        </select>
+
+                        <button id="tutorSearchBtn" class="tutor-search-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15">
+                                <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+                            </svg>
+                            Search
+                        </button>
+                    </div>
+
+                    <div id="tutorResultCount" class="tutor-result-count"></div>
 
                     <div class="tutor-grid" id="tutorGrid">
                         <!-- Populated from database -->
