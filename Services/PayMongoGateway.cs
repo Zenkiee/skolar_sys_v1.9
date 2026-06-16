@@ -81,6 +81,102 @@ public class PayMongoGateway : IPaymentGateway
         return new GatewayCheckoutResult(id, checkoutUrl);
     }
 
+    public async Task<GatewayCheckoutStatus> RetrieveCheckoutAsync(string externalPaymentId)
+    {
+        if (string.IsNullOrWhiteSpace(externalPaymentId))
+            throw new InvalidOperationException("The checkout session reference is missing.");
+
+        if (string.IsNullOrWhiteSpace(SecretKey))
+            throw new InvalidOperationException("The PayMongo secret key is not configured.");
+
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            $"https://api.paymongo.com/v1/checkout_sessions/{Uri.EscapeDataString(externalPaymentId)}");
+
+        var base64Key = Convert.ToBase64String(Encoding.UTF8.GetBytes(SecretKey + ":"));
+        request.Headers.Authorization = new AuthenticationHeaderValue("Basic", base64Key);
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+        var response = await _client.SendAsync(request);
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            throw new InvalidOperationException(
+                $"PayMongo checkout verification error: {response.StatusCode} - {error}");
+        }
+
+        var responseContent = await response.Content.ReadAsStringAsync();
+        using var document = JsonDocument.Parse(responseContent);
+
+        var data = document.RootElement.GetProperty("data");
+        var returnedId = data.GetProperty("id").GetString() ?? "";
+        if (!string.Equals(returnedId, externalPaymentId, StringComparison.Ordinal))
+            throw new InvalidOperationException("PayMongo returned a different checkout session.");
+
+        var attributes = data.GetProperty("attributes");
+
+        if (attributes.TryGetProperty("payments", out var payments) &&
+            payments.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var payment in payments.EnumerateArray())
+            {
+                if (!payment.TryGetProperty("attributes", out var paymentAttributes))
+                    continue;
+
+                var paymentStatus = paymentAttributes.TryGetProperty("status", out var statusNode)
+                    ? statusNode.GetString() ?? ""
+                    : "";
+
+                if (!string.Equals(paymentStatus, "paid", StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                var paymentMethod = "Payment Provider";
+                if (paymentAttributes.TryGetProperty("source", out var source) &&
+                    source.ValueKind == JsonValueKind.Object &&
+                    source.TryGetProperty("type", out var sourceType))
+                {
+                    paymentMethod = sourceType.GetString() ?? paymentMethod;
+                }
+
+                decimal? amount = null;
+                if (paymentAttributes.TryGetProperty("amount", out var amountNode) &&
+                    amountNode.TryGetInt64(out var amountInCentavos))
+                {
+                    amount = amountInCentavos / 100m;
+                }
+
+                var paymentId = payment.TryGetProperty("id", out var paymentIdNode)
+                    ? paymentIdNode.GetString() ?? ""
+                    : "";
+
+                return new GatewayCheckoutStatus("Paid", paymentMethod, amount, paymentId);
+            }
+        }
+
+        if (attributes.TryGetProperty("payment_intent", out var paymentIntent) &&
+            paymentIntent.ValueKind == JsonValueKind.Object &&
+            paymentIntent.TryGetProperty("attributes", out var intentAttributes))
+        {
+            var intentStatus = intentAttributes.TryGetProperty("status", out var intentStatusNode)
+                ? intentStatusNode.GetString() ?? ""
+                : "";
+
+            if (string.Equals(intentStatus, "succeeded", StringComparison.OrdinalIgnoreCase))
+            {
+                decimal? amount = null;
+                if (intentAttributes.TryGetProperty("amount", out var amountNode) &&
+                    amountNode.TryGetInt64(out var amountInCentavos))
+                {
+                    amount = amountInCentavos / 100m;
+                }
+
+                return new GatewayCheckoutStatus("Paid", "Payment Provider", amount, "");
+            }
+        }
+
+        return new GatewayCheckoutStatus("Pending", "", null, "");
+    }
+
     public async Task<GatewayRefundResult> CreateRefundAsync(string externalPaymentId, decimal amount, string reason)
     {
         var amountInCents = (int)Math.Round(amount * 100);

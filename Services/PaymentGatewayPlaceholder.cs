@@ -12,6 +12,11 @@ public class PaymentGatewayPlaceholder : IPaymentGateway
         return Task.FromException<GatewayCheckoutResult>(NotConfigured());
     }
 
+    public Task<GatewayCheckoutStatus> RetrieveCheckoutAsync(string externalPaymentId)
+    {
+        return Task.FromException<GatewayCheckoutStatus>(NotConfigured());
+    }
+
     public Task<GatewayRefundResult> CreateRefundAsync(string externalPaymentId, decimal amount, string reason)
     {
         return Task.FromException<GatewayRefundResult>(NotConfigured());

@@ -1,21 +1,91 @@
 document.addEventListener("DOMContentLoaded", async () => {
     await loadPaymentLearner();
+    await checkPaymentStatus();
     await loadPaymentHistory();
-    checkPaymentStatus();
 });
 
-function checkPaymentStatus() {
+async function checkPaymentStatus() {
     const params = new URLSearchParams(window.location.search);
-    const status = params.get("status");
+    const returnStatus = params.get("status");
     const bookingGroupId = params.get("bookingGroupId");
 
-    if (status === "confirmed") {
-        showPaymentToast("Payment completed successfully! Your session booking is confirmed.", "success");
+    if (returnStatus === "declined") {
+        showPaymentToast("Payment was declined or cancelled. You can retry from this page.", "error");
         window.history.replaceState({}, document.title, "/Payment/History");
-    } else if (status === "declined") {
-        showPaymentToast("Payment was declined or cancelled. Please try again.", "error");
-        window.history.replaceState({}, document.title, "/Payment/History");
+        return;
     }
+
+    if (returnStatus !== "confirmed" || !bookingGroupId) return;
+
+    showPaymentToast("Confirming your test payment with PayMongo...", "success");
+
+    let clearReturnUrl = false;
+
+    try {
+        const result = await pollCheckoutConfirmation(bookingGroupId);
+
+        if (result.status === "Paid") {
+            clearReturnUrl = true;
+            showPaymentToast("Payment verified successfully! Your session booking is confirmed.", "success");
+        } else if (result.status === "AmountMismatch") {
+            clearReturnUrl = true;
+            showPaymentToast(result.message || "The payment amount could not be verified.", "error");
+        } else {
+            showPaymentToast(
+                "PayMongo has not confirmed the payment yet. Refresh this page to check again.",
+                "error");
+        }
+    } catch (error) {
+        showPaymentToast(error.message || "Payment verification could not be completed.", "error");
+    } finally {
+        if (clearReturnUrl) {
+            window.history.replaceState({}, document.title, "/Payment/History");
+        }
+    }
+}
+
+async function pollCheckoutConfirmation(bookingGroupId) {
+    const maximumAttempts = 6;
+
+    for (let attempt = 1; attempt <= maximumAttempts; attempt += 1) {
+        const result = await confirmCheckoutPayment(bookingGroupId);
+        if (result.status === "Paid" || result.status === "AmountMismatch") return result;
+
+        if (attempt < maximumAttempts) {
+            await new Promise(resolve => window.setTimeout(resolve, 1500));
+        }
+    }
+
+    return { status: "Pending" };
+}
+
+async function confirmCheckoutPayment(bookingGroupId) {
+    const csrfToken = document.querySelector(
+        '#paymentVerificationToken input[name="__RequestVerificationToken"]'
+    )?.value || "";
+
+    const response = await fetch("/Payment/ConfirmCheckoutReturn", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-TOKEN": csrfToken
+        },
+        body: JSON.stringify({ bookingGroupId }),
+        cache: "no-store"
+    });
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+        if (response.status === 409 && data.status === "AmountMismatch") {
+            return data;
+        }
+
+        const error = new Error(data.message || "Payment verification failed.");
+        error.status = data.status || "Error";
+        throw error;
+    }
+
+    return data;
 }
 
 // Learner
