@@ -137,14 +137,8 @@ document.addEventListener('DOMContentLoaded', () => {
     return /^09\d{9}$/.test(text) || /^\+639\d{9}$/.test(text);
   }
 
-  function isValidTutorEmail(value) {
-    const text = String(value || '').trim();
-    return text.length > 0 && text.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text);
-  }
-
   function validateTutorPayload(payload) {
     const name = String(payload.tutorName || '').trim();
-    const email = String(payload.email || '').trim();
     const education = String(payload.education || '').trim();
     const bio = String(payload.bio || '').trim();
     const subjects = String(payload.subjects || '').split(',').filter(Boolean);
@@ -152,10 +146,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (name.length < 2 || name.length > 60 || !/[A-Za-z]/.test(name)) {
       return { field: 'epFirstName', message: 'Tutor name must be 2 to 60 characters and contain a letter.' };
-    }
-
-    if (!isValidTutorEmail(email)) {
-      return { field: 'epGmail', message: 'Enter a valid email address.' };
     }
 
     if (education.length < 3 || education.length > 120) {
@@ -234,7 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentData.personal.firstName = fNameInput.value;
         currentData.personal.lastName  = lNameInput.value;
         currentData.personal.displayTitle = titleInput.value;
-        currentData.personal.gmail     = gmailInput.value;
+        currentData.personal.gmail     = gmailInput.value || currentData.personal.gmail;
         currentData.personal.phone     = phoneInput.value;
         currentData.personal.location  = locInput.value;
 
@@ -336,7 +326,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const user = await meRes.json();
 
       const payload = {
-          email: String(currentData.personal.gmail || user.email || '').trim(),
+          email: String(user.email || currentData.personal.gmail || '').trim(),
           tutorName: `${currentData.personal.firstName} ${currentData.personal.lastName}`.trim(),
           rate: String(currentData.about.sessionRate || '').trim(),
           education: String(currentData.personal.displayTitle || '').trim(),

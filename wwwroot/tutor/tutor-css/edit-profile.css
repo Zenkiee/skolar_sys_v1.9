@@ -150,6 +150,16 @@
   outline: none;
   box-shadow: 0 0 0 3px rgba(27,42,74,0.1);
 }
+.ep-field input[readonly] {
+  background: #f1f4f6;
+  color: #6f7f87;
+  cursor: not-allowed;
+}
+.ep-field small {
+  color: #6f7f87;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
 .ep-field textarea {
   resize: vertical;
   min-height: 100px;

@@ -88,15 +88,27 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    color: #003f5c;
 }
 
 .form-options {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
     margin: -8px 5px 45px;
     font-size: 12px;
     font-weight: 800;
+}
+
+.password-wrapper button svg {
+    width: 23px;
+    height: 23px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: none;
 }
 
 .form-options label {

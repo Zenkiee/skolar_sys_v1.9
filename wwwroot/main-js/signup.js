@@ -341,12 +341,26 @@ function initializeValidationEvents() {
 }
 
 function initializePasswordToggles() {
+    const passwordVisibleIcon = `
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+        </svg>`;
+    const passwordHiddenIcon = `
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M10.7 5.1A10.9 10.9 0 0 1 12 5c5.5 0 9 7 9 7a15.5 15.5 0 0 1-4.1 4.8"></path>
+            <path d="M14.1 14.1A3 3 0 0 1 9.9 9.9"></path>
+            <path d="M6.6 6.6C4.1 8.3 3 12 3 12s3.5 7 9 7a10.7 10.7 0 0 0 4.4-.9"></path>
+            <path d="M3 3l18 18"></path>
+        </svg>`;
+
     document.querySelectorAll("[data-password-target]").forEach(button => {
+        button.innerHTML = passwordVisibleIcon;
         button.addEventListener("click", () => {
             const input = document.getElementById(button.dataset.passwordTarget);
             const showing = input.type === "text";
             input.type = showing ? "password" : "text";
-            button.textContent = showing ? "👁" : "🙈";
+            button.innerHTML = showing ? passwordVisibleIcon : passwordHiddenIcon;
             button.setAttribute("aria-label", showing ? "Show password" : "Hide password");
         });
     });

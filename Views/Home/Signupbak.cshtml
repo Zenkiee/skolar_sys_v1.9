@@ -5,13 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="~/css/skolar-dialog.css">
+    <link rel="stylesheet" href="~/css/skolar-dialog.css" asp-append-version="true">
     <title>Skolar Sign Up</title>
     <link rel="icon" type="image/png" href="~/assets/img/skolarlogo.png">
-    <link rel="stylesheet" href="~/main-css/account-signup.css">
+    <link rel="stylesheet" href="~/main-css/account-signup.css" asp-append-version="true">
 </head>
 <body>
-    <script src="~/js/skolar-dialog.js"></script>
+    <script src="~/js/skolar-dialog.js" asp-append-version="true"></script>
 
     <main class="account-page">
 
@@ -35,12 +35,16 @@
 
                     <div class="password-wrapper">
                         <input type="password" id="signupPassword" placeholder="Password" required>
-                        <button type="button" class="eye-btn" onclick="togglePassword('signupPassword', this)">👁</button>
+                        <button type="button" class="eye-btn" onclick="togglePassword('signupPassword', this)" aria-label="Show password">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        </button>
                     </div>
 
                     <div class="password-wrapper">
                         <input type="password" id="confirmPassword" placeholder="Confirm Password" required>
-                        <button type="button" class="eye-btn" onclick="togglePassword('confirmPassword', this)">👁</button>
+                        <button type="button" class="eye-btn" onclick="togglePassword('confirmPassword', this)" aria-label="Show password confirmation">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        </button>
                     </div>
 
                     <label class="terms-check">
@@ -114,6 +118,6 @@
 
     </main>
 
-    <script src="~/main-js/signup.js"></script>
+    <script src="~/main-js/signup.js" asp-append-version="true"></script>
 </body>
 </html>

@@ -287,7 +287,7 @@ public class HomeController : Controller
         }
 
         var tutorName = request.TutorName?.Trim() ?? "";
-        var email = request.Email?.Trim().ToLowerInvariant() ?? "";
+        var email = user.Email?.Trim().ToLowerInvariant() ?? "";
         var education = request.Education?.Trim() ?? "";
         var contactNumber = NormalizeContactNumber(request.ContactNumber);
         var bio = request.Bio?.Trim() ?? "";
@@ -313,21 +313,6 @@ public class HomeController : Controller
             {
                 field = "epGmail",
                 message = "Enter a valid email address."
-            });
-        }
-
-        var emailTaken = await _context.Users
-            .AsNoTracking()
-            .AnyAsync(other =>
-                other.Id != user.Id &&
-                other.Email.ToLower() == email);
-
-        if (emailTaken)
-        {
-            return BadRequest(new
-            {
-                field = "epGmail",
-                message = "That email is already used by another account."
             });
         }
 
@@ -411,7 +396,6 @@ public class HomeController : Controller
         }
 
         user.Name = tutorName;
-        user.Email = email;
 
         await _context.SaveChangesAsync();
 

@@ -5,13 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="~/css/skolar-dialog.css">
+    <link rel="stylesheet" href="~/css/skolar-dialog.css" asp-append-version="true">
     <title>Skolar Sign Up</title>
     <link rel="icon" type="image/png" href="~/assets/img/skolarlogo.png">
-    <link rel="stylesheet" href="~/main-css/account-signup.css">
+    <link rel="stylesheet" href="~/main-css/account-signup.css" asp-append-version="true">
 </head>
 <body>
-    <script src="~/js/skolar-dialog.js"></script>
+    <script src="~/js/skolar-dialog.js" asp-append-version="true"></script>
     <main class="account-page">
         <section class="account-left">
             <div class="account-box" id="signupBox">
@@ -38,7 +38,9 @@
                         <div class="password-wrapper">
                             <label class="sr-only" for="signupPassword">Password</label>
                             <input type="password" id="signupPassword" placeholder="Password" autocomplete="new-password" minlength="8" maxlength="64" required>
-                            <button type="button" class="eye-btn" data-password-target="signupPassword" aria-label="Show password">👁</button>
+                            <button type="button" class="eye-btn" data-password-target="signupPassword" aria-label="Show password">
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            </button>
                         </div>
                         <div class="password-rules" id="passwordRules" aria-live="polite">
                             <span data-rule="length">8–64 characters</span>
@@ -52,7 +54,9 @@
                         <div class="password-wrapper">
                             <label class="sr-only" for="confirmPassword">Confirm Password</label>
                             <input type="password" id="confirmPassword" placeholder="Confirm Password" autocomplete="new-password" maxlength="64" required>
-                            <button type="button" class="eye-btn" data-password-target="confirmPassword" aria-label="Show password confirmation">👁</button>
+                            <button type="button" class="eye-btn" data-password-target="confirmPassword" aria-label="Show password confirmation">
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            </button>
                         </div>
                         <p class="field-error" data-error-for="confirmPassword"></p>
                     </div>
@@ -202,6 +206,6 @@
         </section>
     </main>
 
-    <script src="~/main-js/signup.js"></script>
+    <script src="~/main-js/signup.js" asp-append-version="true"></script>
 </body>
 </html>

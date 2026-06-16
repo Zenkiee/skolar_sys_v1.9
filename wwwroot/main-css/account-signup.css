@@ -245,6 +245,18 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    color: #003f5c;
+}
+
+.password-wrapper button svg {
+    width: 23px;
+    height: 23px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: none;
 }
 
 .password-rules {
