@@ -200,33 +200,13 @@
         
         <div class="ep-add-row">
           <div class="ep-field">
-            <input type="text" id="epSubjectInput" placeholder="Add a subject e.g. Filipino" maxlength="50" list="epSubjectOptions">
-            <datalist id="epSubjectOptions">
-              <option value="English"></option>
-              <option value="Math"></option>
-              <option value="Reading"></option>
-              <option value="Writing"></option>
-              <option value="Filipino"></option>
-              <option value="Early Learning Skills"></option>
-              <option value="Science"></option>
-              <option value="Social Studies"></option>
-              <option value="Literacy, Language & Communication"></option>
-              <option value="Socio-Emotional Development"></option>
-              <option value="Values Development"></option>
-              <option value="Physical Health and Motor Development"></option>
-              <option value="Aesthetic/Creative Development"></option>
-              <option value="Cognitive Development"></option>
-              <option value="Language"></option>
-              <option value="Reading and Literacy"></option>
-              <option value="Mathematics"></option>
-              <option value="Makabansa"></option>
-              <option value="GMRC"></option>
-              <option value="AP"></option>
-              <option value="MAPEH"></option>
-              <option value="EPP"></option>
-              <option value="TLE"></option>
-              <option value="ESP"></option>
-            </datalist>
+            <div class="ep-subject-picker" id="epSubjectPicker">
+              <input type="text" id="epSubjectInput" placeholder="Choose a subject" maxlength="50" readonly autocomplete="off" aria-haspopup="listbox" aria-expanded="false" aria-controls="epSubjectMenu">
+              <button type="button" class="ep-subject-toggle" id="epSubjectToggle" aria-label="Open subject list">
+                <span class="ep-subject-arrow" aria-hidden="true"></span>
+              </button>
+              <div class="ep-subject-menu" id="epSubjectMenu" role="listbox" hidden></div>
+            </div>
           </div>
           <button class="ep-btn-tan" id="epAddSubject">+ Add</button>
         </div>

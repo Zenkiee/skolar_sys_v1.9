@@ -27,7 +27,6 @@ public class Booking
     public string LearnerName { get; set; } = "";
     public string LearnerEmail { get; set; } = "";
     public string LearnerContact { get; set; } = "";
-    public string LearnerGrade { get; set; } = "";
     public string PaymentMethod { get; set; } = "";
     public string ReferenceNumber { get; set; } = "";
     public string ProofOfPayment { get; set; } = "";

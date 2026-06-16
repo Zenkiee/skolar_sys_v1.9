@@ -27,11 +27,11 @@ function groupBookings(bookings) {
                 groupKey,
                 id: booking.id,
                 name: booking.learnerName || "Learner",
-                grade: booking.learnerGrade || "N/A",
                 subject: booking.subject || "Session",
                 email: booking.learnerEmail || "",
                 contact: booking.learnerContact || "",
                 bookingType: booking.bookingType || "Single",
+                createdAt: booking.createdAt,
                 sessions: []
             });
         }
@@ -40,6 +40,7 @@ function groupBookings(bookings) {
             id: booking.id,
             date: booking.date,
             time: booking.time,
+            createdAt: booking.createdAt,
             status: normalizeStatus(booking.status),
             tutorMarkedDoneAt: booking.tutorMarkedDoneAt,
             learnerConfirmedDoneAt: booking.learnerConfirmedDoneAt,
@@ -62,6 +63,11 @@ function groupBookings(bookings) {
     return [...groups.values()]
         .map(group => {
             group.sessions.sort((first, second) => new Date(first.date) - new Date(second.date));
+            const createdDates = group.sessions
+                .map(session => getValidDate(session.createdAt))
+                .filter(Boolean)
+                .sort((firstDate, secondDate) => firstDate - secondDate);
+            group.createdAt = createdDates[0] || getValidDate(group.createdAt);
             const states = [...new Set(group.sessions.map(getSessionState))];
             group.status = states.length === 1 ? states[0] : "mixed";
             group.schedule = formatGroupSchedule(group.sessions);
@@ -150,7 +156,6 @@ function renderTable() {
                         <span>${escapeHtml(group.name)}</span>
                     </div>
                 </td>
-                <td>${escapeHtml(group.grade)}</td>
                 <td>${escapeHtml(group.subject)}</td>
                 <td>
                     <div class="bk-schedule-cell">
@@ -163,6 +168,12 @@ function renderTable() {
                         <span class="bk-session-count">${group.sessions.length}</span>
                         <span>${requestLabel}</span>
                         ${group.sessions.length > 1 ? `<button type="button" class="bk-view-dates-btn" data-group-key="${escapeHtml(group.groupKey)}">View dates</button>` : ""}
+                    </div>
+                </td>
+                <td>
+                    <div class="bk-created-cell">
+                        <strong>${escapeHtml(formatBookingCreatedDate(group.createdAt))}</strong>
+                        <span>${escapeHtml(formatBookingCreatedTime(group.createdAt))}</span>
                     </div>
                 </td>
                 <td>${escapeHtml(group.email)}</td>
@@ -223,7 +234,6 @@ function getFilteredData() {
         const searchableText = [
             group.name,
             group.subject,
-            group.grade,
             group.email,
             group.schedule,
             ...group.sessions.map(session => formatDate(session.date))
@@ -267,6 +277,7 @@ function openDatesModal(groupKey) {
                 <div class="bk-modal-date-copy">
                     <strong>${escapeHtml(formatDate(session.date))}</strong>
                     <small>${escapeHtml(session.time)}</small>
+                    <small>Requested ${escapeHtml(formatBookingCreatedCompact(session.createdAt))}</small>
                 </div>
                 <div class="bk-modal-date-actions">
                     <span class="bk-session-status bk-session-status-${escapeHtml(state)}">${escapeHtml(getStatusLabel(state))}</span>
@@ -487,7 +498,7 @@ async function openTutorCancellationModal(bookingId, groupKey = "", trigger = nu
                ${Number(quote.tutorFinePercentage) > 0 ? `<div><span>Tutor penalty</span><strong>${Number(quote.tutorFinePercentage)}% of next completed session gross</strong></div>` : ""}
                ${quote.warningIssued ? '<div><span>Account consequence</span><strong>1 official warning</strong></div>' : '<div><span>Account consequence</span><strong>No warning</strong></div>'}`;
     } catch (requestError) {
-        error.textContent = requestError.message;
+        error.textContent = getFriendlyCancellationError(requestError.message);
     }
 }
 
@@ -527,6 +538,15 @@ async function confirmTutorCancellation() {
         button.disabled = false;
         button.textContent = "Confirm Cancellation";
     }
+}
+
+function getFriendlyCancellationError(message) {
+    const text = String(message || "").trim();
+    if (!text) return "Cancellation could not be completed right now. Please try again later.";
+    if (/paymongo|api|badrequest|payment_intent|parameter_invalid|source pointer/i.test(text)) {
+        return "Cancellation could not be completed right now. Please try again later or contact support.";
+    }
+    return text;
 }
 
 function syncModalState() {
@@ -634,6 +654,42 @@ function formatDate(date) {
         month: "long",
         day: "numeric",
         year: "numeric"
+    });
+}
+
+function getValidDate(value) {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function formatBookingCreatedDate(value) {
+    const date = value instanceof Date ? value : getValidDate(value);
+    if (!date) return "Unavailable";
+    return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric"
+    });
+}
+
+function formatBookingCreatedTime(value) {
+    const date = value instanceof Date ? value : getValidDate(value);
+    if (!date) return "";
+    return date.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit"
+    });
+}
+
+function formatBookingCreatedCompact(value) {
+    const date = value instanceof Date ? value : getValidDate(value);
+    if (!date) return "unavailable";
+    return date.toLocaleString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit"
     });
 }
 

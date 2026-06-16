@@ -417,7 +417,6 @@ async function submitBooking(event) {
     formData.append("LearnerName", document.getElementById("summaryName").textContent);
     formData.append("LearnerEmail", document.getElementById("email").value);
     formData.append("LearnerContact", document.getElementById("contact").value);
-    formData.append("LearnerGrade", "");
     formData.append("Subject", document.getElementById("summarySubject").textContent);
     formData.append("TutorName", tutorName);
     formData.append("BookingType", bookingType);

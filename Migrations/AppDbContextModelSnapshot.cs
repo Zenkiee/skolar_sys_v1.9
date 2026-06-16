@@ -86,10 +86,6 @@ namespace inMVC.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("LearnerGrade")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
                     b.Property<int>("LearnerId")
                         .HasColumnType("INTEGER");
 

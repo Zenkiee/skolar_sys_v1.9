@@ -177,8 +177,8 @@ async function handleTutorSignup(event) {
         valid = false;
     }
 
-    if (subjects.length < 1 || subjects.length > 5) {
-        setFieldError("subjectDropdownTrigger", "Choose 1 to 5 subjects.");
+    if (subjects.length < 1) {
+        setFieldError("subjectDropdownTrigger", "Choose at least one subject.");
         valid = false;
     }
 
@@ -384,18 +384,17 @@ function initializeSubjectDropdown() {
     });
 
     menu.addEventListener("change", event => {
-        const selected = getSelectedSubjects();
-        if (selected.length > 5) {
-            event.target.checked = false;
-            setFieldError("subjectDropdownTrigger", "You can select up to 5 subjects.");
-        } else {
-            clearFieldError("subjectDropdownTrigger");
-        }
-
         const current = getSelectedSubjects();
-        label.textContent = current.length ? current.join(", ") : "Select subjects you teach";
+        clearFieldError("subjectDropdownTrigger");
+        label.textContent = formatSelectedSubjectLabel(current);
         label.classList.toggle("has-value", current.length > 0);
     });
+}
+
+function formatSelectedSubjectLabel(subjects) {
+    if (!subjects.length) return "Select subjects you teach";
+    if (subjects.length <= 3) return subjects.join(", ");
+    return `${subjects.length} subjects selected`;
 }
 
 function initializeBioCounter() {

@@ -239,20 +239,23 @@
 }
 
 .bk-schedule-cell,
-.bk-session-cell {
+.bk-session-cell,
+.bk-created-cell {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 4px;
 }
 
-.bk-schedule-cell strong {
+.bk-schedule-cell strong,
+.bk-created-cell strong {
   color: var(--navy);
   font-size: 0.8rem;
 }
 
 .bk-schedule-cell span,
-.bk-session-cell > span:not(.bk-session-count) {
+.bk-session-cell > span:not(.bk-session-count),
+.bk-created-cell span {
   color: #728095;
   font-size: 0.72rem;
 }

@@ -203,6 +203,91 @@
   height: 40px; /* match input height */
 }
 
+.ep-subject-picker {
+  position: relative;
+  width: 100%;
+}
+
+.ep-subject-picker input {
+  padding-right: 44px;
+  cursor: pointer;
+}
+
+.ep-subject-toggle {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  width: 40px;
+  height: 38px;
+  border: 0;
+  border-left: 1.5px solid rgba(0, 78, 105, 0.18);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: transparent;
+  color: var(--navy);
+  font-size: 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background var(--duration) var(--ease), transform var(--duration) var(--ease);
+}
+
+.ep-subject-arrow {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 6px solid var(--navy);
+}
+
+.ep-subject-picker.is-open .ep-subject-arrow {
+  display: inline-block;
+  transform: rotate(180deg);
+}
+
+.ep-subject-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 80;
+  max-height: 240px;
+  padding: 6px;
+  overflow-y: auto;
+  border: 1.5px solid var(--navy);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  box-shadow: 0 14px 32px rgba(0, 47, 63, 0.18);
+}
+
+.ep-subject-option {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 36px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--navy);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ep-subject-option:hover,
+.ep-subject-option:focus-visible {
+  outline: none;
+  background: #f1dfc3;
+}
+
+.ep-subject-option.is-selected,
+.ep-subject-option:disabled {
+  color: #7b8a91;
+  background: #f4f6f7;
+  cursor: not-allowed;
+}
+
 /* Hidden file input */
 .ep-file-input {
   display: none;

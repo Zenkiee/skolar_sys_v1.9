@@ -73,6 +73,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnSubjectsSave = document.getElementById('epSubjectsSave');
   const btnSubjectsDiscard = document.getElementById('epSubjectsDiscard');
   const subjectsList = document.getElementById('epSubjectsList');
+  const subjectPicker = document.getElementById('epSubjectPicker');
+  const subjectToggle = document.getElementById('epSubjectToggle');
+  const subjectMenu = document.getElementById('epSubjectMenu');
 
   // Misc
   const toast = document.getElementById('epToast');
@@ -121,6 +124,49 @@ document.addEventListener('DOMContentLoaded', () => {
         renderSubjects();
       });
     });
+    renderSubjectMenu();
+  }
+
+  function renderSubjectMenu() {
+    if (!subjectMenu) return;
+    subjectMenu.innerHTML = '';
+
+    allowedTutorSubjects.forEach(subject => {
+      const isSelected = currentData.subjects.some(item => item.toLowerCase() === subject.toLowerCase());
+      const option = document.createElement('button');
+      option.type = 'button';
+      option.className = `ep-subject-option${isSelected ? ' is-selected' : ''}`;
+      option.setAttribute('role', 'option');
+      option.setAttribute('aria-selected', String(subjectInput?.value === subject));
+      option.disabled = isSelected;
+      option.textContent = subject;
+      option.addEventListener('click', () => {
+        if (subjectInput) subjectInput.value = subject;
+        closeSubjectMenu();
+        subjectInput?.focus();
+      });
+      subjectMenu.appendChild(option);
+    });
+  }
+
+  function openSubjectMenu() {
+    if (!subjectPicker || !subjectInput || !subjectMenu) return;
+    renderSubjectMenu();
+    subjectMenu.hidden = false;
+    subjectPicker.classList.add('is-open');
+    subjectInput.setAttribute('aria-expanded', 'true');
+  }
+
+  function closeSubjectMenu() {
+    if (!subjectPicker || !subjectInput || !subjectMenu) return;
+    subjectMenu.hidden = true;
+    subjectPicker.classList.remove('is-open');
+    subjectInput.setAttribute('aria-expanded', 'false');
+  }
+
+  function toggleSubjectMenu() {
+    if (!subjectMenu) return;
+    subjectMenu.hidden ? openSubjectMenu() : closeSubjectMenu();
   }
   function normalizeTutorSubject(value) {
     const text = String(value || '').trim();
@@ -164,8 +210,8 @@ document.addEventListener('DOMContentLoaded', () => {
       return { field: 'epBio', message: 'Bio must be 20 to 500 characters.' };
     }
 
-    if (subjects.length < 1 || subjects.length > 5) {
-      return { field: 'epSubjectInput', message: 'Choose 1 to 5 valid subjects.' };
+    if (subjects.length < 1) {
+      return { field: 'epSubjectInput', message: 'Choose at least one valid subject.' };
     }
 
     if (subjects.some(subject => !normalizeTutorSubject(subject))) {
@@ -267,17 +313,12 @@ document.addEventListener('DOMContentLoaded', () => {
     btnAddSubject.addEventListener('click', () => {
       const val = normalizeTutorSubject(subjectInput.value);
       if (!val) {
-        showToast('Please enter a subject', 'info');
+        showToast('Please choose a subject', 'info');
         return;
       }
 
       if (currentData.subjects.some(subject => subject.toLowerCase() === val.toLowerCase())) {
         showToast('That subject is already listed.', 'info');
-        return;
-      }
-
-      if (currentData.subjects.length >= 5) {
-        showToast('You can list up to 5 subjects.', 'info');
         return;
       }
 
@@ -289,13 +330,48 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (subjectInput) {
+    subjectInput.addEventListener('click', openSubjectMenu);
+    subjectInput.addEventListener('focus', openSubjectMenu);
     subjectInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
         e.preventDefault();
         btnAddSubject.click();
+      } else if (e.key === 'Escape') {
+        closeSubjectMenu();
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        openSubjectMenu();
+        subjectMenu?.querySelector('.ep-subject-option:not(:disabled)')?.focus();
       }
     });
   }
+
+  if (subjectToggle) {
+    subjectToggle.addEventListener('click', toggleSubjectMenu);
+  }
+
+  if (subjectMenu) {
+    subjectMenu.addEventListener('keydown', (e) => {
+      const options = [...subjectMenu.querySelectorAll('.ep-subject-option:not(:disabled)')];
+      const currentIndex = options.indexOf(document.activeElement);
+
+      if (e.key === 'Escape') {
+        closeSubjectMenu();
+        subjectInput?.focus();
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        options[Math.min(currentIndex + 1, options.length - 1)]?.focus();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        options[Math.max(currentIndex - 1, 0)]?.focus();
+      }
+    });
+  }
+
+  document.addEventListener('click', (e) => {
+    if (!subjectPicker || subjectPicker.contains(e.target)) return;
+    closeSubjectMenu();
+  });
 
   if (btnSubjectsSave) {
     btnSubjectsSave.addEventListener('click', async () => {

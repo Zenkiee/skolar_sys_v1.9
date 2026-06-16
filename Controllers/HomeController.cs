@@ -365,12 +365,12 @@ public class HomeController : Controller
         }
 
         if (subjects == null ||
-            subjects.Count is < 1 or > 5)
+            subjects.Count < 1)
         {
             return BadRequest(new
             {
                 field = "epSubjectInput",
-                message = "Choose 1 to 5 valid subjects."
+                message = "Choose at least one valid subject."
             });
         }
 
@@ -545,11 +545,11 @@ public class HomeController : Controller
             }
 
             if (subjects == null ||
-                subjects.Count is < 1 or > 5)
+                subjects.Count < 1)
             {
                 return SignupError(
                     "subjectDropdownTrigger",
-                    "Choose 1 to 5 valid subjects.");
+                    "Choose at least one valid subject.");
             }
 
             var rateText =

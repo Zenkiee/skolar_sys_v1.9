@@ -1248,6 +1248,13 @@ body.modal-open {
     font-size: 12px;
 }
 
+.session-created-line {
+    margin-top: 4px;
+    color: #73858e !important;
+    font-size: 12px;
+    font-weight: 800;
+}
+
 .session-cancel-booking-btn {
     margin-top: 9px;
     border: 1px solid #a90000;

@@ -211,6 +211,11 @@ function renderLearnerSessionGroup(group) {
     const attentionCount = group.sessions.filter(session => ["awaiting", "disputed", "underreview"].includes(getLearnerSessionState(session))).length;
     const summaryParts = [`${group.sessions.length} sessions`, `${completedCount} completed`];
     if (attentionCount > 0) summaryParts.push(`${attentionCount} need attention`);
+    const createdDates = group.sessions
+        .map(session => getValidDate(session.createdAt))
+        .filter(Boolean)
+        .sort((firstDate, secondDate) => firstDate - secondDate);
+    const bookedText = createdDates.length > 0 ? `Booked ${formatBookingCreatedAt(createdDates[0])}` : "";
 
     return `
         <article class="session-range-card ${attentionCount > 0 ? "needs-attention" : ""}">
@@ -219,7 +224,8 @@ function renderLearnerSessionGroup(group) {
                     <span class="session-range-label">Date-range booking</span>
                     <h3>${escapeTutorText(first.subject || "Session")}</h3>
                     <p>${escapeTutorText(formatGroupDateRange(group.sessions))}</p>
-                    <p class="session-range-meta">${escapeTutorText(first.time || "")} · ${escapeTutorText(summaryParts.join(" · "))}</p>
+                    <p class="session-range-meta">${escapeTutorText(first.time || "")} - ${escapeTutorText(summaryParts.join(" - "))}</p>
+                    ${bookedText ? `<p class="session-created-line">${escapeTutorText(bookedText)}</p>` : ""}
                 </div>
                 <div class="session-range-side">
                     <p>${escapeTutorText(first.tutorName || "Tutor")}</p>
@@ -275,6 +281,23 @@ function formatGroupDateRange(sessions) {
     return `${firstText} – ${lastText}`;
 }
 
+function getValidDate(value) {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function formatBookingCreatedAt(value) {
+    const date = value instanceof Date ? value : getValidDate(value);
+    if (!date) return "date unavailable";
+    return date.toLocaleString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit"
+    });
+}
+
 function renderLearnerSession(session, compact = false) {
     const state = getLearnerSessionState(session);
     const waiting = state === "awaiting";
@@ -298,6 +321,7 @@ function renderLearnerSession(session, compact = false) {
             <div>
                 <h3>${escapeTutorText(session.subject || "Session")}</h3>
                 <p>${escapeTutorText(formatSessionSchedule(session))}</p>
+                ${session.createdAt ? `<p class="session-created-line">Booked ${escapeTutorText(formatBookingCreatedAt(session.createdAt))}</p>` : ""}
                 <p class="session-payment-line">Payment: ${escapeTutorText(getLearnerPaymentStatusLabel(session.paymentStatus))} · ₱${Number(session.sessionAmount || 0).toLocaleString("en-PH", { minimumFractionDigits: 2 })}</p>
                 ${refundDetails}
                 ${issueDetails}
@@ -512,7 +536,7 @@ async function openLearnerCancellationModal(bookingId, trigger = null) {
             ${Number(quote.tutorCompensationAmount) > 0 ? `<div><span>Tutor compensation</span><strong>₱${Number(quote.tutorCompensationAmount).toLocaleString("en-PH", { minimumFractionDigits: 2 })}</strong></div>` : ''}
             ${quote.warningIssued ? '<p class="cancellation-warning">This cancellation records an advanced-cancellation warning under the learner policy.</p>' : ''}`;
     } catch (requestError) {
-        error.textContent = requestError.message;
+        error.textContent = getFriendlyCancellationError(requestError.message);
     }
 }
 
@@ -545,11 +569,20 @@ async function confirmLearnerCancellation() {
         showLearnerToast(`${result.message} Refund: ₱${Number(result.amount).toLocaleString("en-PH", { minimumFractionDigits: 2 })}.`);
         await loadSessions();
     } catch (requestError) {
-        error.textContent = requestError.message;
+        error.textContent = getFriendlyCancellationError(requestError.message);
     } finally {
         button.disabled = false;
         button.textContent = "Confirm Cancellation";
     }
+}
+
+function getFriendlyCancellationError(message) {
+    const text = String(message || "").trim();
+    if (!text) return "Cancellation could not be completed right now. Please try again later.";
+    if (/paymongo|api|badrequest|payment_intent|parameter_invalid|source pointer/i.test(text)) {
+        return "Cancellation could not be completed right now. Please try again later or contact support.";
+    }
+    return text;
 }
 
 function syncLearnerModalState() {

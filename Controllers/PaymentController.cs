@@ -13,12 +13,18 @@ public class PaymentController : Controller
     private readonly AppDbContext _context;
     private readonly PaymentService _payments;
     private readonly IPaymentGateway _gateway;
+    private readonly ILogger<PaymentController> _logger;
 
-    public PaymentController(AppDbContext context, PaymentService payments, IPaymentGateway gateway)
+    public PaymentController(
+        AppDbContext context,
+        PaymentService payments,
+        IPaymentGateway gateway,
+        ILogger<PaymentController> logger)
     {
         _context = context;
         _payments = payments;
         _gateway = gateway;
+        _logger = logger;
     }
 
     [HttpGet]
@@ -368,7 +374,11 @@ public class PaymentController : Controller
         }
         catch (InvalidOperationException error)
         {
-            return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = error.Message });
+            _logger.LogError(error, "Payment provider refund failed for booking {BookingId}.", request.BookingId);
+            return StatusCode(StatusCodes.Status503ServiceUnavailable, new
+            {
+                message = "Cancellation could not be completed right now. Please try again later or contact support."
+            });
         }
     }
 

@@ -323,6 +323,7 @@ public class LearnerController : Controller
                 booking.Date,
                 booking.Time,
                 booking.Status,
+                booking.CreatedAt,
                 booking.BookingGroupId,
                 booking.BookingType,
                 booking.TutorMarkedDoneAt,
@@ -486,7 +487,6 @@ public class LearnerController : Controller
         var learnerName = request.LearnerName?.Trim() ?? "";
         var learnerEmail = request.LearnerEmail?.Trim().ToLowerInvariant() ?? "";
         var learnerContact = NormalizeProfileContact(request.LearnerContact, true);
-        var learnerGrade = request.LearnerGrade?.Trim() ?? "";
         var subject = request.Subject?.Trim() ?? "";
 
         if (request.TutorId <= 0 || string.IsNullOrWhiteSpace(time))
@@ -500,10 +500,6 @@ public class LearnerController : Controller
 
         if (learnerContact == null)
             return BadRequest(new { message = "Use 09XXXXXXXXX or +639XXXXXXXXX for the contact number." });
-
-        if (!string.IsNullOrWhiteSpace(learnerGrade) &&
-            !AllowedGradeLevels.Contains(learnerGrade, StringComparer.Ordinal))
-            return BadRequest(new { message = "Select a valid learner grade level." });
 
         if (!AllowedSubjects.Contains(subject, StringComparer.Ordinal))
             return BadRequest(new { message = "Select a valid subject." });
@@ -559,7 +555,6 @@ public class LearnerController : Controller
             LearnerName = learnerName,
             LearnerEmail = learnerEmail,
             LearnerContact = learnerContact,
-            LearnerGrade = learnerGrade,
             Subject = subject,
             TutorName = tutor.TutorName,
             Date = date,
@@ -792,7 +787,6 @@ public class LearnerController : Controller
         public string LearnerName { get; set; } = "";
         public string LearnerEmail { get; set; } = "";
         public string LearnerContact { get; set; } = "";
-        public string LearnerGrade { get; set; } = "";
         public string Subject { get; set; } = "";
         public string TutorName { get; set; } = "";
         public string Date { get; set; } = "";
