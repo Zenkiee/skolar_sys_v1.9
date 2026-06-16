@@ -78,7 +78,7 @@ button, input, select, textarea {
 
 .admin-summary {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 16px;
     margin-bottom: 24px;
 }
@@ -179,6 +179,11 @@ button, input, select, textarea {
 .admin-status.resolved {
     background: #e6f5ed;
     color: var(--success);
+}
+
+.admin-status.danger {
+    background: #fce8e8;
+    color: var(--danger);
 }
 
 .admin-issue-body {
@@ -435,6 +440,12 @@ button, input, select, textarea {
     color: #ffffff;
     font-weight: 600;
     cursor: pointer;
+}
+
+.admin-verification-files a {
+    color: var(--navy);
+    font-weight: 800;
+    text-decoration: underline;
 }
 
 @media (max-width: 560px) {

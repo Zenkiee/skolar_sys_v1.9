@@ -11,6 +11,53 @@
   flex: 1;
 }
 
+.verification-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: #fff8e6;
+  border: 1px solid rgba(212, 168, 83, 0.45);
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: var(--gap);
+  color: var(--navy);
+}
+
+.verification-banner[hidden] {
+  display: none;
+}
+
+.verification-banner div {
+  display: grid;
+  gap: 2px;
+}
+
+.verification-banner strong {
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.verification-banner span {
+  color: #526078;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.verification-banner a {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 8px;
+  background: var(--gold);
+  color: var(--navy);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
 /* ---------- Welcome Card ---------- */
 .welcome-card {
   background: var(--navy);
@@ -334,5 +381,16 @@
   color: var(--text-muted);
   font-size: 0.66rem;
   margin-top: 8px;
+}
+
+@media (max-width: 768px) {
+  .verification-banner {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .verification-banner a {
+    width: 100%;
+  }
 }
 

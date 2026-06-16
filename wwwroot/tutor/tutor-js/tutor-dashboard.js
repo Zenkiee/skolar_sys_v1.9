@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let bookings = [];
 
   loadProfile();
+  loadVerificationStatus();
   loadBookings();
   loadReviews();
   displayCurrentDate();
@@ -20,6 +21,41 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     } catch (error) {
       console.error("Could not load tutor profile.", error);
+    }
+  }
+
+  async function loadVerificationStatus() {
+    try {
+      const response = await fetch("/Tutor/MyPortalProfile", { cache: "no-store" });
+      if (!response.ok) return;
+
+      const profile = await response.json();
+      const banner = document.getElementById("verificationBanner");
+      const bannerTitle = document.getElementById("verificationBannerTitle");
+      const bannerText = document.getElementById("verificationBannerText");
+      const bannerAction = document.getElementById("verificationBannerAction");
+      if (banner) {
+        const status = profile.identityVerificationStatus || "Pending";
+        banner.hidden = status === "Verified";
+
+        if (bannerTitle && bannerText) {
+          if (status === "Under Review") {
+            bannerTitle.textContent = "Identity verification under review";
+            bannerText.textContent = "Your tutor profile is not publicly shown in learner search until an admin approves it.";
+            if (bannerAction) bannerAction.textContent = "View Status";
+          } else if (status === "Rejected") {
+            bannerTitle.textContent = "Identity verification needs resubmission";
+            bannerText.textContent = "Your tutor profile is not publicly shown. Update and resubmit your identity verification.";
+            if (bannerAction) bannerAction.textContent = "Resubmit Verification";
+          } else {
+            bannerTitle.textContent = "Identity verification needed";
+            bannerText.textContent = "Your tutor profile is not publicly shown in learner search yet.";
+            if (bannerAction) bannerAction.textContent = "Verify Identity";
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Could not load verification status.", error);
     }
   }
 

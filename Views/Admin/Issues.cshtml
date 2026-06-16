@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/css/skolar-dialog.css">
     <link rel="icon" type="image/png" href="~/assets/img/skolarlogo.png">
-    <link rel="stylesheet" href="~/admin/admin.css">
+    <link rel="stylesheet" href="~/admin/admin.css" asp-append-version="true">
     <title>Skolar Administration</title>
 </head>
 <body>
@@ -25,12 +25,14 @@
         <section class="admin-summary">
             <div><strong id="openIssueCount">0</strong><span>Open session issues</span></div>
             <div><strong id="pendingReviewCount">0</strong><span>Pending review reports</span></div>
+            <div><strong id="pendingVerificationCount">0</strong><span>Tutor verifications</span></div>
             <div><strong id="resolvedItemCount">0</strong><span>Resolved items</span></div>
         </section>
 
         <div class="admin-tabs" role="tablist" aria-label="Moderation sections">
             <button type="button" class="admin-tab active" data-admin-tab="sessions">Session Issues</button>
             <button type="button" class="admin-tab" data-admin-tab="reviews">Reported Reviews</button>
+            <button type="button" class="admin-tab" data-admin-tab="verifications">Tutor Verifications</button>
         </div>
 
         <section id="sessionIssuesPanel" class="admin-panel">
@@ -68,6 +70,24 @@
                 <div class="admin-empty">Loading reported reviews...</div>
             </div>
         </section>
+
+        <section id="tutorVerificationsPanel" class="admin-panel" hidden>
+            <div class="admin-toolbar">
+                <div>
+                    <h2>Tutor identity verification</h2>
+                    <p>Approve verified tutors before their profiles appear in learner search.</p>
+                </div>
+                <select id="verificationFilter" aria-label="Filter tutor verifications">
+                    <option value="all">All</option>
+                    <option value="pending">Needs Review</option>
+                    <option value="rejected">Rejected</option>
+                </select>
+            </div>
+
+            <div id="adminVerificationList" class="admin-issue-list">
+                <div class="admin-empty">Loading tutor verifications...</div>
+            </div>
+        </section>
     </main>
 
     <div class="admin-modal" id="adminResolutionModal" hidden>
@@ -100,6 +120,6 @@
 
     <script src="~/main-js/auth-guard.js"></script>
     <script>requireRole("admin");</script>
-    <script src="~/admin/admin-issues.js"></script>
+    <script src="~/admin/admin-issues.js" asp-append-version="true"></script>
 </body>
 </html>

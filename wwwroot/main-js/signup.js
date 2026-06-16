@@ -200,7 +200,7 @@ async function handleTutorSignup(event) {
             bio,
             subjects
         }
-    }, "/Tutor/TutorDashboard");
+    }, "/Tutor/IdentityVerification");
 }
 
 async function submitSignup(form, payload, redirectUrl) {

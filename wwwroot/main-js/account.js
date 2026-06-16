@@ -96,7 +96,7 @@ if (loginForm) {
             accountMessage.style.color = "#b6ffb6";
 
             setTimeout(() => {
-                redirectByRole(data.role);
+                redirectByRole(data.role, data.identityVerificationStatus);
             }, 800);
 
         } catch (err) {
@@ -106,11 +106,13 @@ if (loginForm) {
     });
 }
 
-function redirectByRole(role) {
+function redirectByRole(role, identityVerificationStatus) {
     if (role === "admin") {
         window.location.href = "/Admin/Issues";
     } else if (role === "tutor") {
-        window.location.href = "/Tutor/TutorDashboard";
+        window.location.href = identityVerificationStatus === "Pending" || identityVerificationStatus === "Rejected"
+            ? "/Tutor/IdentityVerification"
+            : "/Tutor/TutorDashboard";
     } else {
         window.location.href = "/Learner/LearnerPortal";
     }

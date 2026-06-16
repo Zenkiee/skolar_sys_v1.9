@@ -564,10 +564,10 @@ namespace inMVC.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTime?>("LastNotificationReadAt")
+                    b.Property<DateTime?>("LastNotificationClearedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime?>("LastNotificationClearedAt")
+                    b.Property<DateTime?>("LastNotificationReadAt")
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("NewReviewAlertsEnabled")
@@ -685,6 +685,41 @@ namespace inMVC.Migrations
 
                     b.Property<string>("Education")
                         .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("IdentityBirthdate")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("IdentityDocumentFile")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("IdentityDocumentNumber")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("IdentityDocumentType")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("IdentityLegalName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("IdentitySelfieFile")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("IdentityVerificationNote")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("IdentityVerificationStatus")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("IdentityVerifiedAt")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ProfilePhoto")

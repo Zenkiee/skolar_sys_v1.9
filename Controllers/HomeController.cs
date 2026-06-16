@@ -689,7 +689,8 @@ public class HomeController : Controller
         return Ok(new
         {
             success = true,
-            role = user.Role
+            role = user.Role,
+            identityVerificationStatus = tutorProfile?.IdentityVerificationStatus ?? ""
         });
     }
 
@@ -766,10 +767,20 @@ public class HomeController : Controller
             "userRole",
             user.Role);
 
+        var identityVerificationStatus = "";
+        if (user.Role.Equals("tutor", StringComparison.OrdinalIgnoreCase))
+        {
+            identityVerificationStatus = await _context.TutorProfiles
+                .Where(profile => profile.UserId == user.Id)
+                .Select(profile => profile.IdentityVerificationStatus)
+                .FirstOrDefaultAsync() ?? "Pending";
+        }
+
         return Ok(new
         {
             success = true,
-            role = user.Role
+            role = user.Role,
+            identityVerificationStatus
         });
     }
 

@@ -10,11 +10,16 @@ public class AdminController : Controller
 {
     private readonly AppDbContext _context;
     private readonly PaymentService _payments;
+    private readonly EmailService _emailService;
 
-    public AdminController(AppDbContext context, PaymentService payments)
+    public AdminController(
+        AppDbContext context,
+        PaymentService payments,
+        EmailService emailService)
     {
         _context = context;
         _payments = payments;
+        _emailService = emailService;
     }
 
     public IActionResult Issues()
@@ -164,6 +169,99 @@ public class AdminController : Controller
         return Json(reports);
     }
 
+    [HttpGet]
+    public async Task<IActionResult> TutorVerifications()
+    {
+        if (!HttpContext.Session.HasRole("admin")) return Unauthorized();
+
+        var verifications = await _context.TutorProfiles
+            .Include(profile => profile.User)
+            .Where(profile => profile.IdentityVerificationStatus != "Verified")
+            .OrderByDescending(profile => profile.IdentityVerificationStatus == "Under Review")
+            .ThenByDescending(profile => profile.Id)
+            .Select(profile => new
+            {
+                profile.Id,
+                profile.TutorName,
+                Email = profile.User != null ? profile.User.Email : "",
+                profile.ContactNumber,
+                profile.Education,
+                profile.IdentityVerificationStatus,
+                profile.IdentityLegalName,
+                profile.IdentityBirthdate,
+                profile.IdentityDocumentType,
+                profile.IdentityDocumentNumber,
+                profile.IdentityDocumentFile,
+                profile.IdentitySelfieFile,
+                profile.IdentityVerificationNote
+            })
+            .ToListAsync();
+
+        return Json(verifications);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ResolveTutorVerification([FromBody] ResolveTutorVerificationRequest request)
+    {
+        if (!HttpContext.Session.HasRole("admin")) return Unauthorized();
+
+        var action = request.Action?.Trim().ToLowerInvariant() ?? "";
+        var note = request.Note?.Trim() ?? "";
+
+        if (action is not ("approve" or "reject"))
+            return BadRequest(new { message = "Choose a valid verification decision." });
+
+        if (note.Length > 500)
+            return BadRequest(new { message = "Verification note must be 500 characters or fewer." });
+
+        var tutor = await _context.TutorProfiles
+            .Include(profile => profile.User)
+            .FirstOrDefaultAsync(profile => profile.Id == request.TutorId);
+
+        if (tutor == null)
+            return NotFound(new { message = "Tutor verification was not found." });
+
+        var wasVerified = tutor.IdentityVerificationStatus == "Verified";
+        var wasRejected = tutor.IdentityVerificationStatus == "Rejected";
+
+        if (action == "approve")
+        {
+            tutor.IdentityVerificationStatus = "Verified";
+            tutor.IdentityVerificationNote = "";
+            tutor.IdentityVerifiedAt = DateTime.UtcNow;
+        }
+        else
+        {
+            tutor.IdentityVerificationStatus = "Rejected";
+            tutor.IdentityVerificationNote = string.IsNullOrWhiteSpace(note)
+                ? "Please review and resubmit your identity details."
+                : note;
+            tutor.IdentityVerifiedAt = null;
+        }
+
+        await _context.SaveChangesAsync();
+
+        if (action == "approve" && !wasVerified && !string.IsNullOrWhiteSpace(tutor.User?.Email))
+        {
+            await _emailService.SendTutorApprovalEmailAsync(tutor.User.Email, tutor.TutorName);
+        }
+        else if (action == "reject" && !wasRejected && !string.IsNullOrWhiteSpace(tutor.User?.Email))
+        {
+            await _emailService.SendTutorRejectionEmailAsync(
+                tutor.User.Email,
+                tutor.TutorName,
+                tutor.IdentityVerificationNote);
+        }
+
+        return Ok(new
+        {
+            success = true,
+            message = action == "approve"
+                ? "Tutor identity approved. The tutor can now appear in learner search, and an email was sent."
+                : "Tutor verification was sent back for resubmission, and an email was sent."
+        });
+    }
+
     [HttpPost]
     public async Task<IActionResult> ResolveReviewReport([FromBody] ResolveReviewReportRequest request)
     {
@@ -222,4 +320,11 @@ public class ResolveReviewReportRequest
 {
     public int ReportId { get; set; }
     public string Action { get; set; } = "";
+}
+
+public class ResolveTutorVerificationRequest
+{
+    public int TutorId { get; set; }
+    public string Action { get; set; } = "";
+    public string Note { get; set; } = "";
 }

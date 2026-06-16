@@ -221,19 +221,10 @@ document.addEventListener('DOMContentLoaded', () => {
     return null;
   }
 // Profile Data
-  fetch('/Home/Me')
+  fetch('/Tutor/MyProfileDetails')
     .then(r => r.ok ? r.json() : null)
-    .then(async user => {
-        if (!user) return;
-        const listRes = await fetch('/Tutor/List');
-        if (!listRes.ok) return;
-        const tutors = await listRes.json();
-        const t = tutors.find(x => x.tutorName === user.name) || tutors[0];
-        if (!t) return;
-
-        const detailRes = await fetch(`/Tutor/GetProfile?id=${t.id}`);
-        if (!detailRes.ok) return;
-        const profile = await detailRes.json();
+    .then(profile => {
+        if (!profile) return;
 
         const nameParts = (profile.tutorName || '').split(' ');
         currentData.personal.firstName = nameParts[0] || '';

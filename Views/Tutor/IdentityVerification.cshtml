@@ -1,0 +1,99 @@
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <meta name="description" content="Skolar Tutor Identity Verification">
+  <title>Identity Verification | Skolar</title>
+  <link rel="icon" type="image/png" href="~/assets/img/skolarlogo.png">
+  <link rel="stylesheet" href="~/tutor/tutor-css/tutor-shared.css">
+  <link rel="stylesheet" href="~/tutor/tutor-css/identity-verification.css">
+</head>
+<body>
+  <main class="identity-page">
+    <section class="identity-shell">
+      <div class="identity-brand">
+        <img src="~/assets/img/skolarlogo.png" alt="Skolar Logo">
+        <span>Skolar Tutor Portal</span>
+      </div>
+
+      <div class="identity-header">
+        <p class="identity-kicker">Tutor verification</p>
+        <h1>Verify your identity</h1>
+        <p>Your tutor profile becomes visible to learners after identity verification is completed.</p>
+      </div>
+
+      <div class="identity-status" id="identityStatus">
+        Checking verification status...
+      </div>
+
+      <form id="identityForm" class="identity-form" enctype="multipart/form-data" novalidate>
+        <div class="identity-grid">
+          <div class="identity-field">
+            <label for="legalName">Full Legal Name</label>
+            <input type="text" id="legalName" name="legalName" maxlength="120" autocomplete="name" required>
+            <p class="identity-error" data-error-for="legalName"></p>
+          </div>
+
+          <div class="identity-field">
+            <label for="birthdate">Birthdate</label>
+            <input type="date" id="birthdate" name="birthdate" required>
+            <p class="identity-error" data-error-for="birthdate"></p>
+          </div>
+
+          <div class="identity-field">
+            <label for="documentType">Government ID Type</label>
+            <select id="documentType" name="documentType" required>
+              <option value="">Select ID type</option>
+              <option>National ID</option>
+              <option>Passport</option>
+              <option>Driver's License</option>
+              <option>UMID</option>
+              <option>PRC ID</option>
+              <option>School ID</option>
+            </select>
+            <p class="identity-error" data-error-for="documentType"></p>
+          </div>
+
+          <div class="identity-field">
+            <label for="documentNumber">ID Number</label>
+            <input type="text" id="documentNumber" name="documentNumber" maxlength="40" autocomplete="off" required>
+            <p class="identity-error" data-error-for="documentNumber"></p>
+          </div>
+        </div>
+
+        <div class="identity-upload-grid">
+          <div class="identity-upload">
+            <label for="documentFile">ID Document</label>
+            <input type="file" id="documentFile" name="documentFile" accept=".jpg,.jpeg,.png,.webp,.pdf">
+            <p id="documentFileState">JPG, PNG, WebP, or PDF up to 8 MB.</p>
+            <p class="identity-error" data-error-for="documentFile"></p>
+          </div>
+
+          <div class="identity-upload">
+            <label for="selfieFile">Verification Selfie</label>
+            <input type="file" id="selfieFile" name="selfieFile" accept=".jpg,.jpeg,.png,.webp">
+            <p id="selfieFileState">Upload a clear selfie for account matching.</p>
+            <p class="identity-error" data-error-for="selfieFile"></p>
+          </div>
+        </div>
+
+        <p id="identityMessage" class="identity-message" role="status" aria-live="polite"></p>
+
+        <div class="identity-actions">
+          <a href="/Tutor/TutorDashboard" class="identity-secondary">Back to Dashboard</a>
+          <button type="submit" class="identity-primary" id="submitIdentity">Submit Verification</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <script src="~/main-js/auth-guard.js"></script>
+  <script>
+    requireRole("tutor");
+  </script>
+  <script src="~/tutor/tutor-js/identity-verification.js"></script>
+</body>
+</html>

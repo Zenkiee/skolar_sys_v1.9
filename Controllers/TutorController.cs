@@ -12,6 +12,15 @@ public class TutorController : Controller
 {
     private readonly AppDbContext _context;
     private readonly PaymentService _payments;
+    private static readonly string[] AllowedIdentityDocumentTypes =
+    {
+        "National ID",
+        "Passport",
+        "Driver's License",
+        "UMID",
+        "PRC ID",
+        "School ID"
+    };
 
     public TutorController(AppDbContext context, PaymentService payments)
     {
@@ -23,6 +32,7 @@ public class TutorController : Controller
     public async Task<IActionResult> List()
     {
         var tutors = await _context.TutorProfiles
+            .Where(t => t.IdentityVerificationStatus == "Verified")
             .Select(t => new
             {
                 t.Id,
@@ -74,6 +84,7 @@ public class TutorController : Controller
     public IActionResult Bookings() => View();
     public IActionResult Calendar() => View();
     public IActionResult EditProfile() => View();
+    public IActionResult IdentityVerification() => View();
     public IActionResult Reviews() => View();
     public IActionResult Settings() => View();
     public IActionResult TutorProfile() => View();
@@ -399,7 +410,156 @@ public class TutorController : Controller
             tutor.Id,
             tutor.TutorName,
             tutor.Education,
-            tutor.ProfilePhoto
+            tutor.ProfilePhoto,
+            tutor.IdentityVerificationStatus,
+            IsIdentityVerified = tutor.IdentityVerificationStatus == "Verified"
+        });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> MyProfileDetails()
+    {
+        var userId = HttpContext.Session.GetUserId();
+        if (userId == null || !HttpContext.Session.HasRole("tutor")) return Unauthorized();
+
+        var tutor = await _context.TutorProfiles
+            .Include(item => item.User)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(item => item.UserId == userId.Value);
+        if (tutor == null) return NotFound();
+
+        return Json(new
+        {
+            tutor.Id,
+            tutor.TutorName,
+            tutor.ProfilePhoto,
+            tutor.Rate,
+            tutor.Education,
+            tutor.ContactNumber,
+            tutor.Bio,
+            tutor.Subjects,
+            Email = tutor.User?.Email ?? "",
+            tutor.IdentityVerificationStatus
+        });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> MyIdentityVerification()
+    {
+        var userId = HttpContext.Session.GetUserId();
+        if (userId == null || !HttpContext.Session.HasRole("tutor")) return Unauthorized();
+
+        var tutor = await _context.TutorProfiles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(item => item.UserId == userId.Value);
+        if (tutor == null) return NotFound();
+
+        return Json(new
+        {
+            tutor.IdentityVerificationStatus,
+            tutor.IdentityLegalName,
+            tutor.IdentityBirthdate,
+            tutor.IdentityDocumentType,
+            tutor.IdentityDocumentNumber,
+            tutor.IdentityVerificationNote,
+            HasDocumentFile = !string.IsNullOrWhiteSpace(tutor.IdentityDocumentFile),
+            HasSelfieFile = !string.IsNullOrWhiteSpace(tutor.IdentitySelfieFile),
+            tutor.IdentityVerifiedAt
+        });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> SubmitIdentityVerification(
+        [FromForm] TutorIdentityVerificationRequest request)
+    {
+        var userId = HttpContext.Session.GetUserId();
+        if (userId == null || !HttpContext.Session.HasRole("tutor")) return Unauthorized();
+
+        var tutor = await _context.TutorProfiles
+            .FirstOrDefaultAsync(item => item.UserId == userId.Value);
+        if (tutor == null) return NotFound(new { message = "Tutor profile not found." });
+
+        if (tutor.IdentityVerificationStatus == "Under Review")
+        {
+            return BadRequest(new
+            {
+                message = "Your identity verification is already under admin review. Please wait for the admin decision before resubmitting."
+            });
+        }
+
+        if (tutor.IdentityVerificationStatus == "Verified")
+        {
+            return BadRequest(new
+            {
+                message = "Your identity verification is already approved."
+            });
+        }
+
+        var legalName = request.LegalName?.Trim() ?? "";
+        var birthdateText = request.Birthdate?.Trim() ?? "";
+        var documentType = request.DocumentType?.Trim() ?? "";
+        var documentNumber = request.DocumentNumber?.Trim() ?? "";
+
+        if (legalName.Length is < 2 or > 120 || !legalName.Any(char.IsLetter))
+            return BadRequest(new { field = "legalName", message = "Enter your full legal name." });
+
+        if (!DateTime.TryParseExact(
+                birthdateText,
+                "yyyy-MM-dd",
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.None,
+                out var birthdate) || birthdate.Date > DateTime.Today)
+        {
+            return BadRequest(new { field = "birthdate", message = "Enter a valid birthdate." });
+        }
+
+        if (!AllowedIdentityDocumentTypes.Contains(documentType, StringComparer.Ordinal))
+            return BadRequest(new { field = "documentType", message = "Choose a valid ID type." });
+
+        if (documentNumber.Length is < 4 or > 40)
+            return BadRequest(new { field = "documentNumber", message = "Enter a valid ID number." });
+
+        if (request.DocumentFile == null && string.IsNullOrWhiteSpace(tutor.IdentityDocumentFile))
+            return BadRequest(new { field = "documentFile", message = "Upload a copy of your ID." });
+
+        if (request.SelfieFile == null && string.IsNullOrWhiteSpace(tutor.IdentitySelfieFile))
+            return BadRequest(new { field = "selfieFile", message = "Upload a verification selfie." });
+
+        string documentFile;
+        string selfieFile;
+
+        try
+        {
+            documentFile = request.DocumentFile == null
+                ? tutor.IdentityDocumentFile
+                : await SaveIdentityFileAsync(request.DocumentFile, userId.Value, "id");
+
+            selfieFile = request.SelfieFile == null
+                ? tutor.IdentitySelfieFile
+                : await SaveIdentityFileAsync(request.SelfieFile, userId.Value, "selfie");
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+
+        tutor.IdentityLegalName = legalName;
+        tutor.IdentityBirthdate = birthdateText;
+        tutor.IdentityDocumentType = documentType;
+        tutor.IdentityDocumentNumber = documentNumber;
+        tutor.IdentityDocumentFile = documentFile;
+        tutor.IdentitySelfieFile = selfieFile;
+        tutor.IdentityVerificationStatus = "Under Review";
+        tutor.IdentityVerificationNote = "";
+        tutor.IdentityVerifiedAt = null;
+
+        await _context.SaveChangesAsync();
+
+        return Ok(new
+        {
+            success = true,
+            message = "Identity verification submitted for review.",
+            status = tutor.IdentityVerificationStatus
         });
     }
 
@@ -676,7 +836,9 @@ public class TutorController : Controller
     {
         var tutor = await _context.TutorProfiles
             .Include(t => t.User)
-            .FirstOrDefaultAsync(t => t.Id == id);
+            .FirstOrDefaultAsync(t =>
+                t.Id == id &&
+                t.IdentityVerificationStatus == "Verified");
 
         if (tutor == null) return NotFound();
 
@@ -720,6 +882,12 @@ public class TutorController : Controller
     public async Task<IActionResult> GetAvailability(int tutorId)
     {
         if (tutorId <= 0) return Json(Array.Empty<object>());
+
+        var isVerifiedTutor = await _context.TutorProfiles
+            .AnyAsync(item =>
+                item.Id == tutorId &&
+                item.IdentityVerificationStatus == "Verified");
+        if (!isVerifiedTutor) return Json(Array.Empty<object>());
 
         var availability = (await _context.TutorAvailabilities
             .Where(a => a.TutorId == tutorId && a.Time != "")
@@ -916,6 +1084,55 @@ public class TutorController : Controller
             DateTimeStyles.None,
             out time);
     }
+
+    private static async Task<string> SaveIdentityFileAsync(
+        IFormFile file,
+        int userId,
+        string purpose)
+    {
+        if (file.Length == 0 || file.Length > 8 * 1024 * 1024)
+        {
+            throw new InvalidOperationException("Files must be 8 MB or smaller.");
+        }
+
+        var allowedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ".jpg",
+            ".jpeg",
+            ".png",
+            ".webp"
+        };
+
+        if (purpose != "selfie")
+        {
+            allowedExtensions.Add(".pdf");
+        }
+
+        var extension = Path.GetExtension(file.FileName);
+        if (!allowedExtensions.Contains(extension))
+        {
+            var allowedText = purpose == "selfie"
+                ? "Use a JPG, PNG, or WebP file."
+                : "Use a JPG, PNG, WebP, or PDF file.";
+            throw new InvalidOperationException(allowedText);
+        }
+
+        var uploadsDirectory = Path.Combine(
+            Directory.GetCurrentDirectory(),
+            "wwwroot",
+            "uploads",
+            "tutor-verifications");
+
+        Directory.CreateDirectory(uploadsDirectory);
+
+        var fileName = $"tutor_{userId}_{purpose}_{Guid.NewGuid():N}{extension}";
+        var filePath = Path.Combine(uploadsDirectory, fileName);
+
+        await using var stream = new FileStream(filePath, FileMode.Create);
+        await file.CopyToAsync(stream);
+
+        return $"/uploads/tutor-verifications/{fileName}";
+    }
 }
 
 public class UpdateStatusRequest
@@ -950,6 +1167,16 @@ public class UpdateNotificationSettingsRequest
 {
     public bool PushNotificationsEnabled { get; set; }
     public bool NewReviewAlertsEnabled { get; set; }
+}
+
+public class TutorIdentityVerificationRequest
+{
+    public string LegalName { get; set; } = "";
+    public string Birthdate { get; set; } = "";
+    public string DocumentType { get; set; } = "";
+    public string DocumentNumber { get; set; } = "";
+    public IFormFile? DocumentFile { get; set; }
+    public IFormFile? SelfieFile { get; set; }
 }
 
 public class TutorNotificationItem

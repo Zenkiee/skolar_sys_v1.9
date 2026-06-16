@@ -1,0 +1,222 @@
+body {
+  background: var(--cream);
+  color: var(--navy);
+  display: block;
+}
+
+.identity-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 18px;
+  background:
+    linear-gradient(135deg, rgba(0, 63, 92, 0.96), rgba(20, 32, 58, 0.96)),
+    url("../../assets/img/skolar-logo-colored.png") center/420px no-repeat;
+}
+
+.identity-shell {
+  width: min(860px, 100%);
+  background: var(--white);
+  border: 1px solid rgba(232, 223, 200, 0.8);
+  border-radius: 8px;
+  box-shadow: var(--shadow-hover);
+  padding: 28px;
+}
+
+.identity-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 24px;
+  color: var(--navy);
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.identity-brand img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
+.identity-header {
+  max-width: 620px;
+  margin-bottom: 20px;
+}
+
+.identity-kicker {
+  color: var(--gold);
+  font-size: 0.76rem;
+  font-weight: 900;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
+
+.identity-header h1 {
+  color: var(--navy);
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 1.15;
+  margin-bottom: 8px;
+}
+
+.identity-header p {
+  color: #526078;
+  font-size: 0.95rem;
+}
+
+.identity-status {
+  border: 1px solid var(--cream-dark);
+  background: var(--cream);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 20px;
+  color: var(--navy);
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.identity-status.verified {
+  border-color: rgba(76, 175, 80, 0.25);
+  background: rgba(76, 175, 80, 0.12);
+  color: #26702a;
+}
+
+.identity-form {
+  display: grid;
+  gap: 18px;
+}
+
+.identity-grid,
+.identity-upload-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.identity-field label,
+.identity-upload label {
+  display: block;
+  color: var(--navy);
+  font-size: 0.78rem;
+  font-weight: 900;
+  margin-bottom: 7px;
+}
+
+.identity-field input,
+.identity-field select,
+.identity-upload input {
+  width: 100%;
+  min-height: 46px;
+  border: 1.5px solid var(--cream-dark);
+  border-radius: 8px;
+  background: #fbf8ef;
+  color: var(--navy);
+  font-size: 0.9rem;
+  font-weight: 700;
+  padding: 10px 12px;
+}
+
+.identity-field input:focus,
+.identity-field select:focus,
+.identity-upload input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(212, 168, 83, 0.18);
+}
+
+.identity-field .input-invalid,
+.identity-upload .input-invalid {
+  border-color: #c54040;
+}
+
+.identity-upload {
+  border: 1px solid var(--cream-dark);
+  background: #fbf8ef;
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.identity-upload p:not(.identity-error) {
+  color: #667085;
+  font-size: 0.76rem;
+  font-weight: 700;
+  margin-top: 7px;
+}
+
+.identity-error {
+  min-height: 18px;
+  margin-top: 5px;
+  color: #b42318;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.identity-message {
+  min-height: 20px;
+  color: #26702a;
+  font-size: 0.86rem;
+  font-weight: 900;
+}
+
+.identity-message.error {
+  color: #b42318;
+}
+
+.identity-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.identity-primary,
+.identity-secondary {
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  padding: 0 18px;
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.identity-primary {
+  background: var(--gold);
+  color: var(--navy);
+}
+
+.identity-primary:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.identity-secondary {
+  border: 1.5px solid var(--cream-dark);
+  color: var(--navy);
+}
+
+@media (max-width: 720px) {
+  .identity-shell {
+    padding: 22px;
+  }
+
+  .identity-header h1 {
+    font-size: 1.55rem;
+  }
+
+  .identity-grid,
+  .identity-upload-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .identity-actions {
+    justify-content: stretch;
+  }
+
+  .identity-primary,
+  .identity-secondary {
+    width: 100%;
+  }
+}

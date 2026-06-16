@@ -1,34 +1,41 @@
 let adminIssues = [];
 let adminReviewReports = [];
+let adminTutorVerifications = [];
 let selectedAdminIssueId = null;
 let adminToastTimer = null;
 
 // Data
 async function loadAdminData() {
-    const [issueResponse, reviewResponse] = await Promise.all([
+    const [issueResponse, reviewResponse, verificationResponse] = await Promise.all([
         fetch("/Admin/SessionIssues", { cache: "no-store" }),
-        fetch("/Admin/ReviewReports", { cache: "no-store" })
+        fetch("/Admin/ReviewReports", { cache: "no-store" }),
+        fetch("/Admin/TutorVerifications", { cache: "no-store" })
     ]);
 
     if (!issueResponse.ok) throw new Error("Could not load session issues.");
     if (!reviewResponse.ok) throw new Error("Could not load reported reviews.");
+    if (!verificationResponse.ok) throw new Error("Could not load tutor verifications.");
 
     adminIssues = await issueResponse.json();
     adminReviewReports = await reviewResponse.json();
+    adminTutorVerifications = await verificationResponse.json();
 
     updateAdminSummary();
     renderAdminIssues();
     renderReviewReports();
+    renderTutorVerifications();
 }
 
 function updateAdminSummary() {
     const openIssues = adminIssues.filter(issue => !issue.adminIssueResolvedAt);
     const pendingReviews = adminReviewReports.filter(report => report.status === "Pending");
+    const pendingVerifications = adminTutorVerifications.filter(item => item.identityVerificationStatus !== "Verified");
     const resolvedIssues = adminIssues.filter(issue => Boolean(issue.adminIssueResolvedAt));
     const resolvedReviews = adminReviewReports.filter(report => report.status !== "Pending");
 
     setAdminText("openIssueCount", openIssues.length);
     setAdminText("pendingReviewCount", pendingReviews.length);
+    setAdminText("pendingVerificationCount", pendingVerifications.length);
     setAdminText("resolvedItemCount", resolvedIssues.length + resolvedReviews.length);
 }
 
@@ -221,6 +228,104 @@ async function resolveReviewReport(reportId, action) {
     }
 }
 
+// Tutor Verifications
+function renderTutorVerifications() {
+    const list = document.getElementById("adminVerificationList");
+    const filter = document.getElementById("verificationFilter")?.value || "all";
+    if (!list) return;
+
+    const filtered = adminTutorVerifications.filter(item => {
+        const status = item.identityVerificationStatus || "Pending";
+        if (filter === "all") return true;
+        if (filter === "rejected") return status === "Rejected";
+        return status === "Under Review" || status === "Pending";
+    });
+
+    if (filtered.length === 0) {
+        list.innerHTML = `<div class="admin-empty">No ${filter === "all" ? "" : filter} tutor verifications found.</div>`;
+        return;
+    }
+
+    list.innerHTML = filtered.map(item => {
+        const status = item.identityVerificationStatus || "Pending";
+        const readyForDecision = status === "Under Review";
+        const birthdate = item.identityBirthdate || "Not provided";
+        const documentLink = item.identityDocumentFile
+            ? `<a href="${escapeAdminHtml(item.identityDocumentFile)}" target="_blank" rel="noopener">Open ID document</a>`
+            : `<span>Missing ID document</span>`;
+        const selfieLink = item.identitySelfieFile
+            ? `<a href="${escapeAdminHtml(item.identitySelfieFile)}" target="_blank" rel="noopener">Open selfie</a>`
+            : `<span>Missing selfie</span>`;
+
+        return `
+            <article class="admin-issue-card admin-verification-card">
+                <div class="admin-issue-head">
+                    <div>
+                        <h3>${escapeAdminHtml(item.tutorName || "Tutor")}</h3>
+                        <p>${escapeAdminHtml(item.email || "No email")} · ${escapeAdminHtml(item.contactNumber || "No contact")}</p>
+                        <span class="admin-issue-meta">${escapeAdminHtml(item.education || "No display title")}</span>
+                    </div>
+                    <span class="admin-status ${status === "Rejected" ? "danger" : ""}">${escapeAdminHtml(status)}</span>
+                </div>
+                <div class="admin-issue-body">
+                    <div class="admin-statement">
+                        <h4>Identity details</h4>
+                        <p><strong>${escapeAdminHtml(item.identityLegalName || "No legal name")}</strong></p>
+                        <p>Birthdate: ${escapeAdminHtml(birthdate)}</p>
+                        <p>${escapeAdminHtml(item.identityDocumentType || "ID")} · ${escapeAdminHtml(item.identityDocumentNumber || "No ID number")}</p>
+                    </div>
+                    <div class="admin-statement admin-verification-files">
+                        <h4>Submitted files</h4>
+                        <p>${documentLink}</p>
+                        <p>${selfieLink}</p>
+                    </div>
+                    ${item.identityVerificationNote ? `
+                        <div class="admin-resolution-summary">
+                            <strong>Latest note</strong>
+                            <p>${escapeAdminHtml(item.identityVerificationNote)}</p>
+                        </div>` : ""}
+                </div>
+                ${readyForDecision ? `
+                    <div class="admin-issue-footer admin-review-actions">
+                        <button type="button" class="admin-secondary-btn admin-verification-decision" data-tutor-id="${item.id}" data-action="approve">Approve</button>
+                        <button type="button" class="admin-danger-btn admin-verification-decision" data-tutor-id="${item.id}" data-action="reject">Reject</button>
+                    </div>` : ""}
+            </article>`;
+    }).join("");
+}
+
+async function resolveTutorVerification(tutorId, action) {
+    const approving = action === "approve";
+    const note = "";
+
+    const confirmed = await SkolarDialog.confirm(
+        approving
+            ? "Approve this tutor identity verification?"
+            : "Send this verification back for resubmission?",
+        {
+            title: approving ? "Approve tutor?" : "Reject verification?",
+            type: approving ? "warning" : "danger",
+            confirmText: approving ? "Approve" : "Reject"
+        }
+    );
+
+    if (!confirmed) return;
+
+    try {
+        const response = await fetch("/Admin/ResolveTutorVerification", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ tutorId, action, note })
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(result.message || "Could not decide the verification.");
+        showAdminToast(result.message || "Tutor verification updated.");
+        await loadAdminData();
+    } catch (error) {
+        showAdminToast(error.message, "error");
+    }
+}
+
 // Navigation
 function switchAdminTab(tabName) {
     document.querySelectorAll("[data-admin-tab]").forEach(button => {
@@ -229,6 +334,7 @@ function switchAdminTab(tabName) {
 
     document.getElementById("sessionIssuesPanel").hidden = tabName !== "sessions";
     document.getElementById("reviewReportsPanel").hidden = tabName !== "reviews";
+    document.getElementById("tutorVerificationsPanel").hidden = tabName !== "verifications";
 }
 
 // Helpers
@@ -271,6 +377,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.getElementById("issueFilter")?.addEventListener("change", renderAdminIssues);
     document.getElementById("reviewReportFilter")?.addEventListener("change", renderReviewReports);
+    document.getElementById("verificationFilter")?.addEventListener("change", renderTutorVerifications);
 
     document.getElementById("adminIssueList")?.addEventListener("click", event => {
         const button = event.target.closest(".admin-resolve-btn");
@@ -280,6 +387,11 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("adminReviewList")?.addEventListener("click", event => {
         const button = event.target.closest(".admin-review-decision");
         if (button) resolveReviewReport(Number(button.dataset.reportId), button.dataset.action);
+    });
+
+    document.getElementById("adminVerificationList")?.addEventListener("click", event => {
+        const button = event.target.closest(".admin-verification-decision");
+        if (button) resolveTutorVerification(Number(button.dataset.tutorId), button.dataset.action);
     });
 
     document.querySelectorAll("[data-close-admin-modal]").forEach(element => {
@@ -295,7 +407,9 @@ document.addEventListener("DOMContentLoaded", () => {
     loadAdminData().catch(error => {
         const issueList = document.getElementById("adminIssueList");
         const reviewList = document.getElementById("adminReviewList");
+        const verificationList = document.getElementById("adminVerificationList");
         if (issueList) issueList.innerHTML = `<div class="admin-empty">${escapeAdminHtml(error.message)}</div>`;
         if (reviewList) reviewList.innerHTML = `<div class="admin-empty">${escapeAdminHtml(error.message)}</div>`;
+        if (verificationList) verificationList.innerHTML = `<div class="admin-empty">${escapeAdminHtml(error.message)}</div>`;
     });
 });

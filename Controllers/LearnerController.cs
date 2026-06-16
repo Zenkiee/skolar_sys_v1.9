@@ -506,7 +506,9 @@ public class LearnerController : Controller
 
         var tutor = await _context.TutorProfiles
             .AsNoTracking()
-            .FirstOrDefaultAsync(item => item.Id == request.TutorId);
+            .FirstOrDefaultAsync(item =>
+                item.Id == request.TutorId &&
+                item.IdentityVerificationStatus == "Verified");
         if (tutor == null) return NotFound(new { message = "Tutor not found." });
 
         var tutorSubjects = (tutor.Subjects ?? "")
