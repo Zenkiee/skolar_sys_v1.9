@@ -21,6 +21,7 @@
                 <h2 id="roleTitle">Learner Login</h2>
 
                 <form id="loginForm" class="account-form active">
+                    @Html.AntiForgeryToken()
                     <input type="email" id="loginUsername" placeholder="Email Address" required>
 
                     <div class="password-wrapper">
@@ -42,7 +43,33 @@
                     </p>
                 </form>
 
-                <p id="accountMessage"></p>
+                <form id="loginOtpForm" class="account-form verification-form" novalidate>
+                    <p class="verification-description">
+                        Enter the six-digit code sent to
+                        <strong id="loginMaskedEmail">your email</strong>.
+                    </p>
+
+                    <input
+                        type="text"
+                        id="loginOtp"
+                        class="otp-input"
+                        placeholder="000000"
+                        inputmode="numeric"
+                        autocomplete="one-time-code"
+                        maxlength="6"
+                        pattern="[0-9]{6}"
+                        aria-label="Six-digit verification code"
+                        required>
+
+                    <button type="submit" class="main-login-btn">Verify and continue</button>
+
+                    <div class="verification-actions">
+                        <button type="button" id="resendLoginOtp" class="verification-link">Resend code</button>
+                        <button type="button" id="backToLogin" class="verification-link">Back to login</button>
+                    </div>
+                </form>
+
+                <p id="accountMessage" role="status" aria-live="polite"></p>
             </div>
         </section>
 
