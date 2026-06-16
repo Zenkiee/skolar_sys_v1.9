@@ -61,12 +61,16 @@ public class HomeController : Controller
         "ESP"
     };
 
+    private readonly EmailService _emailService;
+
     public HomeController(
         AppDbContext context,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        EmailService emailService)
     {
         _context = context;
         _configuration = configuration;
+        _emailService = emailService;
     }
 
     public IActionResult Index() => View();
