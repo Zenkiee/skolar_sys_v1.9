@@ -15,6 +15,7 @@ public class HomeController : Controller
     
     private readonly AppDbContext _context;
     private readonly IConfiguration _configuration;
+    private readonly ILogger<HomeController> _logger;
 
     private const string PasswordResetUserIdKey = "passwordResetUserId";
     private const string PasswordResetRoleKey = "passwordResetRole";
@@ -69,11 +70,13 @@ public class HomeController : Controller
     public HomeController(
         AppDbContext context,
         IConfiguration configuration,
-        EmailService emailService)
+        EmailService emailService,
+        ILogger<HomeController> logger)
     {
         _context = context;
         _configuration = configuration;
         _emailService = emailService;
+        _logger = logger;
     }
 
     public IActionResult Index() => View();
@@ -141,16 +144,25 @@ public class HomeController : Controller
         HttpContext.Session.SetString(PasswordResetOtpExpiryKey, expiry.ToString());
 
         try
-            {
-                await _emailService.SendOtpEmailAsync(user.Email, otp);
-            }
-            catch (Exception ex)
-            {
-                ClearPasswordResetSession();
-                return StatusCode(500, new { error = ex.Message + " | " + ex.InnerException?.Message });
-            }
+        {
+            await _emailService.SendOtpEmailAsync(user.Email, otp);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Failed to send password reset OTP for user {UserId}.",
+                user.Id);
 
-            return Ok(new { success = true, message = "A verification code was sent to your email." });
+            ClearPasswordResetSession();
+
+            return StatusCode(500, new
+            {
+                error = "We couldn't send the verification code right now. Please try again later."
+            });
+        }
+
+        return Ok(new { success = true, message = "A verification code was sent to your email." });
     }
     
 
