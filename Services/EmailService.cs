@@ -13,23 +13,74 @@ public class EmailService
         _config = config;
     }
 
-    public async Task SendOtpEmailAsync(string toEmail, string otp)
+    public Task SendOtpEmailAsync(string toEmail, string otp)
     {
-        var message = new MimeMessage();
-        message.Subject = "Your Skolar Password Reset Code";
+        return SendVerificationCodeEmailAsync(
+            toEmail,
+            otp,
+            "Your Skolar Password Reset Code",
+            "Password Reset Code",
+            "Use the code below to reset your Skolar password.",
+            "If you didn't request a password reset, ignore this email.");
+    }
 
+    public Task SendLoginOtpEmailAsync(
+        string toEmail,
+        string otp,
+        string role)
+    {
+        var accountLabel = role.Equals(
+            "admin",
+            StringComparison.OrdinalIgnoreCase)
+            ? "administrator"
+            : role.ToLowerInvariant();
+
+        return SendVerificationCodeEmailAsync(
+            toEmail,
+            otp,
+            "Your Skolar Login Verification Code",
+            "Login Verification Code",
+            $"Use the code below to finish signing in to your Skolar {accountLabel} account.",
+            "If you didn't try to log in, change your password and ignore this email.");
+    }
+
+    public Task SendSignupOtpEmailAsync(
+        string toEmail,
+        string otp)
+    {
+        return SendVerificationCodeEmailAsync(
+            toEmail,
+            otp,
+            "Verify Your Skolar Email Address",
+            "Email Verification Code",
+            "Use the code below to verify your email and finish creating your Skolar account.",
+            "No account will be created unless this code is verified.");
+    }
+
+    private async Task SendVerificationCodeEmailAsync(
+        string toEmail,
+        string otp,
+        string subject,
+        string heading,
+        string instruction,
+        string footer)
+    {
+        var safeHeading = System.Net.WebUtility.HtmlEncode(heading);
+        var safeInstruction = System.Net.WebUtility.HtmlEncode(instruction);
+        var safeFooter = System.Net.WebUtility.HtmlEncode(footer);
+        var safeOtp = System.Net.WebUtility.HtmlEncode(otp);
+
+        var message = new MimeMessage();
+        message.Subject = subject;
         message.Body = new TextPart("html")
         {
             Text = $"""
-                <div style="font-family:Inter,sans-serif;max-width:480px;margin:auto;padding:32px;">
-                  <h2 style="color:#0d4f6c;">Password Reset Code</h2>
-                  <p>Use the code below to reset your Skolar password.
-                     It expires in <strong>10 minutes</strong>.</p>
-                  <div style="font-size:36px;font-weight:700;letter-spacing:8px;
-                              color:#c0392b;margin:24px 0;">{otp}</div>
-                  <p style="color:#888;font-size:13px;">
-                    If you didn't request this, ignore this email.
-                  </p>
+                <div style="font-family:Inter,Arial,sans-serif;max-width:480px;margin:auto;padding:32px;color:#0d2f3f;">
+                  <h2 style="color:#0d4f6c;">{safeHeading}</h2>
+                  <p>{safeInstruction}</p>
+                  <p>This code expires in <strong>10 minutes</strong>.</p>
+                  <div style="font-size:36px;font-weight:700;letter-spacing:8px;color:#8b0000;margin:24px 0;">{safeOtp}</div>
+                  <p style="color:#777;font-size:13px;">{safeFooter}</p>
                 </div>
             """
         };

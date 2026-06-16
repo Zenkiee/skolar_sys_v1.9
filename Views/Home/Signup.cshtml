@@ -21,6 +21,8 @@
                     <div class="signup-step active" id="stepOneCircle">1</div>
                     <div class="signup-line"></div>
                     <div class="signup-step" id="stepTwoCircle">2</div>
+                    <div class="signup-line"></div>
+                    <div class="signup-step" id="stepThreeCircle">3</div>
                 </div>
 
                 <p class="signup-step-label" id="stepLabel">Basic Account</p>
@@ -194,6 +196,36 @@
                     <div class="profile-buttons">
                         <button type="button" class="back-profile-btn" data-back-to-account>Back</button>
                         <button type="submit" class="main-login-btn">Create Profile</button>
+                    </div>
+                </form>
+
+                <form id="signupOtpForm" class="account-form verification-form" novalidate>
+                    <p class="verification-description">
+                        We sent a six-digit verification code to
+                        <strong id="signupMaskedEmail">your email</strong>.
+                        Your account will only be created after verification.
+                    </p>
+
+                    <div class="form-field">
+                        <label class="sr-only" for="signupOtp">Six-digit verification code</label>
+                        <input
+                            type="text"
+                            id="signupOtp"
+                            class="otp-input"
+                            placeholder="000000"
+                            inputmode="numeric"
+                            autocomplete="one-time-code"
+                            maxlength="6"
+                            pattern="[0-9]{6}"
+                            required>
+                        <p class="field-error" data-error-for="signupOtp"></p>
+                    </div>
+
+                    <button type="submit" class="main-login-btn">Verify and create account</button>
+
+                    <div class="verification-actions">
+                        <button type="button" id="resendSignupOtp" class="verification-link">Resend code</button>
+                        <button type="button" id="backToProfile" class="verification-link">Back to profile</button>
                     </div>
                 </form>
 

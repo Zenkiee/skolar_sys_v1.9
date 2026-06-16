@@ -9,11 +9,19 @@ const signupBox = document.getElementById("signupBox");
 const basicSignupForm = document.getElementById("basicSignupForm");
 const learnerProfileForm = document.getElementById("learnerProfileForm");
 const tutorProfileForm = document.getElementById("tutorProfileForm");
+const signupOtpForm = document.getElementById("signupOtpForm");
+const signupOtp = document.getElementById("signupOtp");
+const signupMaskedEmail = document.getElementById("signupMaskedEmail");
+const resendSignupOtp = document.getElementById("resendSignupOtp");
+const backToProfile = document.getElementById("backToProfile");
 const stepOneCircle = document.getElementById("stepOneCircle");
 const stepTwoCircle = document.getElementById("stepTwoCircle");
+const stepThreeCircle = document.getElementById("stepThreeCircle");
 const stepLabel = document.getElementById("stepLabel");
 const allowedYearLevels = ["Preschool", "Kindergarten", "Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6"];
 let tempAccount = null;
+let pendingRedirectUrl = "";
+let resendTimer = null;
 
 initializePage();
 
@@ -37,15 +45,26 @@ function initializePage() {
     basicSignupForm.addEventListener("submit", handleBasicSignup);
     learnerProfileForm.addEventListener("submit", handleLearnerSignup);
     tutorProfileForm.addEventListener("submit", handleTutorSignup);
+    signupOtpForm.addEventListener("submit", handleSignupOtpVerification);
+    resendSignupOtp.addEventListener("click", handleSignupOtpResend);
+    backToProfile.addEventListener("click", showProfileStep);
+    signupOtp.addEventListener("input", () => {
+        signupOtp.value = signupOtp.value.replace(/\D/g, "").slice(0, 6);
+        clearFieldError("signupOtp");
+    });
 }
 
 function showProfileStep() {
+    stopResendCountdown();
     clearMessage();
     basicSignupForm.classList.remove("active");
     learnerProfileForm.classList.remove("active");
     tutorProfileForm.classList.remove("active");
+    signupOtpForm.classList.remove("active");
     stepOneCircle.classList.add("done");
     stepTwoCircle.classList.add("active");
+    stepTwoCircle.classList.remove("done");
+    stepThreeCircle.classList.remove("active", "done");
     stepLabel.textContent = "Create Profile";
     signupBox.classList.add("profile-mode");
 
@@ -61,16 +80,70 @@ function showProfileStep() {
 }
 
 function goBackToSignup() {
+    stopResendCountdown();
     learnerProfileForm.classList.remove("active");
     tutorProfileForm.classList.remove("active");
+    signupOtpForm.classList.remove("active");
     basicSignupForm.classList.add("active");
     stepOneCircle.classList.remove("done");
-    stepTwoCircle.classList.remove("active");
+    stepTwoCircle.classList.remove("active", "done");
+    stepThreeCircle.classList.remove("active", "done");
     stepLabel.textContent = "Basic Account";
     signupBox.classList.remove("profile-mode");
     roleTitle.textContent = selectedRole === "tutor" ? "Tutor Sign Up" : "Learner Sign Up";
     clearMessage();
     document.getElementById("signupEmail").focus();
+}
+
+function showVerificationStep(maskedEmail, redirectUrl, resendAfterSeconds = 60) {
+    basicSignupForm.classList.remove("active");
+    learnerProfileForm.classList.remove("active");
+    tutorProfileForm.classList.remove("active");
+    signupOtpForm.classList.add("active");
+
+    stepOneCircle.classList.add("done");
+    stepTwoCircle.classList.remove("active");
+    stepTwoCircle.classList.add("done");
+    stepThreeCircle.classList.add("active");
+    stepLabel.textContent = "Email Verification";
+    roleTitle.textContent = "Verify Your Email";
+    signupBox.classList.remove("profile-mode");
+
+    pendingRedirectUrl = redirectUrl;
+    signupMaskedEmail.textContent = maskedEmail || tempAccount?.email || "your email";
+    signupOtp.value = "";
+    clearFieldError("signupOtp");
+    clearMessage();
+    startResendCountdown(resendAfterSeconds);
+    signupOtp.focus();
+}
+
+function startResendCountdown(seconds) {
+    stopResendCountdown();
+    let remaining = Math.max(0, Number(seconds) || 0);
+
+    const update = () => {
+        if (remaining <= 0) {
+            resendSignupOtp.disabled = false;
+            resendSignupOtp.textContent = "Resend code";
+            stopResendCountdown();
+            return;
+        }
+
+        resendSignupOtp.disabled = true;
+        resendSignupOtp.textContent = `Resend in ${remaining}s`;
+        remaining -= 1;
+    };
+
+    update();
+    resendTimer = window.setInterval(update, 1000);
+}
+
+function stopResendCountdown() {
+    if (resendTimer !== null) {
+        window.clearInterval(resendTimer);
+        resendTimer = null;
+    }
 }
 
 function handleBasicSignup(event) {
@@ -224,14 +297,94 @@ async function submitSignup(form, payload, redirectUrl) {
             return;
         }
 
-        showMessage("Profile created successfully!", "success");
-        setTimeout(() => {
-            window.location.href = redirectUrl;
-        }, 700);
+        showVerificationStep(
+            data.maskedEmail,
+            redirectUrl,
+            data.resendAfterSeconds || 60);
+        showMessage("Verification code sent.", "success");
     } catch (error) {
         showMessage("Something went wrong. Please try again.", "error");
     } finally {
         setSubmitting(form, false);
+    }
+}
+
+async function handleSignupOtpVerification(event) {
+    event.preventDefault();
+    clearMessage();
+    clearFieldError("signupOtp");
+
+    const otp = signupOtp.value.replace(/\D/g, "");
+    if (otp.length !== 6) {
+        setFieldError("signupOtp", "Enter the complete six-digit verification code.");
+        signupOtp.focus();
+        return;
+    }
+
+    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || "";
+    setSubmitting(signupOtpForm, true, "Verifying...");
+
+    try {
+        const response = await fetch("/Home/VerifySignupOtp", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": token
+            },
+            body: JSON.stringify({ otp })
+        });
+
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            showMessage(data.error || "Verification failed.", "error");
+            return;
+        }
+
+        showMessage("Email verified. Account created!", "success");
+        window.setTimeout(() => {
+            window.location.href = pendingRedirectUrl || (
+                data.role === "tutor"
+                    ? "/Tutor/IdentityVerification"
+                    : "/Learner/LearnerPortal");
+        }, 600);
+    } catch (error) {
+        console.error(error);
+        showMessage("Something went wrong. Please try again.", "error");
+    } finally {
+        setSubmitting(signupOtpForm, false, "Verify and create account");
+    }
+}
+
+async function handleSignupOtpResend() {
+    clearMessage();
+    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || "";
+    resendSignupOtp.disabled = true;
+
+    try {
+        const response = await fetch("/Home/ResendSignupOtp", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": token
+            },
+            body: "{}"
+        });
+
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            showMessage(data.error || "Unable to resend the code.", "error");
+            startResendCountdown(data.resendAfterSeconds || 0);
+            return;
+        }
+
+        signupOtp.value = "";
+        signupOtp.focus();
+        showMessage(data.message || "A new code was sent.", "success");
+        startResendCountdown(data.resendAfterSeconds || 60);
+    } catch (error) {
+        console.error(error);
+        showMessage("Unable to resend the code. Please try again.", "error");
+        resendSignupOtp.disabled = false;
     }
 }
 
@@ -474,15 +627,15 @@ function focusFirstInvalid(form) {
     form.querySelector(".input-invalid")?.focus();
 }
 
-function setSubmitting(form, submitting) {
+function setSubmitting(form, submitting, busyText = "Creating account...") {
     const button = form.querySelector('button[type="submit"]');
     if (!button) return;
 
     if (submitting) {
         button.dataset.originalText = button.textContent;
-        button.textContent = "Creating account...";
+        button.textContent = busyText;
     } else {
-        button.textContent = button.dataset.originalText || "Create Profile";
+        button.textContent = button.dataset.originalText || "Submit";
     }
 
     button.disabled = submitting;

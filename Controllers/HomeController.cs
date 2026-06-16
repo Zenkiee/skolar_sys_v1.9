@@ -1,6 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Globalization;
+using System.Security.Cryptography;
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using inMVC.Models;
@@ -22,8 +24,24 @@ public class HomeController : Controller
 
     private const string PasswordResetOtpKey = "passwordResetOtp";
     private const string PasswordResetOtpExpiryKey = "passwordResetOtpExpiry";
+    private const string PasswordResetVerifiedKey = "passwordResetVerified";
 
-    
+    private const string PendingLoginUserIdKey = "pendingLoginUserId";
+    private const string PendingLoginOtpKey = "pendingLoginOtp";
+    private const string PendingLoginOtpExpiryKey = "pendingLoginOtpExpiry";
+    private const string PendingLoginOtpSentAtKey = "pendingLoginOtpSentAt";
+    private const string PendingLoginOtpAttemptsKey = "pendingLoginOtpAttempts";
+
+    private const string PendingSignupDataKey = "pendingSignupData";
+    private const string PendingSignupOtpKey = "pendingSignupOtp";
+    private const string PendingSignupOtpExpiryKey = "pendingSignupOtpExpiry";
+    private const string PendingSignupOtpSentAtKey = "pendingSignupOtpSentAt";
+    private const string PendingSignupOtpAttemptsKey = "pendingSignupOtpAttempts";
+
+    private const int OtpLifetimeMinutes = 10;
+    private const int OtpResendCooldownSeconds = 60;
+    private const int OtpMaximumAttempts = 5;
+
 
     private static readonly string[] AllowedYearLevels =
     {
@@ -187,9 +205,10 @@ public class HomeController : Controller
         if (request.Otp?.Trim() != storedOtp)
             return BadRequest(new { error = "Incorrect verification code. Try again." });
 
-        // OTP verified — clear it so it can't be reused
+        // OTP verified — clear it so it can't be reused.
         HttpContext.Session.Remove(PasswordResetOtpKey);
         HttpContext.Session.Remove(PasswordResetOtpExpiryKey);
+        HttpContext.Session.SetString(PasswordResetVerifiedKey, "true");
 
         return Ok(new { success = true });
     }
@@ -205,8 +224,12 @@ public class HomeController : Controller
         var pendingRole = HttpContext.Session.GetString(
             PasswordResetRoleKey);
 
+        var resetVerified = HttpContext.Session.GetString(
+            PasswordResetVerifiedKey);
+
         if (userId == null ||
-            string.IsNullOrWhiteSpace(pendingRole))
+            string.IsNullOrWhiteSpace(pendingRole) ||
+            resetVerified != "true")
         {
             ClearPasswordResetSession();
 
@@ -437,14 +460,13 @@ public class HomeController : Controller
     public async Task<IActionResult> Signup(
         [FromBody] SignupRequest request)
     {
-        var name = request.Name?.Trim() ?? "";
+        ClearSignupVerificationSession();
 
+        var name = request.Name?.Trim() ?? "";
         var email = request.Email?
             .Trim()
             .ToLowerInvariant() ?? "";
-
         var password = request.Password ?? "";
-
         var role = request.Role?
             .Trim()
             .ToLowerInvariant() ?? "";
@@ -458,20 +480,15 @@ public class HomeController : Controller
 
         if (role is not ("learner" or "tutor"))
         {
-            return SignupError(
-                "",
-                "Select a valid account role.");
+            return SignupError("", "Select a valid account role.");
         }
 
         if (name.Length is < 2 or > 60 ||
             !name.Any(char.IsLetter))
         {
             return SignupError(
-                role == "tutor"
-                    ? "tutorName"
-                    : "learnerName",
-                "Name must be 2 to 60 characters " +
-                "and contain a letter.");
+                role == "tutor" ? "tutorName" : "learnerName",
+                "Name must be 2 to 60 characters and contain a letter.");
         }
 
         if (email.Length > 254 ||
@@ -488,12 +505,11 @@ public class HomeController : Controller
         {
             return SignupError(
                 "signupPassword",
-                "Password must be 8–64 characters " +
-                "and include a letter and number.");
+                "Password must be 8–64 characters and include a letter and number.");
         }
 
-        TutorProfile? tutorProfile = null;
-        LearnerProfile? learnerProfile = null;
+        PendingTutorProfileData? tutorProfile = null;
+        PendingLearnerProfileData? learnerProfile = null;
 
         if (role == "tutor")
         {
@@ -506,13 +522,9 @@ public class HomeController : Controller
 
             var education =
                 request.TutorProfile.Education?.Trim() ?? "";
-
             var contactNumber = NormalizeContactNumber(
                 request.TutorProfile.ContactNumber);
-
-            var bio =
-                request.TutorProfile.Bio?.Trim() ?? "";
-
+            var bio = request.TutorProfile.Bio?.Trim() ?? "";
             var subjects = NormalizeSubjects(
                 request.TutorProfile.Subjects);
 
@@ -544,27 +556,20 @@ public class HomeController : Controller
                     "Bio must be 20 to 500 characters.");
             }
 
-            if (subjects == null ||
-                subjects.Count < 1)
+            if (subjects == null || subjects.Count < 1)
             {
                 return SignupError(
                     "subjectDropdownTrigger",
                     "Choose at least one valid subject.");
             }
 
-            var rateText =
-                request.TutorProfile.Rate.ToString(
-                    "0.##",
-                    CultureInfo.InvariantCulture);
-
-            tutorProfile = new TutorProfile
+            tutorProfile = new PendingTutorProfileData
             {
-                TutorName = name,
-                Rate = $"₱{rateText}/hr",
+                Rate = request.TutorProfile.Rate,
                 Education = education,
                 ContactNumber = contactNumber,
                 Bio = bio,
-                Subjects = string.Join(",", subjects)
+                Subjects = subjects
             };
         }
         else
@@ -578,10 +583,8 @@ public class HomeController : Controller
 
             var gradeLevel =
                 request.LearnerProfile.GradeLevel?.Trim() ?? "";
-
             var school =
                 request.LearnerProfile.School?.Trim() ?? "";
-
             var birthdayText =
                 request.LearnerProfile.Birthday?.Trim() ?? "";
 
@@ -620,21 +623,16 @@ public class HomeController : Controller
                     "Birthdate cannot be in the future.");
             }
 
-            learnerProfile = new LearnerProfile
+            learnerProfile = new PendingLearnerProfileData
             {
                 GradeLevel = gradeLevel,
                 School = school,
-                Birthday = birthdayText,
-                Subjects = ""
+                Birthday = birthdayText
             };
         }
 
-        await using var transaction =
-            await _context.Database.BeginTransactionAsync();
-
         var emailExists = await _context.Users
-            .AnyAsync(user =>
-                user.Email.ToLower() == email);
+            .AnyAsync(user => user.Email.ToLower() == email);
 
         if (emailExists)
         {
@@ -643,68 +641,347 @@ public class HomeController : Controller
                 "Email is already registered.");
         }
 
-        var user = new User
+        var pendingSignup = new PendingSignupData
         {
             Name = name,
             Email = email,
-            PasswordHash =
-                BCrypt.Net.BCrypt.HashPassword(password),
-            Role = role
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
+            Role = role,
+            TutorProfile = tutorProfile,
+            LearnerProfile = learnerProfile
+        };
+
+        var otp = GenerateOtp();
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var expiry = DateTimeOffset.UtcNow
+            .AddMinutes(OtpLifetimeMinutes)
+            .ToUnixTimeSeconds();
+
+        HttpContext.Session.SetString(
+            PendingSignupDataKey,
+            JsonSerializer.Serialize(pendingSignup));
+        HttpContext.Session.SetString(PendingSignupOtpKey, otp);
+        HttpContext.Session.SetString(
+            PendingSignupOtpExpiryKey,
+            expiry.ToString(CultureInfo.InvariantCulture));
+        HttpContext.Session.SetString(
+            PendingSignupOtpSentAtKey,
+            now.ToString(CultureInfo.InvariantCulture));
+        HttpContext.Session.SetInt32(PendingSignupOtpAttemptsKey, 0);
+
+        try
+        {
+            await _emailService.SendSignupOtpEmailAsync(email, otp);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Failed to send signup OTP to {Email}.",
+                email);
+
+            ClearSignupVerificationSession();
+
+            return StatusCode(500, new
+            {
+                error =
+                    "We couldn't send a verification code to that email. " +
+                    "Check the address and try again."
+            });
+        }
+
+        return Ok(new
+        {
+            success = true,
+            requiresVerification = true,
+            maskedEmail = MaskEmail(email),
+            resendAfterSeconds = OtpResendCooldownSeconds
+        });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> VerifySignupOtp(
+        [FromBody] VerifyOtpRequest request)
+    {
+        var pendingJson = HttpContext.Session.GetString(
+            PendingSignupDataKey);
+        var storedOtp = HttpContext.Session.GetString(
+            PendingSignupOtpKey);
+        var expiryText = HttpContext.Session.GetString(
+            PendingSignupOtpExpiryKey);
+
+        if (string.IsNullOrWhiteSpace(pendingJson) ||
+            string.IsNullOrWhiteSpace(storedOtp) ||
+            string.IsNullOrWhiteSpace(expiryText))
+        {
+            ClearSignupVerificationSession();
+            return Unauthorized(new
+            {
+                error = "Your sign-up verification session expired. Start again."
+            });
+        }
+
+        if (!long.TryParse(
+                expiryText,
+                NumberStyles.Integer,
+                CultureInfo.InvariantCulture,
+                out var expiry) ||
+            DateTimeOffset.UtcNow.ToUnixTimeSeconds() > expiry)
+        {
+            ClearSignupVerificationSession();
+            return BadRequest(new
+            {
+                error = "The verification code expired. Start sign-up again."
+            });
+        }
+
+        var submittedOtp = NormalizeOtp(request.Otp);
+        if (submittedOtp != storedOtp)
+        {
+            var attempts =
+                (HttpContext.Session.GetInt32(PendingSignupOtpAttemptsKey) ?? 0) + 1;
+            HttpContext.Session.SetInt32(
+                PendingSignupOtpAttemptsKey,
+                attempts);
+
+            if (attempts >= OtpMaximumAttempts)
+            {
+                ClearSignupVerificationSession();
+                return BadRequest(new
+                {
+                    error =
+                        "Too many incorrect attempts. Start sign-up again."
+                });
+            }
+
+            return BadRequest(new
+            {
+                error =
+                    $"Incorrect verification code. " +
+                    $"{OtpMaximumAttempts - attempts} attempt(s) remaining."
+            });
+        }
+
+        PendingSignupData? pendingSignup;
+        try
+        {
+            pendingSignup = JsonSerializer.Deserialize<PendingSignupData>(
+                pendingJson);
+        }
+        catch (JsonException)
+        {
+            pendingSignup = null;
+        }
+
+        if (pendingSignup == null ||
+            string.IsNullOrWhiteSpace(pendingSignup.Email) ||
+            pendingSignup.Role is not ("learner" or "tutor"))
+        {
+            ClearSignupVerificationSession();
+            return BadRequest(new
+            {
+                error = "The pending sign-up data is invalid. Start again."
+            });
+        }
+
+        var emailExists = await _context.Users.AnyAsync(user =>
+            user.Email.ToLower() == pendingSignup.Email.ToLower());
+
+        if (emailExists)
+        {
+            ClearSignupVerificationSession();
+            return Conflict(new
+            {
+                error = "Email is already registered."
+            });
+        }
+
+        await using var transaction =
+            await _context.Database.BeginTransactionAsync();
+
+        var user = new User
+        {
+            Name = pendingSignup.Name,
+            Email = pendingSignup.Email,
+            PasswordHash = pendingSignup.PasswordHash,
+            Role = pendingSignup.Role
         };
 
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
-        if (tutorProfile != null)
-        {
-            tutorProfile.UserId = user.Id;
-            _context.TutorProfiles.Add(tutorProfile);
-        }
+        var identityVerificationStatus = "";
 
-        if (learnerProfile != null)
+        if (pendingSignup.Role == "tutor" &&
+            pendingSignup.TutorProfile != null)
         {
-            learnerProfile.UserId = user.Id;
-            _context.LearnerProfiles.Add(learnerProfile);
+            var profile = pendingSignup.TutorProfile;
+            var rateText = profile.Rate.ToString(
+                "0.##",
+                CultureInfo.InvariantCulture);
+
+            _context.TutorProfiles.Add(new TutorProfile
+            {
+                UserId = user.Id,
+                TutorName = user.Name,
+                Rate = $"₱{rateText}/hr",
+                Education = profile.Education,
+                ContactNumber = profile.ContactNumber,
+                Bio = profile.Bio,
+                Subjects = string.Join(",", profile.Subjects),
+                IdentityVerificationStatus = "Pending"
+            });
+
+            identityVerificationStatus = "Pending";
+        }
+        else if (pendingSignup.Role == "learner" &&
+                 pendingSignup.LearnerProfile != null)
+        {
+            var profile = pendingSignup.LearnerProfile;
+
+            _context.LearnerProfiles.Add(new LearnerProfile
+            {
+                UserId = user.Id,
+                GradeLevel = profile.GradeLevel,
+                School = profile.School,
+                Birthday = profile.Birthday,
+                Subjects = ""
+            });
+        }
+        else
+        {
+            await transaction.RollbackAsync();
+            ClearSignupVerificationSession();
+            return BadRequest(new
+            {
+                error = "The pending profile data is incomplete. Start again."
+            });
         }
 
         await _context.SaveChangesAsync();
         await transaction.CommitAsync();
 
-        HttpContext.Session.SetString(
-            "userId",
-            user.Id.ToString());
-
-        HttpContext.Session.SetString(
-            "userName",
-            user.Name);
-
-        HttpContext.Session.SetString(
-            "userEmail",
-            user.Email);
-
-        HttpContext.Session.SetString(
-            "userRole",
-            user.Role);
+        ClearSignupVerificationSession();
+        SetAuthenticatedSession(user);
 
         return Ok(new
         {
             success = true,
             role = user.Role,
-            identityVerificationStatus = tutorProfile?.IdentityVerificationStatus ?? ""
+            identityVerificationStatus
         });
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ResendSignupOtp()
+    {
+        var pendingJson = HttpContext.Session.GetString(
+            PendingSignupDataKey);
+
+        if (string.IsNullOrWhiteSpace(pendingJson))
+        {
+            return Unauthorized(new
+            {
+                error = "Your sign-up verification session expired. Start again."
+            });
+        }
+
+        PendingSignupData? pendingSignup;
+        try
+        {
+            pendingSignup = JsonSerializer.Deserialize<PendingSignupData>(
+                pendingJson);
+        }
+        catch (JsonException)
+        {
+            pendingSignup = null;
+        }
+
+        if (pendingSignup == null ||
+            string.IsNullOrWhiteSpace(pendingSignup.Email))
+        {
+            ClearSignupVerificationSession();
+            return BadRequest(new
+            {
+                error = "The pending sign-up data is invalid. Start again."
+            });
+        }
+
+        var cooldownResult = GetResendWaitSeconds(
+            PendingSignupOtpSentAtKey);
+        if (cooldownResult > 0)
+        {
+            return StatusCode(429, new
+            {
+                error = $"Please wait {cooldownResult} second(s) before resending.",
+                resendAfterSeconds = cooldownResult
+            });
+        }
+
+        var otp = GenerateOtp();
+
+        try
+        {
+            await _emailService.SendSignupOtpEmailAsync(
+                pendingSignup.Email,
+                otp);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Failed to resend signup OTP to {Email}.",
+                pendingSignup.Email);
+
+            return StatusCode(500, new
+            {
+                error = "We couldn't resend the verification code right now."
+            });
+        }
+
+        StoreSignupOtp(otp);
+
+        return Ok(new
+        {
+            success = true,
+            message = "A new verification code was sent.",
+            resendAfterSeconds = OtpResendCooldownSeconds
+        });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(
         [FromBody] LoginRequest request)
     {
+        ClearAuthenticatedSession();
+        ClearLoginVerificationSession();
+
         var email = request.Email?
             .Trim()
             .ToLowerInvariant() ?? "";
-
         var role = request.Role?
             .Trim()
             .ToLowerInvariant() ?? "";
+
+        if (role is not ("learner" or "tutor" or "admin"))
+        {
+            return BadRequest(new
+            {
+                error = "Select a valid account role."
+            });
+        }
+
+        if (email.Length > 254 ||
+            !new EmailAddressAttribute().IsValid(email))
+        {
+            return BadRequest(new
+            {
+                error = "Enter a valid email address."
+            });
+        }
 
         if (role == "admin")
         {
@@ -714,15 +991,11 @@ public class HomeController : Controller
                 .Trim()
                 .ToLowerInvariant();
 
-            if (!string.Equals(
-                    email,
-                    adminEmail,
-                    StringComparison.Ordinal))
+            if (!string.Equals(email, adminEmail, StringComparison.Ordinal))
             {
                 return Unauthorized(new
                 {
-                    error =
-                        "Invalid administrator email or password."
+                    error = "Invalid administrator email or password."
                 });
             }
         }
@@ -733,39 +1006,126 @@ public class HomeController : Controller
                 item.Role.ToLower() == role);
 
         if (user == null ||
-            string.IsNullOrEmpty(user.PasswordHash))
-        {
-            return Unauthorized(new
-            {
-                error = "Invalid email or password."
-            });
-        }
-
-        if (!BCrypt.Net.BCrypt.Verify(
-                request.Password,
+            string.IsNullOrEmpty(user.PasswordHash) ||
+            !BCrypt.Net.BCrypt.Verify(
+                request.Password ?? "",
                 user.PasswordHash))
         {
             return Unauthorized(new
             {
-                error = "Invalid email or password."
+                error = role == "admin"
+                    ? "Invalid administrator email or password."
+                    : "Invalid email or password."
             });
         }
 
-        HttpContext.Session.SetString(
-            "userId",
-            user.Id.ToString());
+        var otp = GenerateOtp();
+        StoreLoginOtp(user.Id, otp);
 
-        HttpContext.Session.SetString(
-            "userName",
-            user.Name);
+        try
+        {
+            await _emailService.SendLoginOtpEmailAsync(
+                user.Email,
+                otp,
+                user.Role);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Failed to send login OTP for user {UserId}.",
+                user.Id);
 
-        HttpContext.Session.SetString(
-            "userEmail",
-            user.Email);
+            ClearLoginVerificationSession();
 
-        HttpContext.Session.SetString(
-            "userRole",
-            user.Role);
+            return StatusCode(500, new
+            {
+                error =
+                    "Your password was correct, but we couldn't send the " +
+                    "verification code. Check the email configuration and try again."
+            });
+        }
+
+        return Ok(new
+        {
+            success = true,
+            requiresVerification = true,
+            maskedEmail = MaskEmail(user.Email),
+            resendAfterSeconds = OtpResendCooldownSeconds
+        });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> VerifyLoginOtp(
+        [FromBody] VerifyOtpRequest request)
+    {
+        var userId = HttpContext.Session.GetInt32(
+            PendingLoginUserIdKey);
+        var storedOtp = HttpContext.Session.GetString(
+            PendingLoginOtpKey);
+        var expiryText = HttpContext.Session.GetString(
+            PendingLoginOtpExpiryKey);
+
+        if (userId == null ||
+            string.IsNullOrWhiteSpace(storedOtp) ||
+            string.IsNullOrWhiteSpace(expiryText))
+        {
+            ClearLoginVerificationSession();
+            return Unauthorized(new
+            {
+                error = "Your login verification session expired. Log in again."
+            });
+        }
+
+        if (!long.TryParse(
+                expiryText,
+                NumberStyles.Integer,
+                CultureInfo.InvariantCulture,
+                out var expiry) ||
+            DateTimeOffset.UtcNow.ToUnixTimeSeconds() > expiry)
+        {
+            ClearLoginVerificationSession();
+            return BadRequest(new
+            {
+                error = "The verification code expired. Log in again."
+            });
+        }
+
+        if (NormalizeOtp(request.Otp) != storedOtp)
+        {
+            var attempts =
+                (HttpContext.Session.GetInt32(PendingLoginOtpAttemptsKey) ?? 0) + 1;
+            HttpContext.Session.SetInt32(
+                PendingLoginOtpAttemptsKey,
+                attempts);
+
+            if (attempts >= OtpMaximumAttempts)
+            {
+                ClearLoginVerificationSession();
+                return BadRequest(new
+                {
+                    error = "Too many incorrect attempts. Log in again."
+                });
+            }
+
+            return BadRequest(new
+            {
+                error =
+                    $"Incorrect verification code. " +
+                    $"{OtpMaximumAttempts - attempts} attempt(s) remaining."
+            });
+        }
+
+        var user = await _context.Users.FindAsync(userId.Value);
+        if (user == null)
+        {
+            ClearLoginVerificationSession();
+            return Unauthorized(new
+            {
+                error = "The account no longer exists."
+            });
+        }
 
         var identityVerificationStatus = "";
         if (user.Role.Equals("tutor", StringComparison.OrdinalIgnoreCase))
@@ -776,11 +1136,82 @@ public class HomeController : Controller
                 .FirstOrDefaultAsync() ?? "Pending";
         }
 
+        ClearLoginVerificationSession();
+        SetAuthenticatedSession(user);
+
         return Ok(new
         {
             success = true,
             role = user.Role,
             identityVerificationStatus
+        });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ResendLoginOtp()
+    {
+        var userId = HttpContext.Session.GetInt32(
+            PendingLoginUserIdKey);
+
+        if (userId == null)
+        {
+            return Unauthorized(new
+            {
+                error = "Your login verification session expired. Log in again."
+            });
+        }
+
+        var waitSeconds = GetResendWaitSeconds(
+            PendingLoginOtpSentAtKey);
+        if (waitSeconds > 0)
+        {
+            return StatusCode(429, new
+            {
+                error = $"Please wait {waitSeconds} second(s) before resending.",
+                resendAfterSeconds = waitSeconds
+            });
+        }
+
+        var user = await _context.Users.FindAsync(userId.Value);
+        if (user == null)
+        {
+            ClearLoginVerificationSession();
+            return Unauthorized(new
+            {
+                error = "The account no longer exists."
+            });
+        }
+
+        var otp = GenerateOtp();
+
+        try
+        {
+            await _emailService.SendLoginOtpEmailAsync(
+                user.Email,
+                otp,
+                user.Role);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Failed to resend login OTP for user {UserId}.",
+                user.Id);
+
+            return StatusCode(500, new
+            {
+                error = "We couldn't resend the verification code right now."
+            });
+        }
+
+        StoreLoginOtp(user.Id, otp);
+
+        return Ok(new
+        {
+            success = true,
+            message = "A new verification code was sent.",
+            resendAfterSeconds = OtpResendCooldownSeconds
         });
     }
 
@@ -989,6 +1420,125 @@ public class HomeController : Controller
         HttpContext.Session.Remove(PasswordResetRoleKey);
         HttpContext.Session.Remove(PasswordResetOtpKey);
         HttpContext.Session.Remove(PasswordResetOtpExpiryKey);
+        HttpContext.Session.Remove(PasswordResetVerifiedKey);
+    }
+
+    private void SetAuthenticatedSession(User user)
+    {
+        HttpContext.Session.SetString("userId", user.Id.ToString());
+        HttpContext.Session.SetString("userName", user.Name);
+        HttpContext.Session.SetString("userEmail", user.Email);
+        HttpContext.Session.SetString("userRole", user.Role);
+    }
+
+    private void ClearAuthenticatedSession()
+    {
+        HttpContext.Session.Remove("userId");
+        HttpContext.Session.Remove("userName");
+        HttpContext.Session.Remove("userEmail");
+        HttpContext.Session.Remove("userRole");
+    }
+
+    private void StoreLoginOtp(int userId, string otp)
+    {
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var expiry = DateTimeOffset.UtcNow
+            .AddMinutes(OtpLifetimeMinutes)
+            .ToUnixTimeSeconds();
+
+        HttpContext.Session.SetInt32(PendingLoginUserIdKey, userId);
+        HttpContext.Session.SetString(PendingLoginOtpKey, otp);
+        HttpContext.Session.SetString(
+            PendingLoginOtpExpiryKey,
+            expiry.ToString(CultureInfo.InvariantCulture));
+        HttpContext.Session.SetString(
+            PendingLoginOtpSentAtKey,
+            now.ToString(CultureInfo.InvariantCulture));
+        HttpContext.Session.SetInt32(PendingLoginOtpAttemptsKey, 0);
+    }
+
+    private void StoreSignupOtp(string otp)
+    {
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var expiry = DateTimeOffset.UtcNow
+            .AddMinutes(OtpLifetimeMinutes)
+            .ToUnixTimeSeconds();
+
+        HttpContext.Session.SetString(PendingSignupOtpKey, otp);
+        HttpContext.Session.SetString(
+            PendingSignupOtpExpiryKey,
+            expiry.ToString(CultureInfo.InvariantCulture));
+        HttpContext.Session.SetString(
+            PendingSignupOtpSentAtKey,
+            now.ToString(CultureInfo.InvariantCulture));
+        HttpContext.Session.SetInt32(PendingSignupOtpAttemptsKey, 0);
+    }
+
+    private void ClearLoginVerificationSession()
+    {
+        HttpContext.Session.Remove(PendingLoginUserIdKey);
+        HttpContext.Session.Remove(PendingLoginOtpKey);
+        HttpContext.Session.Remove(PendingLoginOtpExpiryKey);
+        HttpContext.Session.Remove(PendingLoginOtpSentAtKey);
+        HttpContext.Session.Remove(PendingLoginOtpAttemptsKey);
+    }
+
+    private void ClearSignupVerificationSession()
+    {
+        HttpContext.Session.Remove(PendingSignupDataKey);
+        HttpContext.Session.Remove(PendingSignupOtpKey);
+        HttpContext.Session.Remove(PendingSignupOtpExpiryKey);
+        HttpContext.Session.Remove(PendingSignupOtpSentAtKey);
+        HttpContext.Session.Remove(PendingSignupOtpAttemptsKey);
+    }
+
+    private int GetResendWaitSeconds(string sentAtKey)
+    {
+        var sentAtText = HttpContext.Session.GetString(sentAtKey);
+        if (!long.TryParse(
+                sentAtText,
+                NumberStyles.Integer,
+                CultureInfo.InvariantCulture,
+                out var sentAt))
+        {
+            return 0;
+        }
+
+        var elapsed = DateTimeOffset.UtcNow.ToUnixTimeSeconds() - sentAt;
+        return elapsed >= OtpResendCooldownSeconds
+            ? 0
+            : OtpResendCooldownSeconds - (int)elapsed;
+    }
+
+    private static string GenerateOtp()
+    {
+        return RandomNumberGenerator
+            .GetInt32(100000, 1000000)
+            .ToString(CultureInfo.InvariantCulture);
+    }
+
+    private static string NormalizeOtp(string? otp)
+    {
+        return new string((otp ?? "")
+            .Where(char.IsDigit)
+            .Take(6)
+            .ToArray());
+    }
+
+    private static string MaskEmail(string email)
+    {
+        var parts = email.Split('@', 2);
+        if (parts.Length != 2)
+        {
+            return email;
+        }
+
+        var local = parts[0];
+        var visible = local.Length <= 2
+            ? local[..1]
+            : local[..2];
+
+        return $"{visible}{new string('*', Math.Max(3, local.Length - visible.Length))}@{parts[1]}";
     }
 
     private static string? NormalizeContactNumber(
@@ -1107,4 +1657,30 @@ public class SignupRequest
     public TutorProfileData? TutorProfile { get; set; }
 
     public LearnerProfileData? LearnerProfile { get; set; }
+}
+
+public class PendingSignupData
+{
+    public string Name { get; set; } = "";
+    public string Email { get; set; } = "";
+    public string PasswordHash { get; set; } = "";
+    public string Role { get; set; } = "";
+    public PendingTutorProfileData? TutorProfile { get; set; }
+    public PendingLearnerProfileData? LearnerProfile { get; set; }
+}
+
+public class PendingTutorProfileData
+{
+    public decimal Rate { get; set; }
+    public string Education { get; set; } = "";
+    public string ContactNumber { get; set; } = "";
+    public string Bio { get; set; } = "";
+    public List<string> Subjects { get; set; } = new();
+}
+
+public class PendingLearnerProfileData
+{
+    public string GradeLevel { get; set; } = "";
+    public string School { get; set; } = "";
+    public string Birthday { get; set; } = "";
 }
