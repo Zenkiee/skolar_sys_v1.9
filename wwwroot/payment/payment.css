@@ -835,6 +835,8 @@ a {
 
 .secondary-link {
     border: 1px solid var(--line);
+    padding: 10px 13px;
+    text-decoration: none;
     color: var(--navy);
     background: #fff;
 }
@@ -1510,13 +1512,15 @@ a {
 }
 
 .receipt-header img {
+    background: var(--navy);
+    border-radius: 12px;
+    padding: 10px;
     width: 62px;
     height: 62px;
     object-fit: contain;
 }
 
-.receipt-header span,
-.receipt-header strong {
+.receipt-header span {
     color: var(--navy);
     font-size: 1.3rem;
     font-weight: 800;
