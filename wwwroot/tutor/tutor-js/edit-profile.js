@@ -77,11 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const subjectToggle = document.getElementById('epSubjectToggle');
   const subjectMenu = document.getElementById('epSubjectMenu');
 
-  // Misc
-  const toast = document.getElementById('epToast');
-  const btnViewProfile = document.getElementById('epViewProfile');
-
-
 // Sidebar Profile Card elements
   const sidebarName = document.querySelector('.profile-card .profile-name');
   const sidebarRole = document.querySelector('.profile-card .profile-role');
