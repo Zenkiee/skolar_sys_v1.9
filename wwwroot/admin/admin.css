@@ -78,7 +78,7 @@ button, input, select, textarea {
 
 .admin-summary {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
     gap: 16px;
     margin-bottom: 24px;
 }
@@ -446,6 +446,15 @@ button, input, select, textarea {
     color: var(--navy);
     font-weight: 800;
     text-decoration: underline;
+}
+
+.admin-withdrawal-card .admin-issue-meta {
+    display: inline-block;
+    margin-top: 4px;
+}
+
+.admin-withdrawal-body .admin-statement p + p {
+    margin-top: 8px;
 }
 
 @media (max-width: 560px) {

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using inMVC.Data;
 using inMVC.Helpers;
+using inMVC.Models;
 using inMVC.Services;
 
 namespace inMVC.Controllers;
@@ -200,6 +201,76 @@ public class AdminController : Controller
         return Json(verifications);
     }
 
+    [HttpGet]
+    public async Task<IActionResult> TutorWithdrawals()
+    {
+        if (!HttpContext.Session.HasRole("admin")) return Unauthorized();
+
+        var withdrawals = await _context.TutorWithdrawals
+            .AsNoTracking()
+            .OrderByDescending(item => item.RequestedAt)
+            .ToListAsync();
+
+        var tutorIds = withdrawals.Select(item => item.TutorId).Distinct().ToList();
+        var tutors = await _context.TutorProfiles
+            .Include(profile => profile.User)
+            .AsNoTracking()
+            .Where(profile => tutorIds.Contains(profile.Id))
+            .Select(profile => new
+            {
+                profile.Id,
+                profile.TutorName,
+                profile.ContactNumber,
+                Email = profile.User != null ? profile.User.Email : "",
+                profile.TotalHoursTaught
+            })
+            .ToListAsync();
+
+        var withdrawalIds = withdrawals.Select(item => item.Id).ToList();
+        var payoutGroups = await _context.TutorPayouts
+            .AsNoTracking()
+            .Where(payout => payout.WithdrawalId != null && withdrawalIds.Contains(payout.WithdrawalId.Value))
+            .GroupBy(payout => payout.WithdrawalId!.Value)
+            .Select(group => new
+            {
+                WithdrawalId = group.Key,
+                PayoutCount = group.Count(),
+                GrossAmount = group.Sum(payout => payout.GrossAmount),
+                PlatformFeeAmount = group.Sum(payout => payout.PlatformFeeAmount),
+                FineAmount = group.Sum(payout => payout.FineAmount),
+                NetAmount = group.Sum(payout => payout.NetAmount)
+            })
+            .ToListAsync();
+
+        return Json(withdrawals.Select(item =>
+        {
+            var tutor = tutors.FirstOrDefault(profile => profile.Id == item.TutorId);
+            var payoutGroup = payoutGroups.FirstOrDefault(group => group.WithdrawalId == item.Id);
+            return new
+            {
+                item.Id,
+                item.TutorId,
+                TutorName = tutor?.TutorName ?? "Tutor",
+                TutorEmail = tutor?.Email ?? "",
+                TutorContact = tutor?.ContactNumber ?? "",
+                TotalHoursTaught = tutor?.TotalHoursTaught ?? 0m,
+                item.Amount,
+                item.Method,
+                item.GCashAccountName,
+                item.GCashAccountNumber,
+                item.Status,
+                item.RequestedAt,
+                item.ProcessedAt,
+                item.AdminNote,
+                PayoutCount = payoutGroup?.PayoutCount ?? 0,
+                GrossAmount = payoutGroup?.GrossAmount ?? 0m,
+                PlatformFeeAmount = payoutGroup?.PlatformFeeAmount ?? 0m,
+                FineAmount = payoutGroup?.FineAmount ?? 0m,
+                NetAmount = payoutGroup?.NetAmount ?? item.Amount
+            };
+        }));
+    }
+
     [HttpPost]
     public async Task<IActionResult> ResolveTutorVerification([FromBody] ResolveTutorVerificationRequest request)
     {
@@ -259,6 +330,86 @@ public class AdminController : Controller
             message = action == "approve"
                 ? "Tutor identity approved. The tutor can now appear in learner search, and an email was sent."
                 : "Tutor verification was sent back for resubmission, and an email was sent."
+        });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ResolveTutorWithdrawal([FromBody] ResolveTutorWithdrawalRequest request)
+    {
+        if (!HttpContext.Session.HasRole("admin")) return Unauthorized();
+
+        var action = request.Action?.Trim().ToLowerInvariant() ?? "";
+        var note = request.Note?.Trim() ?? "";
+
+        if (action is not ("processing" or "release" or "reject"))
+            return BadRequest(new { message = "Choose a valid withdrawal decision." });
+
+        if (note.Length > 500)
+            return BadRequest(new { message = "Withdrawal note must be 500 characters or fewer." });
+
+        if ((action == "release" || action == "reject") && note.Length < 3)
+            return BadRequest(new { message = "Add a short note or payout reference for this decision." });
+
+        var withdrawal = await _context.TutorWithdrawals
+            .FirstOrDefaultAsync(item => item.Id == request.WithdrawalId);
+        if (withdrawal == null)
+            return NotFound(new { message = "Withdrawal request not found." });
+
+        if (withdrawal.Status == "Released" || withdrawal.Status == "Rejected")
+            return Conflict(new { message = "This withdrawal request has already been finalized." });
+
+        var payouts = await _context.TutorPayouts
+            .Where(item => item.WithdrawalId == withdrawal.Id)
+            .ToListAsync();
+
+        if (payouts.Count == 0)
+            return Conflict(new { message = "No payout records are linked to this withdrawal." });
+
+        if (action == "processing")
+        {
+            withdrawal.Status = "Processing";
+            withdrawal.AdminNote = note;
+            foreach (var payout in payouts)
+                payout.Status = "Processing";
+        }
+        else if (action == "release")
+        {
+            var now = DateTime.UtcNow;
+            withdrawal.Status = "Released";
+            withdrawal.ProcessedAt = now;
+            withdrawal.AdminNote = note;
+
+            foreach (var payout in payouts)
+            {
+                payout.Status = "Released";
+                payout.ReleasedAt = now;
+            }
+        }
+        else
+        {
+            withdrawal.Status = "Rejected";
+            withdrawal.ProcessedAt = DateTime.UtcNow;
+            withdrawal.AdminNote = note;
+
+            foreach (var payout in payouts)
+            {
+                payout.Status = "Pending";
+                payout.WithdrawalId = null;
+                payout.ReleasedAt = null;
+            }
+        }
+
+        await _context.SaveChangesAsync();
+
+        return Ok(new
+        {
+            success = true,
+            message = action switch
+            {
+                "processing" => "Withdrawal marked as processing.",
+                "release" => "Withdrawal marked as released.",
+                _ => "Withdrawal rejected and earnings returned to the tutor's available balance."
+            }
         });
     }
 
@@ -325,6 +476,13 @@ public class ResolveReviewReportRequest
 public class ResolveTutorVerificationRequest
 {
     public int TutorId { get; set; }
+    public string Action { get; set; } = "";
+    public string Note { get; set; } = "";
+}
+
+public class ResolveTutorWithdrawalRequest
+{
+    public int WithdrawalId { get; set; }
     public string Action { get; set; } = "";
     public string Note { get; set; } = "";
 }

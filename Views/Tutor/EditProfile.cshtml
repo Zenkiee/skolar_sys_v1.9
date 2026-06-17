@@ -10,7 +10,7 @@
   <title>Edit Profile — Skolar</title>
   <link rel="icon" type="image/png" href="~/assets/img/skolarlogo.png">
   <link rel="stylesheet" href="~/tutor/tutor-css/tutor-shared.css">
-  <link rel="stylesheet" href="~/tutor/tutor-css/edit-profile.css">
+  <link rel="stylesheet" href="~/tutor/tutor-css/edit-profile.css" asp-append-version="true">
 </head>
 <body>
     <script src="~/js/skolar-dialog.js"></script>
@@ -143,7 +143,10 @@
           </div>
           <div class="ep-field">
             <label for="epPhone">Phone Number</label>
-            <input type="tel" id="epPhone" placeholder="Enter phone number" inputmode="tel" maxlength="13">
+            <div class="phone-prefix-field">
+              <span class="phone-prefix">+63</span>
+              <input type="tel" id="epPhone" placeholder="9XXXXXXXXX" inputmode="numeric" maxlength="10">
+            </div>
           </div>
           <div class="ep-field">
             <label for="epLocation">Location</label>
@@ -235,6 +238,6 @@
 
 
   <script src="~/tutor/tutor-js/tutor-shared.js"></script>
-  <script src="~/tutor/tutor-js/edit-profile.js"></script>
+  <script src="~/tutor/tutor-js/edit-profile.js" asp-append-version="true"></script>
 </body>
 </html>

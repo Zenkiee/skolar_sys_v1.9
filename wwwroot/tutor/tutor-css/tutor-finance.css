@@ -15,7 +15,7 @@
 
 .finance-summary {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 14px;
   margin-bottom: 14px;
 }
@@ -59,7 +59,7 @@
 
 .finance-notes {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 14px;
   margin-bottom: 28px;
 }
@@ -90,6 +90,130 @@
   color: var(--navy);
   font-size: 1.3rem;
   font-weight: 600;
+}
+
+.withdrawal-panel {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.8fr) minmax(0, 1.2fr);
+  gap: 20px;
+  align-items: end;
+  margin-bottom: 28px;
+  padding: 22px;
+  border: 1px solid rgba(0, 63, 92, 0.08);
+  border-radius: 20px;
+  background: var(--white);
+  box-shadow: 0 7px 22px rgba(0, 63, 92, 0.07);
+}
+
+.withdrawal-copy h2 {
+  margin: 3px 0 8px;
+  color: var(--navy);
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.withdrawal-copy p:last-child,
+.withdrawal-details,
+.withdrawal-details p {
+  color: #6f7d86;
+  font-size: 0.84rem;
+}
+
+.withdrawal-form {
+  display: grid;
+  grid-template-columns: minmax(130px, 0.55fr) minmax(190px, 0.9fr) minmax(160px, 0.75fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.withdrawal-form label {
+  display: grid;
+  gap: 7px;
+  color: #60717d;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.withdrawal-form select,
+.withdrawal-form input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid #d7e2e7;
+  border-radius: 12px;
+  background: #f8fafb;
+  color: var(--navy);
+  font: inherit;
+}
+
+.phone-prefix-field {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid #d7e2e7;
+  border-radius: 12px;
+  background: #f8fafb;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.phone-prefix {
+  align-self: stretch;
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  margin-right: 10px;
+  padding-left: 12px;
+  padding-right: 10px;
+  border-right: 1px solid rgba(0, 63, 92, 0.2);
+  color: rgba(0, 63, 92, 0.55);
+  font-weight: 800;
+}
+
+.withdrawal-form .phone-prefix-field input {
+  flex: 1 1 auto;
+  height: 100%;
+  min-width: 0;
+  border: 0 !important;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none !important;
+  padding-left: 0 !important;
+}
+
+.withdrawal-form .phone-prefix-field input:focus {
+  box-shadow: none !important;
+}
+
+.withdrawal-method-lock {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid #d7e2e7;
+  border-radius: 12px;
+  background: #eef7fa;
+  color: var(--navy);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.withdrawal-form button {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--navy);
+  color: var(--white);
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.withdrawal-form button:disabled {
+  background: #9daab3;
+  cursor: not-allowed;
 }
 
 .transaction-list {
@@ -159,7 +283,7 @@
 
 .transaction-meta {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 12px;
   margin-top: 18px;
 }
@@ -175,6 +299,21 @@
 .transaction-meta strong {
   color: var(--navy);
   font-size: 1rem;
+}
+
+.withdrawal-details {
+  margin-top: 18px;
+  padding: 14px;
+  border: 1px solid #e2eaed;
+  border-radius: 14px;
+  background: #f8fafb;
+}
+
+.withdrawal-details strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--navy);
+  font-size: 0.92rem;
 }
 
 .penalty-heading {
@@ -225,8 +364,14 @@
 }
 
 @media (max-width: 980px) {
-  .finance-summary {
+  .finance-summary,
+  .finance-notes {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .withdrawal-panel,
+  .withdrawal-form {
+    grid-template-columns: 1fr;
   }
 }
 

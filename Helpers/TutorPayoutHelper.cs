@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using inMVC.Data;
 using inMVC.Models;
+using inMVC.Services;
 
 namespace inMVC.Helpers;
 
@@ -13,7 +14,11 @@ public static class TutorPayoutHelper
 
         var existing = await context.TutorPayouts
             .FirstOrDefaultAsync(item => item.BookingId == booking.Id);
-        if (existing != null) return existing;
+        if (existing != null && existing.Status != "Held") return existing;
+
+        var tutor = await context.TutorProfiles
+            .FirstOrDefaultAsync(item => item.Id == booking.TutorId);
+        if (tutor == null) return null;
 
         var penalty = await context.TutorPenalties
             .Where(item => item.TutorId == booking.TutorId && item.Status == "Pending")
@@ -32,19 +37,31 @@ public static class TutorPayoutHelper
             penalty.Status = "Applied";
         }
 
-        var payout = new TutorPayout
+        var completedHours = booking.DurationHours > 0m
+            ? booking.DurationHours
+            : PaymentPolicyCalculator.GetDurationHours(booking.Time);
+        var hoursAfterSession = Math.Max(0m, tutor.TotalHoursTaught + completedHours);
+        var platformFee = PaymentPolicyCalculator.CalculatePlatformFee(booking.SessionAmount, hoursAfterSession);
+        var netAmount = Math.Max(0m, booking.SessionAmount - platformFee - fineAmount);
+
+        var payout = existing ?? new TutorPayout
         {
             TutorId = booking.TutorId,
             BookingId = booking.Id,
-            GrossAmount = booking.SessionAmount,
-            PlatformFeeAmount = 0m,
-            CompensationAmount = 0m,
-            FineAmount = fineAmount,
-            NetAmount = Math.Max(0m, booking.SessionAmount - fineAmount),
-            Status = "Pending"
         };
 
-        context.TutorPayouts.Add(payout);
+        payout.GrossAmount = booking.SessionAmount;
+        payout.PlatformFeeAmount = platformFee;
+        payout.CompensationAmount = 0m;
+        payout.FineAmount = fineAmount;
+        payout.NetAmount = netAmount;
+        payout.Status = "Pending";
+
+        tutor.TotalHoursTaught = hoursAfterSession;
+
+        if (existing == null)
+            context.TutorPayouts.Add(payout);
+
         await context.SaveChangesAsync();
         return payout;
     }

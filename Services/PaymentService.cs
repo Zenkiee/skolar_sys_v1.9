@@ -102,16 +102,24 @@ public class PaymentService
 
                 if (existingPayout == null)
                 {
+                    var currentHours = await _context.TutorProfiles
+                        .Where(item => item.Id == booking.TutorId)
+                        .Select(item => item.TotalHoursTaught)
+                        .FirstOrDefaultAsync();
+                    var projectedHours = currentHours + (booking.DurationHours > 0m
+                        ? booking.DurationHours
+                        : PaymentPolicyCalculator.GetDurationHours(booking.Time));
+                    var platformFee = PaymentPolicyCalculator.CalculatePlatformFee(booking.SessionAmount, projectedHours);
                     _context.TutorPayouts.Add(new TutorPayout
                     {
                         TutorId = booking.TutorId,
                         BookingId = booking.Id,
                         GrossAmount = booking.SessionAmount,
-                        PlatformFeeAmount = 0m,
+                        PlatformFeeAmount = platformFee,
                         CompensationAmount = 0m,
                         FineAmount = 0m,
-                        NetAmount = booking.SessionAmount,
-                        Status = "Pending"
+                        NetAmount = Math.Max(0m, booking.SessionAmount - platformFee),
+                        Status = "Held"
                     });
                 }
             }
@@ -236,20 +244,30 @@ public class PaymentService
 
         if (quote.TutorCompensationAmount > 0m)
         {
-            var hasCompensation = await _context.TutorPayouts.AnyAsync(item => item.BookingId == booking.Id);
-            if (!hasCompensation)
+            var existingPayout = await _context.TutorPayouts
+                .FirstOrDefaultAsync(item => item.BookingId == booking.Id);
+            if (existingPayout == null || existingPayout.Status == "Held")
             {
-                _context.TutorPayouts.Add(new TutorPayout
+                var currentHours = await _context.TutorProfiles
+                    .Where(item => item.Id == booking.TutorId)
+                    .Select(item => item.TotalHoursTaught)
+                    .FirstOrDefaultAsync();
+                var platformFee = PaymentPolicyCalculator.CalculatePlatformFee(quote.TutorCompensationAmount, currentHours);
+                var payout = existingPayout ?? new TutorPayout
                 {
                     TutorId = booking.TutorId,
                     BookingId = booking.Id,
-                    GrossAmount = 0m,
-                    PlatformFeeAmount = 0m,
-                    CompensationAmount = quote.TutorCompensationAmount,
-                    FineAmount = 0m,
-                    NetAmount = quote.TutorCompensationAmount,
-                    Status = "Pending"
-                });
+                };
+
+                payout.GrossAmount = 0m;
+                payout.PlatformFeeAmount = platformFee;
+                payout.CompensationAmount = quote.TutorCompensationAmount;
+                payout.FineAmount = 0m;
+                payout.NetAmount = Math.Max(0m, quote.TutorCompensationAmount - platformFee);
+                payout.Status = "Pending";
+
+                if (existingPayout == null)
+                    _context.TutorPayouts.Add(payout);
             }
         }
 

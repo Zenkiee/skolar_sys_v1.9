@@ -155,6 +155,47 @@
   color: #6f7f87;
   cursor: not-allowed;
 }
+.phone-prefix-field {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 41px;
+  border: 1.5px solid var(--navy);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  overflow: hidden;
+  box-sizing: border-box;
+  transition: box-shadow var(--duration) var(--ease);
+}
+.phone-prefix-field:focus-within {
+  box-shadow: 0 0 0 3px rgba(27,42,74,0.1);
+}
+.phone-prefix {
+  align-self: stretch;
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  margin-right: 12px;
+  padding-left: 14px;
+  padding-right: 12px;
+  border-right: 1px solid rgba(27,42,74,0.22);
+  color: rgba(27,42,74,0.58);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.ep-field .phone-prefix-field input {
+  flex: 1 1 auto;
+  height: 100%;
+  min-width: 0;
+  border: 0 !important;
+  border-radius: 0;
+  padding-left: 0 !important;
+  background: transparent;
+  box-shadow: none !important;
+}
+.ep-field .phone-prefix-field input:focus {
+  box-shadow: none !important;
+}
 .ep-field small {
   color: #6f7f87;
   font-size: 0.75rem;

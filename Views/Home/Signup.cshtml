@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="~/css/skolar-dialog.css">
     <title>Skolar Sign Up</title>
     <link rel="icon" type="image/png" href="~/assets/img/skolarlogo.png">
-    <link rel="stylesheet" href="~/main-css/account-signup.css">
+    <link rel="stylesheet" href="~/main-css/account-signup.css" asp-append-version="true">
 </head>
 <body>
     <script src="~/js/skolar-dialog.js"></script>
@@ -145,7 +145,10 @@
 
                     <div class="form-field">
                         <label class="sr-only" for="contactNumber">Contact Number</label>
-                        <input type="tel" id="contactNumber" placeholder="09XXXXXXXXX or +639XXXXXXXXX" inputmode="tel" autocomplete="tel" maxlength="13" required>
+                        <div class="phone-prefix-field">
+                            <span class="phone-prefix">+63</span>
+                            <input type="tel" id="contactNumber" placeholder="9XXXXXXXXX" inputmode="numeric" autocomplete="tel" maxlength="10" required>
+                        </div>
                         <p class="field-error" data-error-for="contactNumber"></p>
                     </div>
 
@@ -164,7 +167,6 @@
                             </button>
                             <div class="subject-dropdown-menu" id="subjectDropdownMenu">
                                 <label><input type="checkbox" value="English"> English</label>
-                                <label><input type="checkbox" value="Math"> Math</label>
                                 <label><input type="checkbox" value="Reading"> Reading</label>
                                 <label><input type="checkbox" value="Writing"> Writing</label>
                                 <label><input type="checkbox" value="Filipino"> Filipino</label>
@@ -238,6 +240,6 @@
         </section>
     </main>
 
-    <script src="~/main-js/signup.js"></script>
+    <script src="~/main-js/signup.js" asp-append-version="true"></script>
 </body>
 </html>

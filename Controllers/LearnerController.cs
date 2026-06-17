@@ -121,7 +121,7 @@ public class LearnerController : Controller
         }
 
         if (!string.IsNullOrWhiteSpace(request.ContactNumber) && contactNumber == null)
-            return BadRequest(new { field = "profileContact", message = "Use 09XXXXXXXXX or +639XXXXXXXXX." });
+            return BadRequest(new { field = "profileContact", message = "Enter the 10 digits after +63." });
 
         if (accountManager is not ("Learner" or "Guardian"))
             return BadRequest(new { field = "profileAccountManager", message = "Select who manages this account." });
@@ -135,7 +135,7 @@ public class LearnerController : Controller
                 return BadRequest(new { field = "guardianRelationship", message = "Relationship must be 2 to 40 characters." });
 
             if (guardianContactNumber == null)
-                return BadRequest(new { field = "guardianContact", message = "Use 09XXXXXXXXX or +639XXXXXXXXX." });
+                return BadRequest(new { field = "guardianContact", message = "Enter the 10 digits after +63." });
 
             if (guardianEmail.Length > 254 || !new EmailAddressAttribute().IsValid(guardianEmail))
                 return BadRequest(new { field = "guardianEmail", message = "Enter a valid guardian email address." });
@@ -296,10 +296,14 @@ public class LearnerController : Controller
     {
         var contact = (value ?? "").Trim().Replace(" ", "").Replace("-", "");
         if (contact.Length == 0) return required ? null : "";
-        if (contact.StartsWith("+639") && contact.Length == 13)
-            contact = "0" + contact[3..];
-        return contact.Length == 11 && contact.StartsWith("09") && contact.All(char.IsDigit)
-            ? contact
+        if (contact.StartsWith("+639") && contact.Length == 13 && contact[1..].All(char.IsDigit))
+            return contact;
+        if (contact.Length == 12 && contact.StartsWith("639") && contact.All(char.IsDigit))
+            return $"+{contact}";
+        if (contact.Length == 11 && contact.StartsWith("09") && contact.All(char.IsDigit))
+            return $"+63{contact[1..]}";
+        return contact.Length == 10 && contact.StartsWith("9") && contact.All(char.IsDigit)
+            ? $"+63{contact}"
             : null;
     }
 
@@ -499,7 +503,7 @@ public class LearnerController : Controller
             return BadRequest(new { message = "Enter a valid learner email address." });
 
         if (learnerContact == null)
-            return BadRequest(new { message = "Use 09XXXXXXXXX or +639XXXXXXXXX for the contact number." });
+            return BadRequest(new { message = "Enter the 10 digits after +63 for the contact number." });
 
         if (!AllowedSubjects.Contains(subject, StringComparer.Ordinal))
             return BadRequest(new { message = "Select a valid subject." });

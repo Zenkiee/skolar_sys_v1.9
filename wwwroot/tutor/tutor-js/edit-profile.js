@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
     lNameInput.value = currentData.personal.lastName;
     titleInput.value = currentData.personal.displayTitle;
     gmailInput.value = currentData.personal.gmail;
-    phoneInput.value = currentData.personal.phone;
+    phoneInput.value = toLocalPhoneDigits(currentData.personal.phone);
     locInput.value   = currentData.personal.location;
   }
 
@@ -179,8 +179,28 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function isValidTutorContact(value) {
-    const text = String(value || '').replace(/[\s-]/g, '');
-    return /^09\d{9}$/.test(text) || /^\+639\d{9}$/.test(text);
+    return /^9\d{9}$/.test(toLocalPhoneDigits(value));
+  }
+
+  function toLocalPhoneDigits(value) {
+    let digits = String(value || '').replace(/\D/g, '');
+    if (digits.length === 12 && digits.startsWith('63')) digits = digits.slice(2);
+    if (digits.length === 11 && digits.startsWith('09')) digits = digits.slice(1);
+    return digits.slice(0, 10);
+  }
+
+  function toPhilippinePhoneNumber(value) {
+    const localDigits = toLocalPhoneDigits(value);
+    return /^9\d{9}$/.test(localDigits) ? `+63${localDigits}` : '';
+  }
+
+  function bindPhoneInputs() {
+    document.querySelectorAll('.phone-prefix-field input').forEach(input => {
+      input.value = toLocalPhoneDigits(input.value);
+      input.addEventListener('input', () => {
+        input.value = toLocalPhoneDigits(input.value);
+      });
+    });
   }
 
   function validateTutorPayload(payload) {
@@ -199,7 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (!isValidTutorContact(payload.contactNumber)) {
-      return { field: 'epPhone', message: 'Use 09XXXXXXXXX or +639XXXXXXXXX.' };
+      return { field: 'epPhone', message: 'Enter the 10 digits after +63.' };
     }
 
     if (rate < 1 || rate > 10000) {
@@ -220,6 +240,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     return null;
   }
+
+  bindPhoneInputs();
 // Profile Data
   fetch('/Tutor/MyProfileDetails')
     .then(r => r.ok ? r.json() : null)
@@ -262,7 +284,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentData.personal.lastName  = lNameInput.value;
         currentData.personal.displayTitle = titleInput.value;
         currentData.personal.gmail     = gmailInput.value || currentData.personal.gmail;
-        currentData.personal.phone     = phoneInput.value;
+        currentData.personal.phone     = toPhilippinePhoneNumber(phoneInput.value);
         currentData.personal.location  = locInput.value;
 
         if (!await saveToDatabase()) return;
@@ -397,7 +419,7 @@ document.addEventListener('DOMContentLoaded', () => {
           tutorName: `${currentData.personal.firstName} ${currentData.personal.lastName}`.trim(),
           rate: String(currentData.about.sessionRate || '').trim(),
           education: String(currentData.personal.displayTitle || '').trim(),
-          contactNumber: String(currentData.personal.phone || '').trim(),
+          contactNumber: toPhilippinePhoneNumber(currentData.personal.phone),
           bio: String(currentData.about.bio || '').trim(),
           subjects: currentData.subjects.map(normalizeTutorSubject).filter(Boolean).join(',')
       };

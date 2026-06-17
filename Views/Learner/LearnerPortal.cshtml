@@ -9,7 +9,7 @@
     <title>Learner Portal | Skolar</title>
     <link rel="icon" type="image/png" href="~/assets/img/skolarlogo.png">
     <link rel="stylesheet" href="~/learner/learner-css/learner-portal.css">
-    <link rel="stylesheet" href="~/learner/learner-css/profile.css">
+    <link rel="stylesheet" href="~/learner/learner-css/profile.css" asp-append-version="true">
 </head>
 <body>
     <script src="~/js/skolar-dialog.js"></script>
@@ -324,7 +324,10 @@
 
                                 <div class="profile-field">
                                     <label for="profileContact">Contact Number</label>
-                                    <input type="tel" id="profileContact" maxlength="13" placeholder="09XXXXXXXXX">
+                                    <div class="phone-prefix-field">
+                                        <span class="phone-prefix">+63</span>
+                                        <input type="tel" id="profileContact" maxlength="10" inputmode="numeric" placeholder="9XXXXXXXXX">
+                                    </div>
                                     <p class="profile-field-error" data-error-for="profileContact"></p>
                                 </div>
                             </div>
@@ -367,7 +370,10 @@
 
                                     <div class="profile-field">
                                         <label for="guardianContact">Parent or Guardian Contact</label>
-                                        <input type="tel" id="guardianContact" maxlength="13" placeholder="09XXXXXXXXX">
+                                        <div class="phone-prefix-field">
+                                            <span class="phone-prefix">+63</span>
+                                            <input type="tel" id="guardianContact" maxlength="10" inputmode="numeric" placeholder="9XXXXXXXXX">
+                                        </div>
                                         <p class="profile-field-error" data-error-for="guardianContact"></p>
                                     </div>
                                 </div>
@@ -487,6 +493,6 @@
         requireRole("learner");
     </script>
     <script src="~/learner/learner-js/learner-portal.js"></script>
-    <script src="~/learner/learner-js/profile.js"></script>
+    <script src="~/learner/learner-js/profile.js" asp-append-version="true"></script>
 </body>
 </html>

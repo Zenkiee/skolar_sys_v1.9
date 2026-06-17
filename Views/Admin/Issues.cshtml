@@ -26,6 +26,7 @@
             <div><strong id="openIssueCount">0</strong><span>Open session issues</span></div>
             <div><strong id="pendingReviewCount">0</strong><span>Pending review reports</span></div>
             <div><strong id="pendingVerificationCount">0</strong><span>Tutor verifications</span></div>
+            <div><strong id="pendingWithdrawalCount">0</strong><span>Withdrawal requests</span></div>
             <div><strong id="resolvedItemCount">0</strong><span>Resolved items</span></div>
         </section>
 
@@ -33,6 +34,7 @@
             <button type="button" class="admin-tab active" data-admin-tab="sessions">Session Issues</button>
             <button type="button" class="admin-tab" data-admin-tab="reviews">Reported Reviews</button>
             <button type="button" class="admin-tab" data-admin-tab="verifications">Tutor Verifications</button>
+            <button type="button" class="admin-tab" data-admin-tab="withdrawals">Tutor Withdrawals</button>
         </div>
 
         <section id="sessionIssuesPanel" class="admin-panel">
@@ -86,6 +88,25 @@
 
             <div id="adminVerificationList" class="admin-issue-list">
                 <div class="admin-empty">Loading tutor verifications...</div>
+            </div>
+        </section>
+
+        <section id="tutorWithdrawalsPanel" class="admin-panel" hidden>
+            <div class="admin-toolbar">
+                <div>
+                    <h2>GCash withdrawal requests</h2>
+                    <p>Review requested tutor payouts and mark them after admin processing.</p>
+                </div>
+                <select id="withdrawalFilter" aria-label="Filter tutor withdrawals">
+                    <option value="open">Open</option>
+                    <option value="all">All</option>
+                    <option value="released">Released</option>
+                    <option value="rejected">Rejected</option>
+                </select>
+            </div>
+
+            <div id="adminWithdrawalList" class="admin-issue-list">
+                <div class="admin-empty">Loading tutor withdrawals...</div>
             </div>
         </section>
     </main>

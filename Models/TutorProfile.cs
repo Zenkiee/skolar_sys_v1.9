@@ -15,6 +15,7 @@ public class TutorProfile
     public string Bio { get; set; } = "";
     public string Subjects { get; set; } = "";  // e.g. "Math,English,Reading"
     public string ProfilePhoto { get; set; } = "";  // stores the file path
+    public decimal TotalHoursTaught { get; set; }
     public string IdentityVerificationStatus { get; set; } = "Pending";
     public string IdentityLegalName { get; set; } = "";
     public string IdentityBirthdate { get; set; } = "";

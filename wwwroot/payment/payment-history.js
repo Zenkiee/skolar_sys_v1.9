@@ -206,6 +206,10 @@ function renderTransactions(transactions) {
                 <div><span>Sessions</span><strong>${transaction.sessions.length}</strong></div>
                 <div><span>Refund requests</span><strong>${transaction.refunds.length}</strong></div>
             </div>
+            <div class="transaction-actions">
+                <a href="/Payment/Receipt/${transaction.id}">Preview Receipt</a>
+                <a href="/Payment/DownloadReceipt/${transaction.id}">Download</a>
+            </div>
             <div>
                 ${transaction.sessions.map(session => renderSessionRow(session, transaction)).join("")}
             </div>

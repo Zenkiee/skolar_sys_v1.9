@@ -21,12 +21,12 @@ async function loadLearnerProfile() {
         setProfileValue("profileBirthday", profile.birthday);
         setProfileValue("profileGradeLevel", profile.gradeLevel);
         setProfileValue("profileSchool", profile.school);
-        setProfileValue("profileContact", profile.contactNumber);
+        setProfileValue("profileContact", toLocalPhoneDigits(profile.contactNumber));
         setProfileValue("profileAccountManager", profile.accountManager || "Learner");
         setProfileValue("guardianName", profile.guardianName);
         setProfileValue("guardianRelationship", profile.guardianRelationship);
         setProfileValue("guardianEmail", profile.guardianEmail);
-        setProfileValue("guardianContact", profile.guardianContactNumber);
+        setProfileValue("guardianContact", toLocalPhoneDigits(profile.guardianContactNumber));
         setProfileValue("profileLearningGoals", profile.learningGoals);
 
         document.querySelectorAll("#profileSubjects input[type='checkbox']").forEach(input => {
@@ -85,12 +85,12 @@ function getProfileRequest() {
         gradeLevel: getProfileValue("profileGradeLevel"),
         school: getProfileValue("profileSchool"),
         birthday: getProfileValue("profileBirthday"),
-        contactNumber: getProfileValue("profileContact"),
+        contactNumber: toPhilippinePhoneNumber(getProfileValue("profileContact")),
         accountManager: getProfileValue("profileAccountManager"),
         guardianName: getProfileValue("guardianName"),
         guardianRelationship: getProfileValue("guardianRelationship"),
         guardianEmail: getProfileValue("guardianEmail"),
-        guardianContactNumber: getProfileValue("guardianContact"),
+        guardianContactNumber: toPhilippinePhoneNumber(getProfileValue("guardianContact")),
         subjects: Array.from(document.querySelectorAll("#profileSubjects input:checked"))
             .map(input => input.value),
         learningGoals: getProfileValue("profileLearningGoals"),
@@ -121,7 +121,7 @@ function validateProfile(profile) {
     }
 
     if (profile.contactNumber && !isValidPhilippineContact(profile.contactNumber)) {
-        return { valid: false, field: "profileContact", message: "Use 09XXXXXXXXX or +639XXXXXXXXX." };
+        return { valid: false, field: "profileContact", message: "Enter the 10 digits after +63." };
     }
 
     if (profile.accountManager === "Guardian") {
@@ -138,7 +138,7 @@ function validateProfile(profile) {
         }
 
         if (!isValidPhilippineContact(profile.guardianContactNumber)) {
-            return { valid: false, field: "guardianContact", message: "Use 09XXXXXXXXX or +639XXXXXXXXX." };
+            return { valid: false, field: "guardianContact", message: "Enter the 10 digits after +63." };
         }
     }
 
@@ -343,8 +343,28 @@ function isValidEmail(value) {
 }
 
 function isValidPhilippineContact(value) {
-    const contact = value.replace(/[\s-]/g, "");
-    return /^09\d{9}$/.test(contact) || /^\+639\d{9}$/.test(contact);
+    return /^9\d{9}$/.test(toLocalPhoneDigits(value));
+}
+
+function toLocalPhoneDigits(value) {
+    let digits = String(value || "").replace(/\D/g, "");
+    if (digits.length === 12 && digits.startsWith("63")) digits = digits.slice(2);
+    if (digits.length === 11 && digits.startsWith("09")) digits = digits.slice(1);
+    return digits.slice(0, 10);
+}
+
+function toPhilippinePhoneNumber(value) {
+    const localDigits = toLocalPhoneDigits(value);
+    return /^9\d{9}$/.test(localDigits) ? `+63${localDigits}` : "";
+}
+
+function bindPhoneInputs() {
+    document.querySelectorAll(".phone-prefix-field input").forEach(input => {
+        input.value = toLocalPhoneDigits(input.value);
+        input.addEventListener("input", () => {
+            input.value = toLocalPhoneDigits(input.value);
+        });
+    });
 }
 
 function clearProfileErrors() {
@@ -432,4 +452,5 @@ document.querySelectorAll("#profileSubjects input[type='checkbox']").forEach(inp
     });
 });
 
+bindPhoneInputs();
 document.addEventListener("DOMContentLoaded", loadLearnerProfile);

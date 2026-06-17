@@ -5,6 +5,24 @@ namespace inMVC.Services;
 
 public static class PaymentPolicyCalculator
 {
+    public const decimal MaximumPlatformFeePercentage = 35m;
+    public const decimal MinimumPlatformFeePercentage = 15m;
+
+    public static decimal GetPlatformFeePercentage(decimal totalHoursTaught)
+    {
+        if (totalHoursTaught >= 150m) return 15m;
+        if (totalHoursTaught >= 125m) return 20m;
+        if (totalHoursTaught >= 100m) return 25m;
+        if (totalHoursTaught >= 75m) return 30m;
+        return 35m;
+    }
+
+    public static decimal CalculatePlatformFee(decimal amount, decimal totalHoursTaught)
+    {
+        var percentage = GetPlatformFeePercentage(totalHoursTaught);
+        return Math.Round(Math.Max(0m, amount) * percentage / 100m, 2);
+    }
+
     public static decimal ParseHourlyRate(string value)
     {
         var numeric = new string((value ?? "").Where(character => char.IsDigit(character) || character == '.').ToArray());

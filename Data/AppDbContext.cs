@@ -22,6 +22,7 @@ public class AppDbContext : DbContext
     public DbSet<TutorPenalty> TutorPenalties { get; set; }
     public DbSet<PaymentWebhookEvent> PaymentWebhookEvents { get; set; }
     public DbSet<TutorPayout> TutorPayouts { get; set; }
+    public DbSet<TutorWithdrawal> TutorWithdrawals { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -50,5 +51,8 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<DiscountVoucher>()
             .HasIndex(voucher => voucher.Code)
             .IsUnique();
+
+        modelBuilder.Entity<TutorPayout>()
+            .HasIndex(payout => payout.WithdrawalId);
     }
 }

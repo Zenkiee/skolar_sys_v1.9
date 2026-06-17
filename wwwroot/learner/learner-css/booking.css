@@ -281,6 +281,45 @@ input::placeholder {
     color: #d39292;
 }
 
+.phone-prefix-field {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 46px;
+    border-radius: 10px;
+    background: white;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.phone-prefix {
+    align-self: stretch;
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
+    margin-right: 10px;
+    padding-left: 18px;
+    padding-right: 10px;
+    border-right: 1px solid rgba(139, 0, 0, 0.2);
+    color: rgba(139, 0, 0, 0.55);
+    font-weight: 900;
+}
+
+.phone-prefix-field input {
+    flex: 1 1 auto;
+    height: 100%;
+    min-width: 0;
+    border: 0 !important;
+    border-radius: 0;
+    padding-left: 0 !important;
+    background: transparent;
+    box-shadow: none !important;
+}
+
+.phone-prefix-field input:focus {
+    box-shadow: none !important;
+}
+
 .divider {
     height: 2px;
     background: #8b0000;

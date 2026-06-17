@@ -11,6 +11,7 @@ public class TutorPayout
     public decimal FineAmount { get; set; }
     public decimal NetAmount { get; set; }
     public string Status { get; set; } = "Pending";
+    public int? WithdrawalId { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? ReleasedAt { get; set; }
 }

@@ -177,6 +177,53 @@
     cursor: not-allowed;
 }
 
+.phone-prefix-field {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-height: 41px;
+    border: 1px solid #cfdce3;
+    border-radius: 10px;
+    background: #ffffff;
+    overflow: hidden;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.phone-prefix-field:focus-within {
+    border-color: #003f5c;
+    box-shadow: 0 0 0 3px rgba(0, 63, 92, 0.1);
+}
+
+.phone-prefix {
+    align-self: stretch;
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
+    margin-right: 10px;
+    padding-left: 12px;
+    padding-right: 10px;
+    border-right: 1px solid rgba(22, 56, 71, 0.2);
+    color: rgba(22, 56, 71, 0.55);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.profile-field .phone-prefix-field input {
+    flex: 1 1 auto;
+    height: 100%;
+    min-width: 0;
+    border: 0 !important;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none !important;
+    padding-left: 0;
+}
+
+.profile-field .phone-prefix-field input:focus {
+    box-shadow: none !important;
+}
+
 .profile-field small {
     color: #73858e;
     font-size: 12px;

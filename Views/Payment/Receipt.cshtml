@@ -1,0 +1,167 @@
+@using inMVC.Models
+@{
+    Layout = null;
+    var transaction = (PaymentTransaction)ViewBag.Transaction;
+    var bookings = (List<Booking>)ViewBag.Bookings;
+    var refunds = (List<RefundTransaction>)ViewBag.Refunds;
+    var learner = (User)ViewBag.Learner;
+    var paidText = transaction.PaidAt == null
+        ? "Not confirmed"
+        : transaction.PaidAt.Value.ToString("MMM dd, yyyy h:mm tt");
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/payment/payment.css">
+    <link rel="icon" type="image/png" href="~/assets/img/skolarlogo.png">
+    <title>Receipt #@transaction.Id | Skolar</title>
+</head>
+<body class="receipt-body">
+    <main class="receipt-shell">
+        <section class="receipt-actions-bar">
+            <a href="/Payment/History" class="secondary-link">Back to Payments</a>
+            <div>
+                <a class="receipt-action-link" href="/Payment/DownloadReceipt/@transaction.Id">Download Receipt</a>
+                <button class="receipt-action-link print" type="button" onclick="window.print()">Print / Save PDF</button>
+            </div>
+        </section>
+
+        <section class="receipt-document">
+            <header class="receipt-header">
+                <div>
+                    <img src="~/assets/img/skolarlogo.png" alt="Skolar Logo">
+                    <span>Skolar</span>
+                </div>
+                <div>
+                    <p>Receipt</p>
+                    <strong>#@transaction.Id</strong>
+                </div>
+            </header>
+
+            <section class="receipt-title-block">
+                <p class="payment-eyebrow">Learner Payment</p>
+                <h1>Official Receipt</h1>
+                <p>Generated for @learner.Name after checkout processing.</p>
+            </section>
+
+            <section class="receipt-summary-grid">
+                <div>
+                    <span>Reference</span>
+                    <strong>@transaction.CheckoutReference</strong>
+                </div>
+                <div>
+                    <span>Status</span>
+                    <strong>@transaction.Status</strong>
+                </div>
+                <div>
+                    <span>Amount</span>
+                    <strong>PHP @transaction.Amount.ToString("N2")</strong>
+                </div>
+                <div>
+                    <span>Payment method</span>
+                    <strong>@(string.IsNullOrWhiteSpace(transaction.PaymentMethod) ? "Payment provider" : transaction.PaymentMethod)</strong>
+                </div>
+                <div>
+                    <span>Created</span>
+                    <strong>@transaction.CreatedAt.ToString("MMM dd, yyyy h:mm tt")</strong>
+                </div>
+                <div>
+                    <span>Paid</span>
+                    <strong>@paidText</strong>
+                </div>
+            </section>
+
+            <section class="receipt-party-grid">
+                <div>
+                    <span>Billed to</span>
+                    <strong>@learner.Name</strong>
+                    <p>@learner.Email</p>
+                </div>
+                <div>
+                    <span>Issued by</span>
+                    <strong>Skolar</strong>
+                    <p>Learning marketplace payment record</p>
+                </div>
+            </section>
+
+            <section class="receipt-section">
+                <h2>Sessions</h2>
+                <div class="receipt-table-wrap">
+                    <table class="receipt-table">
+                        <thead>
+                            <tr>
+                                <th>Subject</th>
+                                <th>Tutor</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (bookings.Count == 0)
+                            {
+                                <tr><td colspan="5">No sessions found for this transaction.</td></tr>
+                            }
+                            else
+                            {
+                                foreach (var booking in bookings)
+                                {
+                                    <tr>
+                                        <td>@booking.Subject</td>
+                                        <td>@booking.TutorName</td>
+                                        <td>@booking.Date.ToString("MMM dd, yyyy")</td>
+                                        <td>@booking.Time</td>
+                                        <td>PHP @booking.SessionAmount.ToString("N2")</td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="receipt-section">
+                <h2>Refunds</h2>
+                <div class="receipt-table-wrap">
+                    <table class="receipt-table">
+                        <thead>
+                            <tr>
+                                <th>Reference</th>
+                                <th>Reason</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (refunds.Count == 0)
+                            {
+                                <tr><td colspan="4">No refund requests for this transaction.</td></tr>
+                            }
+                            else
+                            {
+                                foreach (var refund in refunds)
+                                {
+                                    <tr>
+                                        <td>@(string.IsNullOrWhiteSpace(refund.ExternalRefundId) ? "Pending reference" : refund.ExternalRefundId)</td>
+                                        <td>@refund.Reason</td>
+                                        <td>PHP @refund.Amount.ToString("N2")</td>
+                                        <td>@refund.Status</td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <footer class="receipt-footer">
+                <p>This receipt reflects the payment records currently stored by Skolar.</p>
+                <p>Generated @DateTime.Now.ToString("MMM dd, yyyy h:mm tt")</p>
+            </footer>
+        </section>
+    </main>
+</body>
+</html>

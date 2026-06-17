@@ -35,6 +35,7 @@ function initializePage() {
     setBirthdayLimit();
     initializePasswordToggles();
     initializeValidationEvents();
+    initializePhoneInputs();
     initializeSubjectDropdown();
     initializeBioCounter();
 
@@ -223,7 +224,7 @@ async function handleTutorSignup(event) {
     const name = document.getElementById("tutorName").value.trim();
     const rate = Number(document.getElementById("rate").value);
     const education = document.getElementById("education").value.trim();
-    const contactNumber = document.getElementById("contactNumber").value.trim().replace(/[\s-]/g, "");
+    const contactNumber = toPhilippinePhoneNumber(document.getElementById("contactNumber").value);
     const bio = document.getElementById("bio").value.trim();
     const subjects = getSelectedSubjects();
 
@@ -240,8 +241,8 @@ async function handleTutorSignup(event) {
         valid = false;
     }
 
-    if (!/^(09\d{9}|\+639\d{9})$/.test(contactNumber)) {
-        setFieldError("contactNumber", "Use 09XXXXXXXXX or +639XXXXXXXXX.");
+    if (!isValidLocalPhoneNumber(document.getElementById("contactNumber").value)) {
+        setFieldError("contactNumber", "Enter the 10 digits after +63.");
         valid = false;
     }
 
@@ -274,6 +275,32 @@ async function handleTutorSignup(event) {
             subjects
         }
     }, "/Tutor/IdentityVerification");
+}
+
+function toLocalPhoneDigits(value) {
+    let digits = String(value || "").replace(/\D/g, "");
+    if (digits.length === 12 && digits.startsWith("63")) digits = digits.slice(2);
+    if (digits.length === 11 && digits.startsWith("09")) digits = digits.slice(1);
+    return digits.slice(0, 10);
+}
+
+function isValidLocalPhoneNumber(value) {
+    return /^9\d{9}$/.test(toLocalPhoneDigits(value));
+}
+
+function toPhilippinePhoneNumber(value) {
+    const localDigits = toLocalPhoneDigits(value);
+    return /^9\d{9}$/.test(localDigits) ? `+63${localDigits}` : "";
+}
+
+function initializePhoneInputs() {
+    document.querySelectorAll(".phone-prefix-field input").forEach(input => {
+        input.value = toLocalPhoneDigits(input.value);
+        input.addEventListener("input", () => {
+            input.value = toLocalPhoneDigits(input.value);
+            clearFieldError(input.id);
+        });
+    });
 }
 
 async function submitSignup(form, payload, redirectUrl) {

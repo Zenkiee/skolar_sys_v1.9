@@ -343,8 +343,28 @@ function isValidBookingEmail(value) {
 }
 
 function isValidBookingContact(value) {
-    const text = String(value || "").replace(/[\s-]/g, "");
-    return /^09\d{9}$/.test(text) || /^\+639\d{9}$/.test(text);
+    return /^9\d{9}$/.test(toLocalPhoneDigits(value));
+}
+
+function toLocalPhoneDigits(value) {
+    let digits = String(value || "").replace(/\D/g, "");
+    if (digits.length === 12 && digits.startsWith("63")) digits = digits.slice(2);
+    if (digits.length === 11 && digits.startsWith("09")) digits = digits.slice(1);
+    return digits.slice(0, 10);
+}
+
+function toPhilippinePhoneNumber(value) {
+    const localDigits = toLocalPhoneDigits(value);
+    return /^9\d{9}$/.test(localDigits) ? `+63${localDigits}` : "";
+}
+
+function bindPhoneInputs() {
+    document.querySelectorAll(".phone-prefix-field input").forEach(input => {
+        input.value = toLocalPhoneDigits(input.value);
+        input.addEventListener("input", () => {
+            input.value = toLocalPhoneDigits(input.value);
+        });
+    });
 }
 
 function bindForms() {
@@ -370,7 +390,7 @@ function bindForms() {
         }
 
         if (!isValidBookingContact(contact)) {
-            SkolarDialog.alert("Use 09XXXXXXXXX or +639XXXXXXXXX for the contact number.");
+            SkolarDialog.alert("Enter the 10 digits after +63 for the contact number.");
             return;
         }
 
@@ -416,7 +436,7 @@ async function submitBooking(event) {
     formData.append("TutorId", String(tutorId));
     formData.append("LearnerName", document.getElementById("summaryName").textContent);
     formData.append("LearnerEmail", document.getElementById("email").value);
-    formData.append("LearnerContact", document.getElementById("contact").value);
+    formData.append("LearnerContact", toPhilippinePhoneNumber(document.getElementById("contact").value));
     formData.append("Subject", document.getElementById("summarySubject").textContent);
     formData.append("TutorName", tutorName);
     formData.append("BookingType", bookingType);
@@ -525,6 +545,7 @@ function updatePricingSummary() {
 // Page
 async function initializePage() {
     bindForms();
+    bindPhoneInputs();
 
     document.querySelectorAll(".booking-type-btn").forEach(button => {
         button.addEventListener("click", () => setBookingType(button.dataset.bookingType));

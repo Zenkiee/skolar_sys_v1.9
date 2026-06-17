@@ -374,7 +374,7 @@ public class HomeController : Controller
             return BadRequest(new
             {
                 field = "epPhone",
-                message = "Use 09XXXXXXXXX or +639XXXXXXXXX."
+                message = "Enter the 10 digits after +63."
             });
         }
 
@@ -546,7 +546,7 @@ public class HomeController : Controller
             {
                 return SignupError(
                     "contactNumber",
-                    "Use 09XXXXXXXXX or +639XXXXXXXXX.");
+                    "Enter the 10 digits after +63.");
             }
 
             if (bio.Length is < 20 or > 500)
@@ -1548,6 +1548,13 @@ public class HomeController : Controller
             .Replace(" ", "")
             .Replace("-", "")
             .Trim();
+
+        if (contact.Length == 10 &&
+            contact.StartsWith("9") &&
+            contact.All(char.IsDigit))
+        {
+            return $"+63{contact}";
+        }
 
         if (contact.Length == 11 &&
             contact.StartsWith("09") &&

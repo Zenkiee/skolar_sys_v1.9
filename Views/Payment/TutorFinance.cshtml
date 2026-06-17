@@ -10,7 +10,7 @@
   <title>Earnings &amp; Penalties — Skolar</title>
   <link rel="icon" type="image/png" href="~/assets/img/skolarlogo.png">
   <link rel="stylesheet" href="~/tutor/tutor-css/tutor-shared.css">
-  <link rel="stylesheet" href="~/tutor/tutor-css/tutor-finance.css">
+  <link rel="stylesheet" href="~/tutor/tutor-css/tutor-finance.css" asp-append-version="true">
 </head>
 <body>
   <script src="~/js/skolar-dialog.js"></script>
@@ -100,13 +100,17 @@
 
     <main class="main-content finance-content">
       <div class="finance-intro">
-        <p>Review payouts, retained cancellation compensation, and future deductions.</p>
+        <p>Review held learner payments, platform fees, retained cancellation compensation, and withdrawal requests.</p>
       </div>
 
       <section class="finance-summary" id="financeSummary">
         <div>
           <span>Gross session earnings</span>
           <strong id="financeGross">₱0.00</strong>
+        </div>
+        <div>
+          <span>Platform fees</span>
+          <strong id="financePlatformFees">PHP 0.00</strong>
         </div>
         <div>
           <span>Cancellation compensation</span>
@@ -124,6 +128,26 @@
 
       <section class="finance-notes">
         <div>
+          <span>Total hours taught</span>
+          <strong id="financeHoursTaught">0</strong>
+        </div>
+        <div>
+          <span>Current platform fee</span>
+          <strong id="financeFeeRate">35%</strong>
+        </div>
+        <div>
+          <span>Available to withdraw</span>
+          <strong id="financeAvailable">PHP 0.00</strong>
+        </div>
+        <div>
+          <span>Held until completion</span>
+          <strong id="financeHeld">PHP 0.00</strong>
+        </div>
+        <div>
+          <span>Withdrawal requests</span>
+          <strong id="financeRequested">PHP 0.00</strong>
+        </div>
+        <div>
           <span>Pending next-session fines</span>
           <strong id="financePendingPenalties">0</strong>
         </div>
@@ -131,6 +155,43 @@
           <span>Official cancellation warnings</span>
           <strong id="financeWarnings">0</strong>
         </div>
+      </section>
+
+      <section class="withdrawal-panel">
+        <div class="withdrawal-copy">
+          <p class="section-kicker">Withdrawals</p>
+          <h2>Request available earnings</h2>
+          <p>Submitted requests are reviewed and processed by Skolar before release.</p>
+        </div>
+        <form id="withdrawalForm" class="withdrawal-form">
+          <label>
+            Method
+            <input id="withdrawalMethod" type="hidden" value="GCash">
+            <span class="withdrawal-method-lock">GCash only</span>
+          </label>
+          <label>
+            Account name
+            <input id="withdrawalAccountName" type="text" maxlength="120" placeholder="GCash registered name" required>
+          </label>
+          <label>
+            Account number
+            <div class="phone-prefix-field">
+              <span class="phone-prefix">+63</span>
+              <input id="withdrawalAccountNumber" type="tel" maxlength="10" inputmode="numeric" placeholder="9XXXXXXXXX" required>
+            </div>
+          </label>
+          <button id="withdrawalButton" type="submit">Request withdrawal</button>
+        </form>
+      </section>
+
+      <div class="section-heading">
+        <div>
+          <p class="section-kicker">Withdrawal history</p>
+          <h2>Requests</h2>
+        </div>
+      </div>
+      <section class="transaction-list" id="withdrawalList">
+        <div class="history-empty">Loading withdrawal requests...</div>
       </section>
 
       <div class="section-heading">
@@ -157,6 +218,6 @@
   <script src="~/main-js/auth-guard.js"></script>
   <script>requireRole("tutor");</script>
   <script src="~/tutor/tutor-js/tutor-shared.js"></script>
-  <script src="~/tutor/tutor-js/tutor-finance.js"></script>
+  <script src="~/tutor/tutor-js/tutor-finance.js" asp-append-version="true"></script>
 </body>
 </html>

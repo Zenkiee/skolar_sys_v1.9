@@ -1,42 +1,50 @@
 let adminIssues = [];
 let adminReviewReports = [];
 let adminTutorVerifications = [];
+let adminTutorWithdrawals = [];
 let selectedAdminIssueId = null;
 let adminToastTimer = null;
 
 // Data
 async function loadAdminData() {
-    const [issueResponse, reviewResponse, verificationResponse] = await Promise.all([
+    const [issueResponse, reviewResponse, verificationResponse, withdrawalResponse] = await Promise.all([
         fetch("/Admin/SessionIssues", { cache: "no-store" }),
         fetch("/Admin/ReviewReports", { cache: "no-store" }),
-        fetch("/Admin/TutorVerifications", { cache: "no-store" })
+        fetch("/Admin/TutorVerifications", { cache: "no-store" }),
+        fetch("/Admin/TutorWithdrawals", { cache: "no-store" })
     ]);
 
     if (!issueResponse.ok) throw new Error("Could not load session issues.");
     if (!reviewResponse.ok) throw new Error("Could not load reported reviews.");
     if (!verificationResponse.ok) throw new Error("Could not load tutor verifications.");
+    if (!withdrawalResponse.ok) throw new Error("Could not load tutor withdrawals.");
 
     adminIssues = await issueResponse.json();
     adminReviewReports = await reviewResponse.json();
     adminTutorVerifications = await verificationResponse.json();
+    adminTutorWithdrawals = await withdrawalResponse.json();
 
     updateAdminSummary();
     renderAdminIssues();
     renderReviewReports();
     renderTutorVerifications();
+    renderTutorWithdrawals();
 }
 
 function updateAdminSummary() {
     const openIssues = adminIssues.filter(issue => !issue.adminIssueResolvedAt);
     const pendingReviews = adminReviewReports.filter(report => report.status === "Pending");
     const pendingVerifications = adminTutorVerifications.filter(item => item.identityVerificationStatus !== "Verified");
+    const pendingWithdrawals = adminTutorWithdrawals.filter(item => item.status === "Requested" || item.status === "Processing");
     const resolvedIssues = adminIssues.filter(issue => Boolean(issue.adminIssueResolvedAt));
     const resolvedReviews = adminReviewReports.filter(report => report.status !== "Pending");
+    const resolvedWithdrawals = adminTutorWithdrawals.filter(item => item.status === "Released" || item.status === "Rejected");
 
     setAdminText("openIssueCount", openIssues.length);
     setAdminText("pendingReviewCount", pendingReviews.length);
     setAdminText("pendingVerificationCount", pendingVerifications.length);
-    setAdminText("resolvedItemCount", resolvedIssues.length + resolvedReviews.length);
+    setAdminText("pendingWithdrawalCount", pendingWithdrawals.length);
+    setAdminText("resolvedItemCount", resolvedIssues.length + resolvedReviews.length + resolvedWithdrawals.length);
 }
 
 // Session Issues
@@ -326,6 +334,106 @@ async function resolveTutorVerification(tutorId, action) {
     }
 }
 
+// Tutor Withdrawals
+function renderTutorWithdrawals() {
+    const list = document.getElementById("adminWithdrawalList");
+    const filter = document.getElementById("withdrawalFilter")?.value || "open";
+    if (!list) return;
+
+    const filtered = adminTutorWithdrawals.filter(item => {
+        if (filter === "all") return true;
+        if (filter === "released") return item.status === "Released";
+        if (filter === "rejected") return item.status === "Rejected";
+        return item.status === "Requested" || item.status === "Processing";
+    });
+
+    if (filtered.length === 0) {
+        list.innerHTML = `<div class="admin-empty">No ${filter === "all" ? "" : filter} tutor withdrawals found.</div>`;
+        return;
+    }
+
+    list.innerHTML = filtered.map(item => {
+        const open = item.status === "Requested" || item.status === "Processing";
+        return `
+            <article class="admin-issue-card admin-withdrawal-card">
+                <div class="admin-issue-head">
+                    <div>
+                        <h3>${escapeAdminHtml(item.tutorName || "Tutor")} - ${formatAdminMoney(item.amount)}</h3>
+                        <p>${escapeAdminHtml(item.method || "GCash")} - Requested ${escapeAdminHtml(formatAdminDate(item.requestedAt))}</p>
+                        <span class="admin-issue-meta">${escapeAdminHtml(item.tutorEmail || "No email")} - ${Number(item.totalHoursTaught || 0).toLocaleString("en-PH", { maximumFractionDigits: 2 })} taught hours</span>
+                    </div>
+                    <span class="admin-status ${item.status === "Rejected" ? "danger" : item.status === "Released" ? "resolved" : ""}">${escapeAdminHtml(item.status)}</span>
+                </div>
+                <div class="admin-issue-body admin-withdrawal-body">
+                    <div class="admin-statement">
+                        <h4>GCash details</h4>
+                        <p><strong>Account name:</strong> ${escapeAdminHtml(item.gCashAccountName || "No account name")}</p>
+                        <p><strong>Account number:</strong> ${escapeAdminHtml(item.gCashAccountNumber || "No account number")}</p>
+                        <p><strong>Contact:</strong> ${escapeAdminHtml(item.tutorContact || "No contact")}</p>
+                    </div>
+                    <div class="admin-statement">
+                        <h4>Payout breakdown</h4>
+                        <p><strong>${formatAdminMoney(item.netAmount)}</strong> net from ${Number(item.payoutCount || 0)} payout record(s)</p>
+                        <p>Gross: ${formatAdminMoney(item.grossAmount)} | Fees: ${formatAdminMoney(item.platformFeeAmount)} | Fines: ${formatAdminMoney(item.fineAmount)}</p>
+                    </div>
+                    ${item.adminNote ? `
+                        <div class="admin-resolution-summary">
+                            <strong>Admin note / reference</strong>
+                            <p>${escapeAdminHtml(item.adminNote)}</p>
+                        </div>` : ""}
+                </div>
+                ${open ? `
+                    <div class="admin-issue-footer admin-review-actions">
+                        <button type="button" class="admin-secondary-btn admin-withdrawal-decision" data-withdrawal-id="${item.id}" data-action="processing">Mark Processing</button>
+                        <button type="button" class="admin-primary-btn admin-withdrawal-decision" data-withdrawal-id="${item.id}" data-action="release">Mark Released</button>
+                        <button type="button" class="admin-danger-btn admin-withdrawal-decision" data-withdrawal-id="${item.id}" data-action="reject">Reject</button>
+                    </div>` : ""}
+            </article>`;
+    }).join("");
+}
+
+async function resolveTutorWithdrawal(withdrawalId, action) {
+    const labels = {
+        processing: "Mark this withdrawal as processing?",
+        release: "Mark this GCash withdrawal as released?",
+        reject: "Reject this withdrawal and return the earnings to the tutor balance?"
+    };
+    const notePrompt = action === "release"
+        ? "Enter GCash reference number or release note:"
+        : action === "reject"
+            ? "Enter the rejection reason:"
+            : "Optional processing note:";
+    const note = window.prompt(notePrompt, "");
+    if (note === null) return;
+
+    if ((action === "release" || action === "reject") && note.trim().length < 3) {
+        showAdminToast("Add a short note or reference before finalizing.", "error");
+        return;
+    }
+
+    const confirmed = await SkolarDialog.confirm(labels[action] || "Update this withdrawal?", {
+        title: "Update withdrawal?",
+        type: action === "reject" ? "danger" : "warning",
+        confirmText: action === "release" ? "Mark Released" : action === "reject" ? "Reject" : "Mark Processing"
+    });
+
+    if (!confirmed) return;
+
+    try {
+        const response = await fetch("/Admin/ResolveTutorWithdrawal", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ withdrawalId, action, note: note.trim() })
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(result.message || "Could not update the withdrawal.");
+        showAdminToast(result.message || "Withdrawal updated.");
+        await loadAdminData();
+    } catch (error) {
+        showAdminToast(error.message, "error");
+    }
+}
+
 // Navigation
 function switchAdminTab(tabName) {
     document.querySelectorAll("[data-admin-tab]").forEach(button => {
@@ -335,6 +443,7 @@ function switchAdminTab(tabName) {
     document.getElementById("sessionIssuesPanel").hidden = tabName !== "sessions";
     document.getElementById("reviewReportsPanel").hidden = tabName !== "reviews";
     document.getElementById("tutorVerificationsPanel").hidden = tabName !== "verifications";
+    document.getElementById("tutorWithdrawalsPanel").hidden = tabName !== "withdrawals";
 }
 
 // Helpers
@@ -360,6 +469,10 @@ function formatAdminDate(value) {
         : date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 }
 
+function formatAdminMoney(value) {
+    return `PHP ${Number(value || 0).toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
 function escapeAdminHtml(value) {
     return String(value ?? "")
         .replaceAll("&", "&amp;")
@@ -378,6 +491,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("issueFilter")?.addEventListener("change", renderAdminIssues);
     document.getElementById("reviewReportFilter")?.addEventListener("change", renderReviewReports);
     document.getElementById("verificationFilter")?.addEventListener("change", renderTutorVerifications);
+    document.getElementById("withdrawalFilter")?.addEventListener("change", renderTutorWithdrawals);
 
     document.getElementById("adminIssueList")?.addEventListener("click", event => {
         const button = event.target.closest(".admin-resolve-btn");
@@ -394,6 +508,11 @@ document.addEventListener("DOMContentLoaded", () => {
         if (button) resolveTutorVerification(Number(button.dataset.tutorId), button.dataset.action);
     });
 
+    document.getElementById("adminWithdrawalList")?.addEventListener("click", event => {
+        const button = event.target.closest(".admin-withdrawal-decision");
+        if (button) resolveTutorWithdrawal(Number(button.dataset.withdrawalId), button.dataset.action);
+    });
+
     document.querySelectorAll("[data-close-admin-modal]").forEach(element => {
         element.addEventListener("click", closeAdminResolutionModal);
     });
@@ -408,8 +527,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const issueList = document.getElementById("adminIssueList");
         const reviewList = document.getElementById("adminReviewList");
         const verificationList = document.getElementById("adminVerificationList");
+        const withdrawalList = document.getElementById("adminWithdrawalList");
         if (issueList) issueList.innerHTML = `<div class="admin-empty">${escapeAdminHtml(error.message)}</div>`;
         if (reviewList) reviewList.innerHTML = `<div class="admin-empty">${escapeAdminHtml(error.message)}</div>`;
         if (verificationList) verificationList.innerHTML = `<div class="admin-empty">${escapeAdminHtml(error.message)}</div>`;
+        if (withdrawalList) withdrawalList.innerHTML = `<div class="admin-empty">${escapeAdminHtml(error.message)}</div>`;
     });
 });
