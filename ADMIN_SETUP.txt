@@ -1,8 +1,0 @@
-SKOLAR ADMINISTRATOR LOGIN
-==========================
-
-Open:
-  http://localhost:<port>/Home/Account?role=admin
-
-Password:
-  admin_132
