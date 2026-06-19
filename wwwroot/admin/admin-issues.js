@@ -3,6 +3,8 @@ let adminReviewReports = [];
 let adminTutorVerifications = [];
 let adminTutorWithdrawals = [];
 let selectedAdminIssueId = null;
+let selectedWithdrawalId = null;
+let selectedWithdrawalAction = "";
 let adminToastTimer = null;
 
 // Data
@@ -393,44 +395,133 @@ function renderTutorWithdrawals() {
 }
 
 async function resolveTutorWithdrawal(withdrawalId, action) {
-    const labels = {
-        processing: "Mark this withdrawal as processing?",
-        release: "Mark this GCash withdrawal as released?",
-        reject: "Reject this withdrawal and return the earnings to the tutor balance?"
-    };
-    const notePrompt = action === "release"
-        ? "Enter GCash reference number or release note:"
-        : action === "reject"
-            ? "Enter the rejection reason:"
-            : "Optional processing note:";
-    const note = window.prompt(notePrompt, "");
-    if (note === null) return;
+    openWithdrawalDecisionModal(withdrawalId, action);
+}
 
-    if ((action === "release" || action === "reject") && note.trim().length < 3) {
-        showAdminToast("Add a short note or reference before finalizing.", "error");
+function openWithdrawalDecisionModal(withdrawalId, action) {
+    const withdrawal = adminTutorWithdrawals.find(item => Number(item.id) === Number(withdrawalId));
+    const modal = ensureWithdrawalDecisionModal();
+    if (!withdrawal || !modal) return;
+
+    const actionLabels = {
+        processing: {
+            title: "Mark withdrawal as processing?",
+            button: "Mark Processing",
+            note: "Optional processing note",
+            placeholder: "Add an internal note if needed..."
+        },
+        release: {
+            title: "Mark GCash withdrawal as released?",
+            button: "Mark Released",
+            note: "GCash reference or release note",
+            placeholder: "Enter the payout reference or release note..."
+        },
+        reject: {
+            title: "Reject withdrawal?",
+            button: "Reject Withdrawal",
+            note: "Rejection reason",
+            placeholder: "Explain why this withdrawal is being rejected..."
+        }
+    };
+    const labels = actionLabels[action] || actionLabels.processing;
+
+    selectedWithdrawalId = Number(withdrawalId);
+    selectedWithdrawalAction = action;
+
+    document.getElementById("adminWithdrawalTitle").textContent = labels.title;
+    document.getElementById("adminWithdrawalDetails").innerHTML = `
+        <strong>${escapeAdminHtml(withdrawal.tutorName || "Tutor")} - ${formatAdminMoney(withdrawal.amount)}</strong><br>
+        ${escapeAdminHtml(withdrawal.method || "GCash")} - ${escapeAdminHtml(withdrawal.gCashAccountName || "No account name")}<br>
+        ${escapeAdminHtml(withdrawal.gCashAccountNumber || "No account number")} - Requested ${escapeAdminHtml(formatAdminDate(withdrawal.requestedAt))}`;
+    document.getElementById("adminWithdrawalNoteLabel").textContent = labels.note;
+    document.getElementById("adminWithdrawalNote").value = "";
+    document.getElementById("adminWithdrawalNote").placeholder = labels.placeholder;
+    document.getElementById("adminWithdrawalError").textContent = "";
+
+    const submitButton = document.getElementById("submitWithdrawalDecision");
+    submitButton.textContent = labels.button;
+    submitButton.className = action === "reject" ? "admin-danger-btn" : "admin-primary-btn";
+
+    modal.hidden = false;
+    document.body.style.overflow = "hidden";
+    setTimeout(() => document.getElementById("adminWithdrawalNote")?.focus(), 0);
+}
+
+function ensureWithdrawalDecisionModal() {
+    let modal = document.getElementById("adminWithdrawalModal");
+    if (modal) return modal;
+
+    modal = document.createElement("div");
+    modal.className = "admin-modal";
+    modal.id = "adminWithdrawalModal";
+    modal.hidden = true;
+    modal.innerHTML = `
+        <div class="admin-modal-backdrop" data-close-withdrawal-modal></div>
+        <div class="admin-modal-card" role="dialog" aria-modal="true" aria-labelledby="adminWithdrawalTitle">
+            <button type="button" class="admin-modal-close" data-close-withdrawal-modal aria-label="Close">&times;</button>
+            <p class="admin-eyebrow">Withdrawal decision</p>
+            <h2 id="adminWithdrawalTitle">Update withdrawal</h2>
+            <div id="adminWithdrawalDetails" class="admin-resolution-details"></div>
+
+            <label for="adminWithdrawalNote" id="adminWithdrawalNoteLabel">Admin note</label>
+            <textarea id="adminWithdrawalNote" maxlength="500" placeholder="Add a payout reference or note..."></textarea>
+            <p id="adminWithdrawalError" class="admin-form-message" role="alert"></p>
+
+            <div class="admin-modal-actions">
+                <button type="button" class="admin-secondary-btn" data-close-withdrawal-modal>Cancel</button>
+                <button type="button" class="admin-primary-btn" id="submitWithdrawalDecision">Submit Decision</button>
+            </div>
+        </div>`;
+
+    document.body.appendChild(modal);
+    modal.querySelectorAll("[data-close-withdrawal-modal]").forEach(element => {
+        element.addEventListener("click", closeWithdrawalDecisionModal);
+    });
+    modal.querySelector("#submitWithdrawalDecision").addEventListener("click", submitWithdrawalDecision);
+    return modal;
+}
+
+function closeWithdrawalDecisionModal() {
+    const modal = document.getElementById("adminWithdrawalModal");
+    if (modal) modal.hidden = true;
+    selectedWithdrawalId = null;
+    selectedWithdrawalAction = "";
+    document.body.style.overflow = "";
+}
+
+async function submitWithdrawalDecision() {
+    if (!selectedWithdrawalId || !selectedWithdrawalAction) return;
+
+    const note = document.getElementById("adminWithdrawalNote").value.trim();
+    const error = document.getElementById("adminWithdrawalError");
+    const button = document.getElementById("submitWithdrawalDecision");
+    const action = selectedWithdrawalAction;
+
+    if ((action === "release" || action === "reject") && note.length < 3) {
+        error.textContent = "Add a short note or payout reference before finalizing.";
         return;
     }
 
-    const confirmed = await SkolarDialog.confirm(labels[action] || "Update this withdrawal?", {
-        title: "Update withdrawal?",
-        type: action === "reject" ? "danger" : "warning",
-        confirmText: action === "release" ? "Mark Released" : action === "reject" ? "Reject" : "Mark Processing"
-    });
-
-    if (!confirmed) return;
+    button.disabled = true;
+    button.textContent = "Submitting...";
+    error.textContent = "";
 
     try {
         const response = await fetch("/Admin/ResolveTutorWithdrawal", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ withdrawalId, action, note: note.trim() })
+            body: JSON.stringify({ withdrawalId: selectedWithdrawalId, action, note })
         });
         const result = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(result.message || "Could not update the withdrawal.");
+        closeWithdrawalDecisionModal();
         showAdminToast(result.message || "Withdrawal updated.");
         await loadAdminData();
     } catch (error) {
-        showAdminToast(error.message, "error");
+        document.getElementById("adminWithdrawalError").textContent = error.message;
+    } finally {
+        button.disabled = false;
+        button.textContent = action === "release" ? "Mark Released" : action === "reject" ? "Reject Withdrawal" : "Mark Processing";
     }
 }
 
@@ -517,10 +608,18 @@ document.addEventListener("DOMContentLoaded", () => {
         element.addEventListener("click", closeAdminResolutionModal);
     });
 
+    document.querySelectorAll("[data-close-withdrawal-modal]").forEach(element => {
+        element.addEventListener("click", closeWithdrawalDecisionModal);
+    });
+
     document.getElementById("submitAdminResolution")?.addEventListener("click", submitAdminResolution);
+    document.getElementById("submitWithdrawalDecision")?.addEventListener("click", submitWithdrawalDecision);
 
     document.addEventListener("keydown", event => {
-        if (event.key === "Escape") closeAdminResolutionModal();
+        if (event.key === "Escape") {
+            closeAdminResolutionModal();
+            closeWithdrawalDecisionModal();
+        }
     });
 
     loadAdminData().catch(error => {
